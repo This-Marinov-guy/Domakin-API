@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Common;
 
 use App\Models\Feedback;
 use Illuminate\Http\Request;
@@ -29,7 +29,7 @@ class FeedbackController extends Controller
 
     public function createFeedback()
     {
-        // step 1: get body 
+    // step 1: get body 
         // step 2: validate data 
         // step 3: create feedback
         // step 4: return status true
