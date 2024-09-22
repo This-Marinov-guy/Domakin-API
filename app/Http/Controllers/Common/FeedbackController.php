@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Common;
 
+use App\Http\Controllers\Controller;
 use App\Models\Feedback;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
