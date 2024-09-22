@@ -37,4 +37,13 @@ class Feedback extends Model
     //         'content' => 'required|string|max:200|min:10',
     //     ]);
     // }
+
+    // public function rules(Request $request)
+    // {
+    //     $validate = $request->validate([
+
+    //         'content' => 'required|string|max:200|min:10',
+
+    //     ])
+    // }
 }
