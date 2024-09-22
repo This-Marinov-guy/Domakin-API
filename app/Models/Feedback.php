@@ -12,6 +12,13 @@ class Feedback extends Model
     use HasFactory, Notifiable;
 
     /**
+     * Table name
+     *
+     * @var string
+     */
+    protected $table = 'feedbacks';
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>

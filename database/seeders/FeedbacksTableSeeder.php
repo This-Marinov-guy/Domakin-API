@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Feedback;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -12,18 +13,6 @@ class FeedbacksTableSeeder extends Seeder
      */
     public function run()
     {
-        DB::table('feedbacks')->insert([
-            [
-                'language' => 'English',
-                'name' => 'John Doe',
-                'content' => 'This is a great product!',
-            ],
-            [
-                'language' => 'Spanish',
-                'name' => 'Anonymous',
-                'content' => 'Me gusta este producto.',
-            ],
-
-        ]);
+        Feedback::factory()->count(10)->create();
     }
 }
