@@ -40,7 +40,7 @@ return [
             'password' => env('DB_PASSWORD', ''),
             'charset' => 'utf8',
             'prefix' => '',
-            'schema' => 'public',  // <-- Add this line
+            'schema' => 'public',
             'sslmode' => 'prefer',
         ],
 
