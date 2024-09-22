@@ -2,19 +2,32 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Feedback;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 class FeedbackController extends Controller
 {
 
-    function fetchFeedbacks()
+    public function fetchFeedbacks(Request $request): JsonResponse
     {
-        // step 1: get language from query
-        // step 2: fetch all feedbacks that have approved = true and match language (if no language skip condition)
-        // step 3: return data
+        $language = $request->query('language') ?? null;
+
+        $query = Feedback::where('approved', true);
+
+        if ($language) {
+            $query->where('language', $language);
+        }
+
+        $approvedFeedbacks = $query->get()->toArray();
+        
+        return response()->json([
+            'status' => true,
+            'data' => $approvedFeedbacks
+        ]);
     }
 
-    function createFeedback()
+    public function createFeedback()
     {
         // step 1: get body 
         // step 2: validate data 
