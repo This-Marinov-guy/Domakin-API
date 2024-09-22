@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Feedback;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -9,6 +10,8 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class FeedbackFactory extends Factory
 {
+    protected $model = Feedback::class;
+
     /**
      * Define the model's default state.
      *
@@ -17,7 +20,8 @@ class FeedbackFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'name' => $this->faker->name(), // Generates a random name
+            'content' => $this->faker->text(200), // Generates random content up to 200 characters
         ];
     }
 }
