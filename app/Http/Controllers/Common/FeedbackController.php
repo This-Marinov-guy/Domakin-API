@@ -50,7 +50,7 @@ class FeedbackController extends Controller
         } catch (Exception $error) {
             return response()->json([
                 'status' => false,
-                'message'=> 'Error',
+                'message'=> 'Something went wrong',
             ]);  
         } 
 
