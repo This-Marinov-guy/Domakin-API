@@ -14,10 +14,10 @@ return new class extends Migration
         Schema::create('feedbacks', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
-            $table->string('language')->nullable(); // Nullable language field
-            $table->boolean('approved')->default(false); // Approved, default is false
-            $table->string('name')->default('anonymous'); // Default name is 'anonymous'
-            $table->string('content', 200); // Content required, max 200 characters
+            $table->string('language')->nullable(); 
+            $table->boolean('approved')->default(false); 
+            $table->string('name', 255)->default('Anonymous'); 
+            $table->string('content', 200); 
         });
     }
 
