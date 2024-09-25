@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Common;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StorePostRequest;
 use App\Models\Feedback;
+use Exception;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
@@ -33,7 +34,6 @@ class FeedbackController extends Controller
     {
         // step 1: get body 
 
-
         // step 2: validate data 
     
         $validatedDate= $request->validated([
@@ -42,13 +42,21 @@ class FeedbackController extends Controller
 
 
         // step 3: create feedback
-        $feedback = Feedback::create();
+        $feedback = null;
 
-        // step 4: return status true
+        try {
+            Feedback::create([
 
-        return response()->json([
-            'status'=> true,
-            'feedback'=> $feedback,
+            ]);
+        } catch (Exception $error) {
+            return response()->json([
+                'status' => false,
+                'message'=> 'Error',
+            ]);  
+        } 
+
+        return response()->json(data: [
+            'status' => true,
         ]);
     }
 }
