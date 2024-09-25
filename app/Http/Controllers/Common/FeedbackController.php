@@ -29,14 +29,18 @@ class FeedbackController extends Controller
         ]);
     }
 
-    public function createFeedback(StorePostRequest $request): JsonResponse
+    public function createFeedback(Request $request): JsonResponse
     {
         // step 1: get body 
 
 
         // step 2: validate data 
-        //DONE
-        
+    
+        $validatedDate= $request->validated([
+            'required|string|max:200|min:10',
+        ]);
+
+
         // step 3: create feedback
         $feedback = Feedback::create();
 
