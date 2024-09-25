@@ -29,6 +29,16 @@ class Feedback extends Model
     ];
 
     /**
+     * The default values.
+     *
+     * @var array<int, string>
+     */
+    protected $attributes = [
+        'name' => 'Anonymous', 
+        'approved' => false, 
+    ];
+
+    /**
      * The attributes that should be hidden for serialization.
      *
      * @var array<int, string>
@@ -38,19 +48,21 @@ class Feedback extends Model
         'language',
     ];
 
-    // public static function validate(array $data)
-    // {
-    //     return Validator::make($data, [
-    //         'content' => 'required|string|max:200|min:10',
-    //     ]);
-    // }
+    public static function rules()
+    {
+        return [
+            'name' => 'nullable|string|max:255',
+            'content' => 'required|string|max:200',
+            'language' => 'nullable|string|max:2',
+        ];
+    }
 
-    // public function rules(Request $request)
-    // {
-    //     $validate = $request->validate([
-
-    //         'content' => 'required|string|max:200|min:10',
-
-    //     ])
-    // }
+    public static function messages()
+    {
+        return [
+            'content.required' => 'The content field cannot be empty.',
+            'content.string' => 'The content must be a string.',
+            'content.max' => 'The content must not exceed 255 characters.',
+        ];
+    }
 }

@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Common;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Feedback;
-use App\Rules\CustomValidator;
 use Exception;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -32,24 +31,21 @@ class FeedbackController extends Controller
     }
 
     public function createFeedback(Request $request): JsonResponse
-    {    
-        $rules = [
-            'content' => 'required|string|max:200|min:10',
-        ];
-
-        $validator = Validator::make($request->all(), [
-            'data' => [new CustomValidator($rules)],
-        ]);
+    {
+        $validator = Validator::make($request->all(), Feedback::rules(), Feedback::messages());
 
         if ($validator->fails()) {
             return response()->json([
                 'status' => false,
-                'errors' => $validator->errors()->get('data')[0],
-            ], 200);
+                'invalid_fields' => $validator->errors()->toArray(),
+            ]);  
         }
 
         try {
             Feedback::create([
+                'name' => $request->get('name') ?? 'Anonymous',
+                'content' => $request->get('content'),
+                'language' => $request->get('language'), 
             ]);
         } catch (Exception $error) {
             return response()->json([
