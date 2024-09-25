@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Common;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StorePostRequest;
 use App\Models\Feedback;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -28,11 +29,22 @@ class FeedbackController extends Controller
         ]);
     }
 
-    public function createFeedback()
+    public function createFeedback(StorePostRequest $request): JsonResponse
     {
-    // step 1: get body 
+        // step 1: get body 
+
+
         // step 2: validate data 
+        //DONE
+        
         // step 3: create feedback
+        $feedback = Feedback::create();
+
         // step 4: return status true
+
+        return response()->json([
+            'status'=> true,
+            'feedback'=> $feedback,
+        ]);
     }
 }
