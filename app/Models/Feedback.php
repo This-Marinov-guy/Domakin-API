@@ -34,8 +34,8 @@ class Feedback extends Model
      * @var array<int, string>
      */
     protected $attributes = [
-        'name' => 'Anonymous', 
-        'approved' => false, 
+        'name' => 'Anonymous',
+        'approved' => false,
     ];
 
     /**
@@ -60,9 +60,18 @@ class Feedback extends Model
     public static function messages()
     {
         return [
-            'content.required' => 'The content field cannot be empty.',
-            'content.string' => 'The content must be a string.',
-            'content.max' => 'The content must not exceed 255 characters.',
+            'content.required' => [
+                'message' => 'The content field cannot be empty.',
+                'tag' => '',
+            ],
+            'content.string' => [
+                'message' => 'The content must be a string.',
+                'tag' => '',
+            ],
+            'content.max' => [
+                'message' => 'The content must not exceed 255 characters.',
+                'tag' => '',
+            ],
         ];
     }
 }
