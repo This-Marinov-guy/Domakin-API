@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Common;
 
+use App\Classes\ApiResponseClass;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Feedback;
@@ -12,7 +13,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 class FeedbackController extends Controller
 {
 
-    public function fetchFeedbacks(Request $request): JsonResponse
+    public function list(Request $request): JsonResponse
     {
         $language = $request->query('language') ?? null;
 
@@ -23,39 +24,28 @@ class FeedbackController extends Controller
         }
 
         $approvedFeedbacks = $query->get()->toArray();
-        
-        return response()->json([
-            'status' => true,
-            'data' => $approvedFeedbacks
-        ]);
+
+        return ApiResponseClass::sendSuccessRes($approvedFeedbacks);
     }
 
-    public function createFeedback(Request $request): JsonResponse
+    public function create(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), Feedback::rules(), Feedback::messages());
 
         if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'invalid_fields' => $validator->errors()->toArray(),
-            ]);  
+            return ApiResponseClass::sendInvalidFieldsRes($validator->errors()->toArray());
         }
 
         try {
             Feedback::create([
                 'name' => $request->get('name') ?? 'Anonymous',
                 'content' => $request->get('content'),
-                'language' => $request->get('language'), 
+                'language' => $request->get('language'),
             ]);
         } catch (Exception $error) {
-            return response()->json([
-                'status' => false,
-                'message'=> 'Something went wrong',
-            ]);  
-        } 
+            return ApiResponseClass::sendErrorRes($error->getMessage());
+        }
 
-        return response()->json(data: [
-            'status' => true,
-        ]);
+        return ApiResponseClass::sendSuccessRes();
     }
 }
