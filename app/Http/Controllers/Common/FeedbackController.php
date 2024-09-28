@@ -25,7 +25,7 @@ class FeedbackController extends Controller
 
         $approvedFeedbacks = $query->get()->toArray();
 
-        return ApiResponseClass::sendSuccessRes($approvedFeedbacks);
+        return ApiResponseClass::sendSuccess($approvedFeedbacks);
     }
 
     public function create(Request $request): JsonResponse
@@ -33,7 +33,7 @@ class FeedbackController extends Controller
         $validator = Validator::make($request->all(), Feedback::rules(), Feedback::messages());
 
         if ($validator->fails()) {
-            return ApiResponseClass::sendInvalidFieldsRes($validator->errors()->toArray());
+            return ApiResponseClass::sendInvalidFields($validator->errors()->toArray());
         }
 
         try {
@@ -43,9 +43,9 @@ class FeedbackController extends Controller
                 'language' => $request->get('language'),
             ]);
         } catch (Exception $error) {
-            return ApiResponseClass::sendErrorRes($error->getMessage());
+            return ApiResponseClass::sendError($error->getMessage());
         }
 
-        return ApiResponseClass::sendSuccessRes();
+        return ApiResponseClass::sendSuccess();
     }
 }
