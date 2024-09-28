@@ -9,6 +9,6 @@ Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
 });
 
 Route::prefix('common')->group(function () {
-    Route::get('/get-feedbacks', [FeedbackController::class, 'fetchFeedbacks']);
-    Route::post('/create-feedback', [FeedbackController::class, 'createFeedback']);
+    Route::get('/list-feedbacks', [FeedbackController::class, 'list']);
+    Route::post('/create-feedback', [FeedbackController::class, 'create']);
 });
