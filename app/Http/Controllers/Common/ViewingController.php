@@ -5,10 +5,10 @@ namespace App\Http\Controllers\Common;
 use App\Classes\ApiResponseClass;
 use App\Http\Controllers\Controller;
 use App\Models\Viewing;
-use Illuminate\Support\Facades\Validator;
-use App\Models\Feedback;
-use Exception;
-use Illuminate\Http\Request;
+// use Illuminate\Support\Facades\Validator;
+// use App\Models\Feedback;
+// use Exception;
+// use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 class ViewingController extends Controller
