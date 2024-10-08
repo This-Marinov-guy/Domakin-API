@@ -30,7 +30,7 @@ class Viewing extends Model
             'phone' => 'required|string',
             'email' => 'required|string',
             'city' => 'required|string',
-            'address' => 'required|string|max: 50',
+            'address' => 'required|string|max:50',
             'date' => 'required|date_format:Y-m-d',
             'note' => 'nullable|string',
         ];

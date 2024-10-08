@@ -15,7 +15,9 @@ class ViewingController extends Controller
 {
     public function list(): JsonResponse
     {
-        $viewings = Viewing::all();
+        $viewings = Viewing::all()->toArray();
+         //viewings = $query->get()->toArray();
+
         return ApiResponseClass::sendSuccess($viewings);
     }
 

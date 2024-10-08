@@ -14,8 +14,8 @@ Route::prefix('common')->group(function () {
     Route::post('/create-feedback', [FeedbackController::class, 'create']);
 });
 
-Route::prefix('viewings')->group(function () {
-    Route::get('/viewing/list', [ViewingController::class, 'list']);
-    Route::get('/viewing/details/{id}', [ViewingController::class, 'details']);
-    Route::post('/viewing/create', [ViewingController::class, 'create']);
+Route::prefix('viewing')->group(function () {
+    Route::get('/list-viewings', [ViewingController::class, 'list']);
+    Route::get('/details/{id}', [ViewingController::class, 'details']);
+    Route::post('/create-viewing', [ViewingController::class, 'create']);
 });

@@ -5,6 +5,8 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\Viewing;
+use Faker\Factory as Faker;
+use Illuminate\Support\Str;
 
 class ViewingSeeder extends Seeder
 {
@@ -15,15 +17,18 @@ class ViewingSeeder extends Seeder
      */
     public function run(): void
     {
+        $faker = Faker::create();
+        
         Viewing::create([
-            'name' => 'John',
-            'surname' => 'Name',
-            'phone' => '0123456789',
-            'email' => 'john.name@example.com',
-            'city' => 'Groningen',
-            'address' => 'Example Street 123, 1234 AB, Groningen ',
-            'date' => '2024-01-01',
-            'note' => '',
+            'name' => $faker->firstName,
+            'surname' => $faker->lastName,
+            'phone' => $faker->phoneNumber,
+            'email' => $faker->unique()->safeEmail,
+            'city' => $faker->city,
+            'address' => Str::limit($faker->address, limit: 49),
+            'date' => $faker->date,
+            'time' => $faker->time,
+            'note' => $faker->sentence,
         ]);
     }
 }
