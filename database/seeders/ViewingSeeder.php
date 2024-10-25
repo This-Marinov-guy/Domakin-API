@@ -10,8 +10,6 @@ use Illuminate\Support\Str;
 
 class ViewingSeeder extends Seeder
 {
-    //TODO does cannot seed this yes, need to fix
-
     /**
      * Run the database seeds.
      */

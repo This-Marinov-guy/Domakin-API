@@ -28,11 +28,19 @@ class Viewing extends Model
             'name' => 'required|string',
             'surname' => 'required|string',
             'phone' => 'required|string',
-            'email' => 'required|string',
+            'email' => 'required|string|email',
             'city' => 'required|string',
             'address' => 'required|string|max:50',
             'date' => 'required|date_format:Y-m-d',
             'note' => 'nullable|string',
+        ];
+    }
+
+    // TODO: add messages
+    public static function messages()
+    {
+        return [
+            
         ];
     }
     

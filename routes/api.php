@@ -9,6 +9,7 @@ Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
     return $request->user();
 });
 
+// Note: common routes with basic functionality
 Route::prefix('common')->group(function () {
     Route::get('/list-feedbacks', [FeedbackController::class, 'list']);
     Route::post('/create-feedback', [FeedbackController::class, 'create']);
