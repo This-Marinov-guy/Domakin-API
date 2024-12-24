@@ -48,4 +48,26 @@ class FeedbackController extends Controller
 
         return ApiResponseClass::sendSuccess();
     }
+
+    public function approve(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|integer',
+        ]);
+
+        if ($validator->fails()) {
+            return ApiResponseClass::sendInvalidFields($validator->errors()->toArray());
+        }
+
+        $feedback = Feedback::find($request->get('id'));
+
+        if (!$feedback) {
+            return ApiResponseClass::sendError('Feedback not found');
+        }
+
+        $feedback->approved = true;
+        $feedback->save();
+
+        return ApiResponseClass::sendSuccess();
+    }
 }

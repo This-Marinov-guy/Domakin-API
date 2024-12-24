@@ -19,6 +19,7 @@ class Viewing extends Model
         'city',
         'address',
         'date',
+        'time',
         'note',
     ];
 
@@ -32,6 +33,7 @@ class Viewing extends Model
             'city' => 'required|string',
             'address' => 'required|string|max:50',
             'date' => 'required|date_format:Y-m-d',
+            'time' => 'required|date_format:H:i',
             'note' => 'nullable|string',
         ];
     }

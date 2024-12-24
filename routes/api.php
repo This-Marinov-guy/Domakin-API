@@ -11,12 +11,17 @@ Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
 
 // Note: common routes with basic functionality
 Route::prefix('common')->group(function () {
-    Route::get('/list-feedbacks', [FeedbackController::class, 'list']);
-    Route::post('/create-feedback', [FeedbackController::class, 'create']);
+    
+});
+
+Route::prefix('feedback')->group(function () {
+    Route::get('/list', [FeedbackController::class, 'list']);
+    Route::post('/create', [FeedbackController::class, 'create']);
+    Route::put('/approve', [FeedbackController::class, 'approve']);
 });
 
 Route::prefix('viewing')->group(function () {
-    Route::get('/list-viewings', [ViewingController::class, 'list']);
+    Route::get('/list', [ViewingController::class, 'list']);
     Route::get('/details/{id}', [ViewingController::class, 'details']);
-    Route::post('/create-viewing', [ViewingController::class, 'create']);
+    Route::post('/create', [ViewingController::class, 'create']);
 });
