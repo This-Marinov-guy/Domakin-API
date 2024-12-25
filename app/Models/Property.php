@@ -50,7 +50,11 @@ class Property extends Model
             'propertyData.flatmates' => 'required|array',
             'propertyData.registration' => 'required|string',
             'propertyData.description' => 'required|array',
-            'propertyData.images' => 'nullable|array',
+            'propertyData.images' => 'required|array',
+
+            'terms.contact' => 'required|boolean',
+            'terms.legals' => 'required|boolean',
+
         ];
     }
 }
