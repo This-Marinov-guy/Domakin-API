@@ -21,6 +21,8 @@ class ApiResponseClass
     // For Error invalid fields response
     public static function sendInvalidFields($invalidFields = [], $message = ErrorMessages::REQUIRED_FIELDS['message'], $messageTag = ErrorMessages::REQUIRED_FIELDS['tag'], $code = 200)
     {
+        $invalidFields = array_keys($invalidFields);
+
         $response = [
             'status' => false,
             'invalid_fields' => $invalidFields,
