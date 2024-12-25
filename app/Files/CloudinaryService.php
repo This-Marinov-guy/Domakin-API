@@ -52,17 +52,5 @@ class CloudinaryService
         }
     }
 
-    public function deleteFile($fileName)
-    {
-        try {
-            $result = $this->cloudinary::destroy($fileName);
-            if ($result['result'] === 'ok') {
-                return ['success' => 'File deleted successfully.'];
-            } else {
-                return ['error' => 'Failed to delete file.'];
-            }
-        } catch (\Exception $e) {
-            return ['error' => $e->getMessage()];
-        }
-    }
+    
 }
