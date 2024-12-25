@@ -2,7 +2,7 @@
 
 namespace App\Mail;
 
-use Emails;
+use App\Constants\Emails;
 use Mailtrap\MailtrapClient;
 use Mailtrap\Mime\MailtrapEmail;
 use Symfony\Component\Mime\Address;

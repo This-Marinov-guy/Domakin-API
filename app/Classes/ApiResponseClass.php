@@ -2,7 +2,7 @@
 
 namespace App\Classes;
 
-use ErrorMessages;
+use App\Constants\ErrorMessages;
 
 class ApiResponseClass
 {

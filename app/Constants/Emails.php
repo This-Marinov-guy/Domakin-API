@@ -1,5 +1,7 @@
 <?php
 
+namespace App\Constants;
+
 class Emails
 {
     public const MAILTRAP = [
