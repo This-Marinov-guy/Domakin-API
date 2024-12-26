@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('viewings', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
+            $table->integer(column: 'status');
             $table->string('name');
             $table->string('surname');
             $table->string('phone');
@@ -22,7 +23,7 @@ return new class extends Migration
             $table->string('address', max(['max' => '50']));
             $table->date('date');
             $table->string('time');
-            $table->string('note');
+            $table->string('note')->nullable();
         });
     }
 

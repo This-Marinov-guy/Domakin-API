@@ -17,6 +17,16 @@ class Property extends Model
         'property_data' => 'array'
     ];
 
+    /**
+     * The default values.
+     *
+     * @var array<int, string>
+     */
+    protected $attributes = [
+        'approved' => false,
+        'status' => 1
+    ];
+
     // Helper method to set data
     public function setData(array $data)
     {

@@ -10,7 +10,9 @@ class CreatePropertiesTable extends Migration
     {
         Schema::create('properties', function (Blueprint $table) {
             $table->id();
-            $table->json('personal_data');
+            $table->boolean(column: 'approved');
+            $table->integer(column: 'status');
+            $table->json(column: 'personal_data');
             $table->json('property_data');
             $table->timestamps();
         });

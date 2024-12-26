@@ -23,6 +23,10 @@ class Viewing extends Model
         'note',
     ];
 
+    protected $attributes = [
+        'status' => 1
+    ];
+
     public static function rules(): array
     {
         return [
@@ -32,9 +36,11 @@ class Viewing extends Model
             'email' => 'required|string|email',
             'city' => 'required|string',
             'address' => 'required|string|max:50',
-            'date' => 'required|date_format:Y-m-d',
-            'time' => 'required|date_format:H:i',
-            'note' => 'nullable|string',
+            'date' => 'required|string',
+            'time' => 'required|string',
+
+            'terms.contact' => 'required|boolean',
+            'terms.legals' => 'required|boolean',
         ];
     }
 
