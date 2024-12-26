@@ -3,6 +3,7 @@
 namespace App\Files;
 
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
+use Illuminate\Support\Facades\Log;
 
 class CloudinaryService
 {
@@ -23,15 +24,24 @@ class CloudinaryService
         }
     }
 
-    public function multiUpload(array $filePaths, array $options = [])
+    public function multiUpload(array $files, array $options = [])
     {
         $results = [];
-        foreach ($filePaths as $filePath) {
-            $results[] = $this->cloudinary::upload($filePath, $options)->getSecurePath();
+
+        foreach ($files as $file) {
+            Log::info('Real path:', [$file->getRealPath()]);
+
+            try {
+                $uploadResult = $this->cloudinary::upload($file->getRealPath(), $options);
+                $results[] = $uploadResult->getSecurePath();
+            } catch (\Exception $e) {
+                throw new \Exception("Cloudinary upload failed: " . $e->getMessage());
+            }
         }
 
         return $results;
     }
+
     public function deleteFolder($folderPath)
     {
         try {
@@ -39,18 +49,16 @@ class CloudinaryService
                 'type' => 'upload',
                 'prefix' => $folderPath
             ]);
-    
+
             foreach ($resources['resources'] as $resource) {
                 $this->cloudinary::destroy($resource['public_id']);
             }
-    
+
             $this->cloudinary::deleteFolder($folderPath);
-    
+
             return ['success' => 'Folder and its contents deleted successfully.'];
         } catch (\Exception $e) {
             return ['error' => $e->getMessage()];
         }
     }
-
-    
 }
