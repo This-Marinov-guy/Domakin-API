@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Classes\ApiResponseClass;
 use App\Files\CloudinaryService;
 use App\Http\Controllers\Controller;
+use App\Mail\Notification;
 use App\Models\Property;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
@@ -69,6 +70,12 @@ class PropertyController extends Controller
             ]);
         } catch (Exception $error) {
             return ApiResponseClass::sendError($error->getMessage());
+        }
+
+        try {
+            (new Notification('New property uploaded', 'property', $data))->sendNotification();
+        } catch (Exception $error) {
+            Log::error($error->getMessage());
         }
 
         return ApiResponseClass::sendSuccess();

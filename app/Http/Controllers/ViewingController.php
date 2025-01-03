@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Classes\ApiResponseClass;
 use App\Http\Controllers\Controller;
+use App\Mail\Notification;
 use App\Models\Viewing;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 use Exception;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
@@ -41,19 +43,14 @@ class ViewingController extends Controller
         }
 
         try {
-            Viewing::create([
-                'name' => $request->get('name'),
-                'surname' => $request->get('surname'),
-                'phone' => $request->get('phone'),
-                'email' => $request->get('email'),
-                'city' => $request->get('city'),
-                'address' => $request->get('address'),
-                'date' => $request->get('date'),
-                'time' => $request->get('time'),
-                'note' => $request->get('note'),
-            ]);
+            Viewing::create($request->all());
         } catch (Exception $error) {
             return ApiResponseClass::sendError($error->getMessage());
+        }
+
+        try { (new Notification('New viewing request', 'viewing', $request->all()))->sendNotification();
+        } catch (Exception $error) {
+            Log::error($error->getMessage());
         }
 
         return ApiResponseClass::sendSuccess();

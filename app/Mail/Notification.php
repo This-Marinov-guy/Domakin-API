@@ -2,17 +2,19 @@
 
 namespace App\Mail;
 
+use App\Constants\Emails;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Mail;
 
 class Notification extends Mailable
 {
     use Queueable, SerializesModels;
 
-    protected $subject;
-    protected $templateUuid;
-    protected $data;
+    public $subject;
+    public $templateUuid;
+    public $data;
 
     /**
      * Create a new message instance.
@@ -31,7 +33,12 @@ class Notification extends Mailable
     public function build()
     {
         return $this->subject($this->subject)
-            ->view('emails.notification.' . $this->templateUuid)
+            ->view('notifications.' . $this->templateUuid)
             ->with($this->data);
+    }
+
+    public function sendNotification()
+    {
+        return Mail::to(Emails::SYSTEM['internal_receiver'])->send($this);
     }
 }

@@ -39,13 +39,16 @@ return [
 
         'system' => [
             'transport' => 'smtp',
-            'url' => env('MAIL_URL'),
-            'host' => env('MAIL_HOST', '127.0.0.1'),
-            'port' => env('MAIL_PORT', 2525),
-            'encryption' => env('MAIL_ENCRYPTION', 'tls'),
-            'username' => env('MAIL_USERNAME'),
-            'password' => env('MAIL_PASSWORD'),
+            'host' => env('GMAIL_HOST', '127.0.0.1'),
+            'port' => env('GMAIL_PORT', 2525),
+            'encryption' => env('GMAIL_ENCRYPTION', 'tls'),
+            'username' => env('GMAIL_USERNAME'),
+            'password' => env('GMAIL_PASSWORD'),
             'timeout' => null,
+            'from' => [
+                'address' => env('GMAIL_FROM_ADDRESS', 'system@domakin.nl'),
+                'name' => env('GMAIL_FROM_NAME', 'No Reply System'),
+            ],
             'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url(env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
         ],
 

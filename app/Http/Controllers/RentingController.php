@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Classes\ApiResponseClass;
 use App\Files\CloudinaryService;
 use App\Http\Controllers\Controller;
+use App\Mail\Notification;
 use App\Models\Renting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -42,6 +43,12 @@ class RentingController extends Controller
             Renting::create($data);
         } catch (Exception $error) {
             return ApiResponseClass::sendError($error->getMessage());
+        }
+
+        try {
+            (new Notification('New renting request', 'renting', $data))->sendNotification();
+        } catch (Exception $error) {
+            Log::error($error->getMessage());
         }
 
         return ApiResponseClass::sendSuccess();

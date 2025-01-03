@@ -5,12 +5,13 @@ namespace App\Constants;
 class Emails
 {
     public const MAILTRAP = [
-        'email' => env('MAILTRAP_FROM_ADDRESS'),
-        'name' => env('MAILTRAP_FROM_NAME')
+        'email' => 'no-reply@domakin.nl',
+        'name' => 'Domakin'
     ];
 
     public const SYSTEM = [
-        'email' => env('GMAIL_FROM_ADDRESS'),
-        'name' => env('GMAIL_FROM_NAME')
+        'internal_receiver' => 'info@domakin.nl',
+        'email' => 'notification@domakin.nl',
+        'name' => 'Notification Center Domakin'
     ];
 }
