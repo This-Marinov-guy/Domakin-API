@@ -14,13 +14,13 @@ class CloudinaryService
         $this->cloudinary = new Cloudinary();
     }
 
-    public function singleUpload($filePath, array $options = [])
+    public function singleUpload($file, array $options = [])
     {
         try {
-            $uploadResult = $this->cloudinary::upload($filePath, $options)->getSecurePath();
-            return $uploadResult;
+            $uploadResult = $this->cloudinary::upload($file->getRealPath(), $options);
+            return $uploadResult->getSecurePath();
         } catch (\Exception $e) {
-            return ['error' => $e->getMessage()];
+            throw new \Exception("File upload failed: " . $e->getMessage());
         }
     }
 
@@ -29,13 +29,11 @@ class CloudinaryService
         $results = [];
 
         foreach ($files as $file) {
-            Log::info('Real path:', [$file->getRealPath()]);
-
             try {
                 $uploadResult = $this->cloudinary::upload($file->getRealPath(), $options);
                 $results[] = $uploadResult->getSecurePath();
             } catch (\Exception $e) {
-                throw new \Exception("Cloudinary upload failed: " . $e->getMessage());
+                throw new \Exception("File upload failed: " . $e->getMessage());
             }
         }
 

@@ -57,12 +57,12 @@ class PropertyController extends Controller
 
         $data['propertyData']['folder'] = $folder;
 
-        // upload images
-        $data['propertyData']['images'] = $cloudinary->multiUpload($data['images'], [
-            'folder' => "properties/" . $folder,
-        ]);
-
         try {
+            // upload images
+            $data['propertyData']['images'] = $cloudinary->multiUpload($data['images'], [
+                'folder' => "properties/" . $folder,
+            ]);
+
             Property::create([
                 'personal_data' => $data['personalData'],
                 'property_data' => $data['propertyData']
