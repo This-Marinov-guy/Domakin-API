@@ -33,4 +33,4 @@ USER www-data
 EXPOSE 8000
 
 # Start Laravel's development server
-CMD ["php", "artisan", "serve"]
+CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
