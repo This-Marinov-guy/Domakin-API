@@ -1,23 +1,36 @@
-# Use the Composer image with PHP pre-installed
-FROM composer:2
+# Use PHP with Alpine (smaller size) and CLI for artisan serve
+FROM php:8.2-cli-alpine
 
-# Set the working directory
+# Install system dependencies and PHP extensions (e.g., pdo, pdo_pgsql for PostgreSQL)
+RUN apk --no-cache add \
+    libpng-dev \
+    libjpeg-turbo-dev \
+    libfreetype6-dev \
+    libpq-dev \
+    bash \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install gd pdo pdo_pgsql
+
+# Install Composer globally
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+# Set working directory
 WORKDIR /var/www
 
-# Copy application files
+# Copy the application code into the container
 COPY . .
 
-# Install PHP dependencies
-RUN composer install
+# Install PHP dependencies (composer install)
+RUN composer install --no-dev --optimize-autoloader
 
-# Set proper permissions
+# Set appropriate permissions for application
 RUN chown -R www-data:www-data /var/www
 
-# Switch to non-root user
+# Switch to non-root user (security best practice)
 USER www-data
 
-# Expose port 8000 for Laravel (or your app)
+# Expose the port that your app will use (default 8000 for `php artisan serve`)
 EXPOSE 8000
 
-# Start the Laravel application
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
+# Command to run Laravel's development server
+CMD ["php", "artisan", "serve"]

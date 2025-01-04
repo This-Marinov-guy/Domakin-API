@@ -1,0 +1,7 @@
+node_modules
+vendor
+*.log
+*.md
+*.git
+.idea
+*.DS_Store
