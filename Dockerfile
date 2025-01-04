@@ -1,11 +1,11 @@
-# Use PHP with Alpine (smaller size) and CLI for artisan serve
+# Use PHP CLI with Alpine for smaller image size
 FROM php:8.2-cli-alpine
 
-# Install system dependencies and PHP extensions (e.g., pdo, pdo_pgsql for PostgreSQL)
+# Install necessary system dependencies and PHP extensions (e.g., pdo, pdo_pgsql for PostgreSQL)
 RUN apk --no-cache add \
     libpng-dev \
     libjpeg-turbo-dev \
-    libfreetype6-dev \
+    freetype-dev \
     libpq-dev \
     bash \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
@@ -17,20 +17,20 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 # Set working directory
 WORKDIR /var/www
 
-# Copy the application code into the container
+# Copy application files
 COPY . .
 
-# Install PHP dependencies (composer install)
+# Install PHP dependencies using Composer
 RUN composer install --no-dev --optimize-autoloader
 
-# Set appropriate permissions for application
+# Set proper permissions for the application
 RUN chown -R www-data:www-data /var/www
 
 # Switch to non-root user (security best practice)
 USER www-data
 
-# Expose the port that your app will use (default 8000 for `php artisan serve`)
+# Expose port 8000 for Laravel development server
 EXPOSE 8000
 
-# Command to run Laravel's development server
+# Start Laravel's development server
 CMD ["php", "artisan", "serve"]
