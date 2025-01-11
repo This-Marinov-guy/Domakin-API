@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('newsletters', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
-            $table->json('cities');
+            $table->string('cities');
             $table->string('email')->unique();
 
         });

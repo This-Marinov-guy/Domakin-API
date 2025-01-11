@@ -14,7 +14,7 @@ Route::middleware(['auth:sanctum'])->get('/authentication', function (Request $r
 
 // Note: common routes with basic functionality
 Route::prefix('common')->group(function () {
-    Route::post('/create', [NewsletterController::class, 'create']);
+    Route::post('/newsletter/subscribe', [NewsletterController::class, 'create']);
 });
 
 Route::prefix('feedback')->group(function () {

@@ -16,9 +16,7 @@ class Newsletter extends Model
     public static function rules(): array
     {
         return [
-            'cities' => 'required|array',
-            'cities.*' => 'string',
-            
+            'cities' => 'required|string',            
             'email' => 'required|string|email',
         ];
     }
