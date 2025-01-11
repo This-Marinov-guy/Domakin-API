@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('language')->nullable(); 
             $table->boolean('approved')->default(false); 
             $table->string('name', 255)->default('Anonymous'); 
-            $table->string('content', 200); 
+            $table->string('content', 400); 
         });
     }
 

@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('phone');
             $table->string('email');
             $table->string('city');
-            $table->string('address', max(['max' => '50']));
+            $table->string('address', max(['max' => '100']));
             $table->date('date');
             $table->string('time');
             $table->string('note')->nullable();

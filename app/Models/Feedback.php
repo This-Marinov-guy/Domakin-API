@@ -52,7 +52,7 @@ class Feedback extends Model
     {
         return [
             'name' => 'nullable|string|max:255',
-            'content' => 'required|string|max:200',
+            'content' => 'required|string|max:400',
             'language' => 'nullable|string|max:2',
         ];
     }
