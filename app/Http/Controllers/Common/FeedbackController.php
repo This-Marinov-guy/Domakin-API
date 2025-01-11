@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Validator;
 use App\Models\Feedback;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 class FeedbackController extends Controller
@@ -17,13 +18,17 @@ class FeedbackController extends Controller
     {
         $language = $request->query('language') ?? null;
 
-        $query = Feedback::where('approved', true);
+        $cacheKey = $language ? "feedbacks:$language" : "feedbacks:all";
 
-        if ($language) {
-            $query->where('language', $language);
-        }
+        $approvedFeedbacks = Cache::remember($cacheKey, 60 * 24, function () use ($language) {
+            $query = Feedback::where('approved', true);
 
-        $approvedFeedbacks = $query->get()->toArray();
+            if ($language) {
+                $query->where('language', $language);
+            }
+
+            return $query->get()->toArray();
+        });
 
         return ApiResponseClass::sendSuccess($approvedFeedbacks);
     }
