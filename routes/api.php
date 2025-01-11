@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Common\FeedbackController;
+use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\RentingController;
 use App\Http\Controllers\ViewingController;
@@ -13,7 +14,7 @@ Route::middleware(['auth:sanctum'])->get('/authentication', function (Request $r
 
 // Note: common routes with basic functionality
 Route::prefix('common')->group(function () {
-    
+    Route::post('/create', [NewsletterController::class, 'create']);
 });
 
 Route::prefix('feedback')->group(function () {
