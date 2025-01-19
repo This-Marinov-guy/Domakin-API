@@ -16,13 +16,15 @@ class Newsletter extends Model
     public static function rules(): array
     {
         return [
-            'cities' => 'required|string',            
-            'email' => 'required|string|email',
+            'cities' => 'required|string',
+            'email' => 'required|string|unique:newsletters,email|email',
         ];
     }
 
     public static function messages()
     {
-        return [];
+        return [
+            'email.unique' => 'The email address has already been subscribed.',
+        ];
     }
 }

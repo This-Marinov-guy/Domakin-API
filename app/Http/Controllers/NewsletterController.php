@@ -17,6 +17,12 @@ class NewsletterController extends Controller
         $validator = Validator::make($request->all(), Newsletter::rules(), Newsletter::messages());
 
         if ($validator->fails()) {
+            $errors = $validator->errors();
+
+            if ($errors->has('email') && $errors->get('email') === [Newsletter::messages()['email.unique']]) {
+                return ApiResponseClass::sendSuccess();
+            }
+
             return ApiResponseClass::sendInvalidFields($validator->errors()->toArray());
         }
 
