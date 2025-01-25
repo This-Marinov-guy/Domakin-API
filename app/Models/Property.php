@@ -27,6 +27,16 @@ class Property extends Model
         'status' => 1
     ];
 
+    public function PersonalData()
+    {
+        return $this->hasOne(PersonalData::class);
+    }
+
+    public function PropertyData()
+    {
+        return $this->hasOne(PropertyData::class);
+    }
+
     // Helper method to set data
     public function setData(array $data)
     {
@@ -40,31 +50,6 @@ class Property extends Model
         return [
             'personalData' => $this->personal_data,
             'propertyData' => $this->property_data
-        ];
-    }
-
-    public static function rules(): array
-    {
-        return [
-            'personalData.name' => 'required|string',
-            'personalData.surname' => 'required|string',
-            'personalData.email' => 'required|email',
-            'personalData.phone' => 'required|string',
-
-            'propertyData.city' => 'required|string',
-            'propertyData.address' => 'required|string',
-            'propertyData.size' => 'required|string',
-            'propertyData.period' => 'required|string',
-            'propertyData.rent' => 'required|string',
-            'propertyData.bills' => 'required|string',
-            'propertyData.flatmates' => 'required|string',
-            'propertyData.registration' => 'required|string',
-            'propertyData.description' => 'required|string',
-            'images' => 'required|array',
-
-            'terms.contact' => 'required|boolean',
-            'terms.legals' => 'required|boolean',
-
         ];
     }
 }

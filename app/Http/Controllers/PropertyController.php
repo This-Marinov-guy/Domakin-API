@@ -8,7 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Mail\Notification;
 use App\Models\Property;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Http\Request;
+use App\Http\Requests\PropertyRequest;
 use Illuminate\Support\Facades\Validator;
 use Exception;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -16,7 +16,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 
 class PropertyController extends Controller
 {
-    public function create(Request $request, CloudinaryService $cloudinary): JsonResponse
+    public function create(PropertyRequest $request, CloudinaryService $cloudinary): JsonResponse
     {
         $data = [
             'personalData' => json_decode($request->get('personalData'), true),
@@ -25,7 +25,7 @@ class PropertyController extends Controller
             'images' => $request->file('images')
         ];
 
-        $validator = Validator::make($data, Property::rules());
+        $validator = Validator::make($data, PropertyRequest::rules());
 
         if ($validator->fails()) {
             return ApiResponseClass::sendInvalidFields($validator->errors()->toArray());
