@@ -6,6 +6,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Validation\Rules\Password;
 
 class User extends Authenticatable
 {
@@ -21,6 +22,15 @@ class User extends Authenticatable
         'email',
         'phone',
         'password',
+    ];
+
+    /**
+     * The default values.
+     *
+     * @var array<int, string>
+     */
+    protected $attributes = [
+        'roles' => 'user',
     ];
 
     /**
@@ -43,6 +53,47 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+        ];
+    }
+
+    public static function rules(): array
+    {
+        return [
+            'name' => 'required|string',
+            'phone' => 'required|string|unique:users,phone',
+            'email' => 'required|email|unique:users,email',
+            'password' => [
+                'required',
+                'string',
+                Password::min(8)
+                    ->mixedCase()
+                    ->letters()
+                    ->numbers()
+                    ->symbols(),
+            ],
+            'password_confirmation' => 'required|same:password',
+            'terms' => 'required|boolean',
+        ];
+    }
+
+    public static function messages(): array
+    {
+        return [
+            'email.email' => [
+                'tag' => 'authentication.errors.email',
+            ],
+            'email.unique' => [
+                'tag' => 'authentication.errors.email_exists',
+            ],
+            'phone.unique' => [
+                'tag' => 'authentication.errors.phone_exists',
+            ],
+            'password' => [
+                'tag' => 'authentication.errors.password',
+            ],
+            'password_confirmation' => [
+                'tag' => 'authentication.errors.password_confirmation',
+            ],
         ];
     }
 }

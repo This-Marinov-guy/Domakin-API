@@ -6,10 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
+use Illuminate\Auth\Events\Verified;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use App\Classes\ApiResponseClass;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rules;
+use Illuminate\Support\Facades\Validator;
 
 class RegisteredUserController extends Controller
 {
@@ -18,24 +20,27 @@ class RegisteredUserController extends Controller
      *
      * @throws \Illuminate\Validation\ValidationException
      */
-    public function store(Request $request): Response
+    public function store(Request $request): JsonResponse
     {
-        $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
-        ]);
+        $validator = Validator::make($request->all(), User::rules(), User::messages());
+
+        if ($validator->fails()) {
+            return ApiResponseClass::sendInvalidFields($validator->errors()->toArray());
+        }
 
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
+            ...$request->all(),
             'password' => Hash::make($request->string('password')),
         ]);
 
         event(new Registered($user));
 
+        if ($request->user()->markEmailAsVerified()) {
+            event(new Verified($request->user()));
+        }
+
         Auth::login($user);
 
-        return response()->noContent();
+        return ApiResponseClass::sendSuccess();
     }
 }
