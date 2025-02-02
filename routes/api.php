@@ -12,6 +12,7 @@ use App\Http\Controllers\Common\FeedbackController;
 use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\RentingController;
+use App\Http\Controllers\SearchRentingController;
 use App\Http\Controllers\ViewingController;
 
 // Note: common routes with basic functionality
@@ -33,6 +34,7 @@ Route::prefix('viewing')->group(function () {
 });
 
 Route::prefix('renting')->group(function () {
+    Route::post('/searching/create', [SearchRentingController::class, 'create']);
     Route::post('/create', [RentingController::class, 'create']);
 });
 
