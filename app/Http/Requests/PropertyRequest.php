@@ -24,7 +24,7 @@ class PropertyRequest extends FormRequest
 
         //TODO: i think we can add regex patterns to reduce XSS vulnerabilities.
         return [
-            'personalData.name' => 'required|string',
+            'personalData.name' => ['required', 'string', 'regex:/^[a-zA-Z\']+$/'], //Vladi, here is an example of a regex pattern validation. This particular pattern checks if the etered name contains only lower case letters, upper case letters, appostrophies, and any length of input 
             'personalData.surname' => 'required|string',
             'personalData.email' => 'required|email',
             'personalData.phone' => 'required|string',

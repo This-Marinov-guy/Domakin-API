@@ -80,4 +80,38 @@ class PropertyController extends Controller
 
         return ApiResponseClass::sendSuccess();
     }
+
+    /**
+     * Lists all properties
+     * 
+     * @return JsonResponse
+     */
+    public function show () : JsonResponse
+    {
+        $properties = Property::all();
+
+        return ApiResponseClass::sendSuccess($properties);
+    }
+
+    /**
+     * Update Property
+   
+     * @return void
+     */
+    public function update (PropertyRequest $request, Property $property) : JsonResponse
+    {
+        $property->ProperyData = $request->propertyData;
+        $property->PersonalData = $request->personalData;
+
+        $property->save();
+        return ApiResponseClass::sendSuccess(['message' => 'Property updated successfully']);
+    }
+
+    public function destroy (Property $property) : JsonResponse
+    {
+        //TODO: perhaps something needs to be done to delete images? Not sure if this deletes images, needs testing
+        $property->delete();
+
+        return ApiResponseClass::sendSuccess(['message' => 'Property deleted successfully']);
+    }
 }
