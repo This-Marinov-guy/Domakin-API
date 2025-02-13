@@ -18,6 +18,7 @@ class SearchRenting extends Model
         'email',
         'letter',
         'people',
+        'type',
         'move_in',
         'period',
         'registration',
@@ -35,6 +36,7 @@ class SearchRenting extends Model
             'email' => 'required|string|email',
             'letter' => 'nullable|file|mimes:pdf,doc,docx|max:4120',
             'people' => 'required|integer',
+            'type' => 'required|string',
             'move_in' => 'required|string',
             'period' => 'required|string',
             'registration' => 'required|string',
@@ -42,8 +44,9 @@ class SearchRenting extends Model
             'city' => 'required|string',
             'note' => 'nullable|string',
 
-            'terms.contact' => 'required|boolean',
-            'terms.legals' => 'required|boolean',
+            'terms' => 'required|array', 
+            'terms.contact' => 'required|accepted',
+            'terms.legals' => 'required|accepted',
         ];
     }
 

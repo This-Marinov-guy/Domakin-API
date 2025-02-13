@@ -23,6 +23,7 @@ class SearchRentingController extends Controller
             'phone' => $request->get('phone'),
             'email' => $request->get('email'),
             'people' => $request->get('people'),
+            'type' => $request->get('type'),
             'move_in' => $request->get('moveIn'),
             'period' => $request->get('period'),
             'registration' => $request->get('registration'),

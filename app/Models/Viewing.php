@@ -39,8 +39,9 @@ class Viewing extends Model
             'date' => 'required|string',
             'time' => 'required|string',
 
-            'terms.contact' => 'required|boolean',
-            'terms.legals' => 'required|boolean',
+            'terms' => 'required|array',
+            'terms.contact' => 'required|accepted',
+            'terms.legals' => 'required|accepted',
         ];
     }
 

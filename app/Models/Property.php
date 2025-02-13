@@ -62,8 +62,9 @@ class Property extends Model
             'propertyData.description' => 'required|string',
             'images' => 'required|array',
 
-            'terms.contact' => 'required|boolean',
-            'terms.legals' => 'required|boolean',
+            'terms' => 'required|array',
+            'terms.contact' => 'required|accepted',
+            'terms.legals' => 'required|accepted',
 
         ];
     }
