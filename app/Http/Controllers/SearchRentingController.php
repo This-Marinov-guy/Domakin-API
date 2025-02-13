@@ -54,7 +54,7 @@ class SearchRentingController extends Controller
         }
 
         try {
-            (new Notification('New searching for Renting', 'searching_renting', $data))->sendNotification();
+            (new Notification('New searching for Renting', 'search_renting', $data))->sendNotification();
         } catch (Exception $error) {
             Log::error($error->getMessage());
         }
