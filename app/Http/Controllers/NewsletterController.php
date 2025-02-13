@@ -6,13 +6,14 @@ use App\Classes\ApiResponseClass;
 use App\Http\Controllers\Controller;
 use App\Models\Newsletter;
 use Illuminate\Http\Request;
+use App\Services\GoogleServices\GoogleSheetsService;
 use Illuminate\Support\Facades\Validator;
 use Exception;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 class NewsletterController extends Controller
 {
-    public function create(Request $request): JsonResponse
+    public function create(Request$request, GoogleSheetsService $sheetsService): JsonResponse
     {
         $validator = Validator::make($request->all(), Newsletter::rules(), Newsletter::messages());
 
@@ -30,6 +31,15 @@ class NewsletterController extends Controller
             Newsletter::create($request->all());
         } catch (Exception $error) {
             return ApiResponseClass::sendError($error->getMessage());
+        }
+
+        try {
+            $sheetsService->exportModelToSpreadsheet(
+                Newsletter::class,
+                'Newsletter emails'
+            );
+        } catch (Exception $error) {
+            //do nothing        
         }
 
         return ApiResponseClass::sendSuccess();

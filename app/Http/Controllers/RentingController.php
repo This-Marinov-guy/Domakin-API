@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Mail\Notification;
 use App\Models\Renting;
 use Illuminate\Http\Request;
+use App\Services\GoogleServices\GoogleSheetsService;
 use Illuminate\Support\Facades\Validator;
 use Exception;
 use Illuminate\Support\Facades\Log;
@@ -15,7 +16,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 
 class RentingController extends Controller
 {
-    public function create(Request $request, CloudinaryService $cloudinary): JsonResponse
+    public function create(Request $request, CloudinaryService $cloudinary, GoogleSheetsService $sheetsService): JsonResponse
     {
         $data = [
             'property' => $request->get('property'),
@@ -47,6 +48,11 @@ class RentingController extends Controller
 
         try {
             (new Notification('New renting request', 'renting', $data))->sendNotification();
+
+            $sheetsService->exportModelToSpreadsheet(
+                Renting::class,
+                'Rentings'
+            );
         } catch (Exception $error) {
             Log::error($error->getMessage());
         }

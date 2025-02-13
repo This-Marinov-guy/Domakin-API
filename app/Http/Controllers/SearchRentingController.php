@@ -9,13 +9,14 @@ use App\Mail\Notification;
 use App\Models\SearchRenting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use App\Services\GoogleServices\GoogleSheetsService;
 use Exception;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 class SearchRentingController extends Controller
 {
-    public function create(Request $request, CloudinaryService $cloudinary): JsonResponse
+    public function create(Request $request, CloudinaryService$cloudinary, GoogleSheetsService $sheetsService): JsonResponse
     {
         $data = [
             'name' => $request->get('name'),
@@ -55,6 +56,11 @@ class SearchRentingController extends Controller
 
         try {
             (new Notification('New searching for Renting', 'search_renting', $data))->sendNotification();
+
+            $sheetsService->exportModelToSpreadsheet(
+                SearchRenting::class,
+                'Search Rentings'
+            );
         } catch (Exception $error) {
             Log::error($error->getMessage());
         }

@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Mail\Notification;
 use App\Models\Property;
 use Illuminate\Support\Facades\Log;
+use App\Services\GoogleServices\GoogleSheetsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Exception;
@@ -16,7 +17,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 
 class PropertyController extends Controller
 {
-    public function create(Request $request, CloudinaryService $cloudinary): JsonResponse
+    public function create(Request $request, CloudinaryService $cloudinary, GoogleSheetsService $sheetsService): JsonResponse
     {
         $data = [
             'personalData' => json_decode($request->get('personalData'), true),
@@ -74,6 +75,11 @@ class PropertyController extends Controller
 
         try {
             (new Notification('New property uploaded', 'property', $data))->sendNotification();
+
+            $sheetsService->exportModelToSpreadsheet(
+                Property::class,
+                'Properties'
+            );
         } catch (Exception $error) {
             Log::error($error->getMessage());
         }
