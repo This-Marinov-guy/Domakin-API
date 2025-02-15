@@ -21,7 +21,6 @@ class User extends Authenticatable
         'name',
         'email',
         'phone',
-        'password',
     ];
 
     /**
@@ -30,6 +29,7 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $attributes = [
+        'status' => 1,
         'roles' => 'user',
     ];
 
@@ -39,7 +39,6 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $hidden = [
-        'password',
         'remember_token',
     ];
 
@@ -72,7 +71,7 @@ class User extends Authenticatable
                     ->symbols(),
             ],
             'password_confirmation' => 'required|same:password',
-            'terms' => 'required|boolean',
+            'terms' => 'required|accepted',
         ];
     }
 
@@ -80,19 +79,19 @@ class User extends Authenticatable
     {
         return [
             'email.email' => [
-                'tag' => 'authentication.errors.email',
+                'tag' => 'account:authentication.errors.email',
             ],
             'email.unique' => [
-                'tag' => 'authentication.errors.email_exists',
+                'tag' => 'account:authentication.errors.email_exists',
             ],
             'phone.unique' => [
-                'tag' => 'authentication.errors.phone_exists',
+                'tag' => 'account:authentication.errors.phone_exists',
             ],
             'password' => [
-                'tag' => 'authentication.errors.password',
+                'tag' => 'account:authentication.errors.password',
             ],
             'password_confirmation' => [
-                'tag' => 'authentication.errors.password_confirmation',
+                'tag' => 'account:authentication.errors.password_confirmation',
             ],
         ];
     }
