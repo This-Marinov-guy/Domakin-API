@@ -18,19 +18,46 @@ class ApiResponseClass
         return response()->json($response, $code);
     }
 
-    // For Error invalid fields response
-    public static function sendInvalidFields($invalidFields = [], $message = ErrorMessages::REQUIRED_FIELDS['message'], $messageTag = ErrorMessages::REQUIRED_FIELDS['tag'], $code = 200)
+    public static function sendInvalidFields($invalidFields = [], $errorMessages = [], $code = 200)
     {
-        $invalidFields = array_keys($invalidFields);
+        $errorTags = [];
+        $messageTag = ErrorMessages::REQUIRED_FIELDS['tag'];
+        $hasRequiredError = false;
 
-        $response = [
+        foreach ($invalidFields as $field => $messages) {
+            foreach ($messages as $ruleMessage) {
+                if (is_string($ruleMessage) && str_contains(strtolower($ruleMessage), 'required')) {
+                    $hasRequiredError = true;
+                }
+            }
+
+            foreach ($errorMessages as $rule => $details) {
+                if (str_starts_with($rule, $field) && isset($details['tag'])) {
+                    $tag = $details['tag'];
+                    break; // Stop at the first match
+                }
+            }
+
+            if (!isset($tag)) {
+                continue; // If no tag is found, do not add it
+            }
+
+            $errorTags[] = $tag;
+        }
+
+        if ($hasRequiredError) {
+            return response()->json([
+                'status' => false,
+                'invalid_fields' => array_keys($invalidFields),
+                'tag' => [$messageTag], // Return only the required tag
+            ], $code);
+        }
+
+        return response()->json([
             'status' => false,
-            'invalid_fields' => $invalidFields,
-            'message' => $message,
-            'tag' => $messageTag,
-        ];
-
-        return response()->json($response, $code);
+            'invalid_fields' => array_keys($invalidFields),
+            'tag' => array_unique($errorTags),
+        ], $code);
     }
 
     // For Success response 

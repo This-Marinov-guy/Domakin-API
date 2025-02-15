@@ -38,7 +38,7 @@ class SearchRentingController extends Controller
         $validator = Validator::make($data, SearchRenting::rules());
 
         if ($validator->fails()) {
-            return ApiResponseClass::sendInvalidFields($validator->errors()->toArray());
+            return ApiResponseClass::sendInvalidFields($validator->errors()->toArray(), SearchRenting::messages()); 
         }
 
         if ($data['letter']) {

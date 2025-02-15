@@ -29,7 +29,7 @@ class PropertyController extends Controller
         $validator = Validator::make($data, Property::rules());
 
         if ($validator->fails()) {
-            return ApiResponseClass::sendInvalidFields($validator->errors()->toArray());
+            return ApiResponseClass::sendInvalidFields($validator->errors()->toArray(), Property::messages());
         }
 
         // save folder name

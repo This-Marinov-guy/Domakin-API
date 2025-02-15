@@ -40,7 +40,7 @@ class ViewingController extends Controller
         $validator = Validator::make($request->all(), Viewing::rules(), Viewing::messages());
 
         if ($validator->fails()) {
-            return ApiResponseClass::sendInvalidFields($validator->errors()->toArray());
+            return ApiResponseClass::sendInvalidFields($validator->errors()->toArray(), Viewing::messages());
         }
 
         try {

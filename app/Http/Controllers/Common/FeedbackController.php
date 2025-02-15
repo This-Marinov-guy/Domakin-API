@@ -38,7 +38,7 @@ class FeedbackController extends Controller
         $validator = Validator::make($request->all(), Feedback::rules(), Feedback::messages());
 
         if ($validator->fails()) {
-            return ApiResponseClass::sendInvalidFields($validator->errors()->toArray());
+            return ApiResponseClass::sendInvalidFields($validator->errors()->toArray(), Feedback::messages());
         }
 
         try {

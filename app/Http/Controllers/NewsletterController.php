@@ -24,7 +24,7 @@ class NewsletterController extends Controller
                 return ApiResponseClass::sendSuccess();
             }
 
-            return ApiResponseClass::sendInvalidFields($validator->errors()->toArray());
+            return ApiResponseClass::sendInvalidFields($validator->errors()->toArray(), Newsletter::messages());
         }
 
         try {

@@ -32,7 +32,7 @@ class RentingController extends Controller
         $validator = Validator::make($data, Renting::rules());
 
         if ($validator->fails()) {
-            return ApiResponseClass::sendInvalidFields($validator->errors()->toArray());
+            return ApiResponseClass::sendInvalidFields($validator->errors()->toArray(), Renting::messages());
         }
 
         $data['letter'] = $cloudinary->singleUpload($data['letter'], [
