@@ -25,7 +25,7 @@ return new class extends Migration
             $table->integer('budget'); 
             $table->string('city');
             $table->string('letter')->nullable(); 
-            $table->string('note')->nullable();
+            $table->text('note')->nullable();
         });
     }
 

@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('phone');
             $table->string(column: 'email');
             $table->string(column: 'letter');
-            $table->string(column: 'note')->nullable();
+            $table->text(column: 'note')->nullable();
         });
     }
 

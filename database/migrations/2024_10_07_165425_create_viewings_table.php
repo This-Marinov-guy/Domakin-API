@@ -23,7 +23,7 @@ return new class extends Migration
             $table->string('address', max(['max' => '100']));
             $table->date('date');
             $table->string('time');
-            $table->string('note')->nullable();
+            $table->text('note')->nullable();
         });
     }
 
