@@ -38,10 +38,10 @@ class RegisteredUserController extends Controller
         } catch (\Exception $error) {
             Log::error($error->getMessage());
 
-            if (!$isSSO) {
-                return ApiResponseClass::sendError();
-            } else {
+            if ($isSSO) {
                 return ApiResponseClass::sendSuccess(['user_created' => false]);
+            } else {
+                return ApiResponseClass::sendError();
             }
         }
 
