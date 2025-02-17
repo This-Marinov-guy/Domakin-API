@@ -14,11 +14,17 @@ use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\RentingController;
 use App\Http\Controllers\SearchRentingController;
 use App\Http\Controllers\ViewingController;
+use App\Http\Controllers\WordPressController;
 
 // Note: common routes with basic functionality
 Route::prefix('common')->group(function () {
     Route::post('/newsletter/subscribe', [NewsletterController::class, 'create']);
     Route::delete('/newsletter/unsubscribe', [NewsletterController::class, 'destroy']);
+});
+
+Route::prefix('blog')->group(function () {
+    Route::get('/posts', [WordPressController::class, 'getPosts']);
+    Route::get('/post/{id}', [WordPressController::class, 'getPostDetails']);
 });
 
 Route::prefix('feedback')->group(function () {
