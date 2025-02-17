@@ -49,6 +49,7 @@ class NewsletterController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'email' => 'required|string|email',
+            'id' => 'required|integer',
         ]);
 
         if ($validator->fails()) {
@@ -56,9 +57,9 @@ class NewsletterController extends Controller
         }
 
         try {
-            Newsletter::where('email', $request->email)->delete();
+            Newsletter::where('id', $request->id)->where('email', $request->email)->delete();
         } catch (Exception $error) {
-            return ApiResponseClass::sendError($error->getMessage());
+            return ApiResponseClass::sendError("No mail found!");
         }
 
         try {
