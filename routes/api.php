@@ -18,6 +18,7 @@ use App\Http\Controllers\ViewingController;
 // Note: common routes with basic functionality
 Route::prefix('common')->group(function () {
     Route::post('/newsletter/subscribe', [NewsletterController::class, 'create']);
+    Route::delete('/newsletter/unsubscribe', [NewsletterController::class, 'destroy']);
 });
 
 Route::prefix('feedback')->group(function () {

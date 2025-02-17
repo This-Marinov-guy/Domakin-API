@@ -13,7 +13,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 
 class NewsletterController extends Controller
 {
-    public function create(Request$request, GoogleSheetsService $sheetsService): JsonResponse
+    public function create(Request $request, GoogleSheetsService $sheetsService): JsonResponse
     {
         $validator = Validator::make($request->all(), Newsletter::rules(), Newsletter::messages());
 
@@ -29,6 +29,34 @@ class NewsletterController extends Controller
 
         try {
             Newsletter::create($request->all());
+        } catch (Exception $error) {
+            return ApiResponseClass::sendError($error->getMessage());
+        }
+
+        try {
+            $sheetsService->exportModelToSpreadsheet(
+                Newsletter::class,
+                'Newsletter emails'
+            );
+        } catch (Exception $error) {
+            //do nothing        
+        }
+
+        return ApiResponseClass::sendSuccess();
+    }
+
+    public function destroy(Request $request, GoogleSheetsService $sheetsService): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|string|email',
+        ]);
+
+        if ($validator->fails()) {
+            return ApiResponseClass::sendInvalidFields($validator->errors()->toArray());
+        }
+
+        try {
+            Newsletter::where('email', $request->email)->delete();
         } catch (Exception $error) {
             return ApiResponseClass::sendError($error->getMessage());
         }
