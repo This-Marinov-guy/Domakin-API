@@ -37,9 +37,12 @@ class PropertyRequest extends FormRequest
             'propertyData.bills' => 'required|string',
             'propertyData.flatmates' => 'required|string',
             'propertyData.registration' => 'required|string',
-            'propertyData.description' => 'required|string',
+            'propertyData.description.bg' => 'string|required_without:propertyData.description.en, propertyData.description.gr',
+            'propertyData.description.en' => 'string|required_without:propertyData.description.bg, propertyData.description.gr',
+            'propertyData.description.gr' => 'string|required_without:propertyData.description.en, propertyData.description.bg',
+            
             'images' => 'required|array',
-
+            
             'terms.contact' => 'required|boolean',
             'terms.legals' => 'required|boolean',
         ];
