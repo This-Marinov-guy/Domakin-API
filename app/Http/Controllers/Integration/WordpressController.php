@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Integration;
 
-use Illuminate\Http\Request;
+use App\Classes\ApiResponseClass;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Exception;
@@ -10,7 +11,7 @@ use Exception;
 class WordPressController extends Controller
 {
     private const ENDPOINT = 'public-api.wordpress.com/wp/v2/sites/';
-    private const PROTOCOL = 'https://'; // Assuming PROTOCOL is https
+    private const PROTOCOL = 'https://';
 
     /**
      * Get all WordPress posts
@@ -61,20 +62,14 @@ class WordPressController extends Controller
                 return [
                     'id' => $post['id'],
                     'thumbnail' => $firstImageSrc,
-                    'title' => str_replace('&nbsp;', ' ', $post['title']['rendered']),
+                    'title' => trim(html_entity_decode(strip_tags($post['title']['rendered']), ENT_QUOTES, 'UTF-8')),
                     'description' => $description,
                 ];
             });
 
-            return response()->json([
-                'status' => true,
-                'posts' => $posts
-            ]);
+            return ApiResponseClass::sendSuccess($posts);
         } catch (Exception $e) {
-            return response()->json([
-                'status' => false,
-                'message' => $e->getMessage()
-            ], 500);
+            return ApiResponseClass::sendError($e->getMessage());
         }
     }
 
@@ -117,19 +112,15 @@ class WordPressController extends Controller
                 $processedContent
             );
 
-            return response()->json([
-                'status' => true,
-                'data' => [
-                    'title' => str_replace('&nbsp;', ' ', $post['title']['rendered']) ?? null,
-                    'content' => $processedContent ?? null,
-                    'styles' => $stylesResponse->successful() ? $stylesResponse->body() : null,
-                ]
+            return ApiResponseClass::sendSuccess([
+                'title' => trim(html_entity_decode(strip_tags($post['title']['rendered']), ENT_QUOTES, 'UTF-8')),
+                'content' => $processedContent ?? null,
+                'styles' => $stylesResponse->successful() ? $stylesResponse->body() : null,
             ]);
         } catch (Exception $e) {
             Log::error('WordPress API Error: ' . $e->getMessage());
-            return response()->json([
-                'status' => false
-            ], 200);
+
+            return ApiResponseClass::sendError($e->getMessage());
         }
     }
 }

@@ -14,7 +14,7 @@ use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\RentingController;
 use App\Http\Controllers\SearchRentingController;
 use App\Http\Controllers\ViewingController;
-use App\Http\Controllers\WordPressController;
+use App\Http\Controllers\Integration\WordPressController;
 
 // Note: common routes with basic functionality
 Route::prefix('common')->group(function () {
