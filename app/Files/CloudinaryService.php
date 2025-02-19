@@ -16,6 +16,10 @@ class CloudinaryService
 
     public function singleUpload($file, array $options = [])
     {
+        if (isset($options['folder']) && env('APP_ENV') !== 'prod') {
+            $options['folder'] = 'test/' . $options['folder'];
+        }
+
         try {
             $uploadResult = $this->cloudinary::upload($file->getRealPath(), $options);
             return $uploadResult->getSecurePath();
@@ -26,6 +30,10 @@ class CloudinaryService
 
     public function multiUpload(array $files, array $options = [])
     {
+        if (isset($options['folder']) && env('APP_ENV') !== 'prod') {
+            $options['folder'] = 'test/' . $options['folder'];
+        }
+
         $results = [];
 
         foreach ($files as $file) {
