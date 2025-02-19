@@ -10,8 +10,16 @@ use Exception;
 
 class WordPressController extends Controller
 {
-    private const ENDPOINT = 'public-api.wordpress.com/wp/v2/sites/';
+    private const API_ENDPOINT = 'public-api.wordpress.com/wp/v2/sites/';
     private const PROTOCOL = 'https://';
+
+    /**
+     * Get WordPress blog domain from environment
+     */
+    private function getBlogDomain()
+    {
+        return env('WORDPRESS_BLOG_DOMAIN', 'domakin0.wordpress.com');
+    }
 
     /**
      * Get all WordPress posts
@@ -21,7 +29,7 @@ class WordPressController extends Controller
     public function getPosts()
     {
         try {
-            $response = Http::get(self::PROTOCOL . self::ENDPOINT . env('WORDPRESS_BLOG_ID') . '/posts');
+            $response = Http::get(self::PROTOCOL . self::API_ENDPOINT . env('WORDPRESS_BLOG_ID') . '/posts');
 
             if (!$response->successful()) {
                 return response()->json([
@@ -31,17 +39,15 @@ class WordPressController extends Controller
             }
 
             $posts = collect($response->json())->map(function ($post, $index) {
-                // Replace http with https
-                $processedContent = str_replace(
-                    'http://',
-                    'https://',
-                    $post['content']['rendered']
-                );
+                $processedContent = $post['content']['rendered'];
 
-                // Fix relative image paths
+                // Replace http with https
+                $processedContent = str_replace('http://', 'https://', $processedContent);
+
+                // Fix relative image paths to use the blog domain
                 $processedContent = str_replace(
                     'src="/wp-content',
-                    'src=' . self::ENDPOINT . env('WORDPRESS_BLOG_ID') . '/wp-content',
+                    'src="https://' . $this->getBlogDomain() . '/wp-content',
                     $processedContent
                 );
 
@@ -83,7 +89,7 @@ class WordPressController extends Controller
     {
         try {
             $postResponse = Http::get(
-                self::PROTOCOL . self::ENDPOINT . env('WORDPRESS_BLOG_ID') . "/posts/{$postId}",
+                self::PROTOCOL . self::API_ENDPOINT . env('WORDPRESS_BLOG_ID') . "/posts/{$postId}",
                 ['_embed' => true]
             );
 
@@ -94,21 +100,19 @@ class WordPressController extends Controller
             }
 
             $stylesResponse = Http::get(
-                self::PROTOCOL . env('WORDPRESS_BLOG_ID') . '/wp-includes/css/dist/block-library/style.min.css'
+                'https://' . $this->getBlogDomain() . '/wp-includes/css/dist/block-library/style.min.css'
             );
 
             $post = $postResponse->json();
+            $processedContent = $post['content']['rendered'];
 
-            // Process content
-            $processedContent = str_replace(
-                'http://',
-                'https://',
-                $post['content']['rendered']
-            );
+            // Replace http with https
+            $processedContent = str_replace('http://', 'https://', $processedContent);
 
+            // Fix relative image paths to use the blog domain
             $processedContent = str_replace(
                 'src="/wp-content',
-                'src=' . self::ENDPOINT . env('WORDPRESS_BLOG_ID') . '/wp-content',
+                'src="https://' . $this->getBlogDomain() . '/wp-content',
                 $processedContent
             );
 
