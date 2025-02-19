@@ -75,7 +75,8 @@ class WordPressController extends Controller
 
             return ApiResponseClass::sendSuccess($posts);
         } catch (Exception $e) {
-            return ApiResponseClass::sendError($e->getMessage());
+            Log::error('WordPress API Error: ' . $e);
+            return ApiResponseClass::sendError("Failed to load posts");
         }
     }
 
