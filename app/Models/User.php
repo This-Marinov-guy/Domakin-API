@@ -22,6 +22,7 @@ class User extends Authenticatable
         'email',
         'phone',
         'profile_image',
+        'supabase_id',
     ];
 
     /**
