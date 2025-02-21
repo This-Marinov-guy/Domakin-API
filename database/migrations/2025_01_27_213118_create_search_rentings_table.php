@@ -17,7 +17,8 @@ return new class extends Migration
             $table->string('name');
             $table->string('surname');
             $table->string('phone');
-            $table->string('email'); 
+            $table->string('email');
+            $table->string('type')->nullable();
             $table->integer('people'); 
             $table->date('move_in'); 
             $table->string('period');

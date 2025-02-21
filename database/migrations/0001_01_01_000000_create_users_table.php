@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -12,8 +13,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
-            $table->id();
-            $table->uuid('supabase_id')->nullable();
+            $table->uuid('id')->primary()->default(DB::raw('gen_random_uuid()')); // PostgreSQL UUID generation
             $table->string('status')->default(1);
             $table->string('roles')->default('user');
             $table->string('name');
