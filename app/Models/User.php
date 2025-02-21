@@ -41,6 +41,7 @@ class User extends Authenticatable
      */
     protected $hidden = [
         'remember_token',
+        'supabase_id',
     ];
 
     /**
