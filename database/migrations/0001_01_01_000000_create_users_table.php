@@ -18,11 +18,9 @@ return new class extends Migration
             $table->string('roles')->default('user');
             $table->string('name');
             $table->string('email')->unique();
-            $table->string('phone')->unique()->nullable();
+            $table->string('phone')->nullable();
             $table->text('profile_image')->nullable();
             $table->timestamps();
-
-            $table->foreign('supabase_id')->references('uuid')->on('auth.users');
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
