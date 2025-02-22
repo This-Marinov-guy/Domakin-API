@@ -3,6 +3,7 @@
 namespace App\Classes;
 
 use App\Constants\ErrorMessages;
+use Illuminate\Support\Facades\Log;
 
 class ApiResponseClass
 {
@@ -23,39 +24,55 @@ class ApiResponseClass
         $errorTags = [];
         $messageTag = ErrorMessages::REQUIRED_FIELDS['tag'];
         $hasRequiredError = false;
+        $missingFields = [];
 
         foreach ($invalidFields as $field => $messages) {
+            $tag = null;
+
             foreach ($messages as $ruleMessage) {
                 if (is_string($ruleMessage) && str_contains(strtolower($ruleMessage), 'required')) {
                     $hasRequiredError = true;
+                    $missingFields[] = $field; // Collect only missing fields
                 }
             }
 
-            foreach ($errorMessages as $rule => $details) {
-                if (str_starts_with($rule, $field) && isset($details['tag'])) {
-                    $tag = $details['tag'];
-                    break; // Stop at the first match
+            // Prioritize specific validation rules
+            $priorityRules = ["required", "unique"];
+
+            foreach ($priorityRules as $priority) {
+                $ruleKey = "{$field}.{$priority}";
+                if (isset($errorMessages[$ruleKey]['tag'])) {
+                    $tag = $errorMessages[$ruleKey]['tag'];
+                    break; // Stop as soon as a prioritized rule is found
                 }
             }
 
-            if (!isset($tag)) {
-                continue; // If no tag is found, do not add it
+            if (!$tag) {
+                foreach ($errorMessages as $rule => $details) {
+                    if (str_starts_with($rule, $field) && isset($details['tag'])) {
+                        $tag = $details['tag'];
+                        break;
+                    }
+                }
             }
 
-            $errorTags[] = $tag;
+            if ($tag) {
+                $errorTags[] = $tag;
+            }
         }
 
+        // If there are missing fields, return only those in invalid_fields
         if ($hasRequiredError) {
             return response()->json([
                 'status' => false,
-                'invalid_fields' => array_keys($invalidFields),
-                'tag' => [$messageTag], // Return only the required tag
+                'invalid_fields' => $missingFields,
+                'tag' => [$messageTag], 
             ], $code);
         }
 
         return response()->json([
             'status' => false,
-            'invalid_fields' => array_keys($invalidFields),
+            'invalid_fields' => array_keys($invalidFields), 
             'tag' => array_unique($errorTags),
         ], $code);
     }

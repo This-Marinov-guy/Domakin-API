@@ -58,6 +58,10 @@ Route::post('/register', [RegisteredUserController::class, 'store'])
     ->middleware('guest')
     ->name('register');
 
+Route::post('/validate-credentials', [RegisteredUserController::class, 'validate'])
+->middleware('guest')
+->name('validate-credentials');
+
 // TODO: check which routes are needed
 // Route::post('/login', [AuthenticatedSessionController::class, 'store'])
 //     ->middleware('guest')
