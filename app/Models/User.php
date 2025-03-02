@@ -31,7 +31,7 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $attributes = [
-        'profile_image' => '/assets/images/blog/avatar_0' . mt_rand(1, 5) . '.jpg',
+        'profile_image' => '/assets/img/dashboard/avatar_0' . mt_rand(1, 5) . '.jpg',
         'status' => 1,
         'roles' => 'user',
     ];
