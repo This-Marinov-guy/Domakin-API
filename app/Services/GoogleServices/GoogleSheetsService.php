@@ -202,7 +202,9 @@ class GoogleSheetsService
             ));
         } catch (\Exception $e) {
             Log::error('Error in exportModelToSpreadsheet: ' . $e->getMessage());
-            throw $e;
+
+            // do not throw error in order to not break the flow
+            // throw $e;
         }
     }
 

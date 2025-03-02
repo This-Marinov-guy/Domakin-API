@@ -31,6 +31,7 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $attributes = [
+        'profile_image' => '/assets/images/blog/avatar_0' . mt_rand(1, 5) . '.jpg',
         'status' => 1,
         'roles' => 'user',
     ];
@@ -52,6 +53,7 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
+            'id' => 'string',
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
