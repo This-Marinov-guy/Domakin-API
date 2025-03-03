@@ -27,6 +27,16 @@ class Property extends Model
         'status' => 1
     ];
 
+    public function PersonalData()
+    {
+        return $this->hasOne(PersonalData::class);
+    }
+
+    public function PropertyData()
+    {
+        return $this->hasOne(PropertyData::class);
+    }
+
     // Helper method to set data
     public function setData(array $data)
     {

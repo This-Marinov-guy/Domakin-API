@@ -47,6 +47,9 @@ Route::prefix('renting')->group(function () {
 
 Route::prefix('property')->group(function () {
     Route::post('/create', [PropertyController::class, 'create']);
+    Route::get('/show', [PropertyController::class, 'show']);
+    Route::post('/update', [PropertyController::class, 'update']);
+    Route::delete('/delete', [PropertyController::class, 'delete']);
 });
 
 // Authentication

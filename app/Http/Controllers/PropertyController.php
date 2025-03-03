@@ -10,6 +10,7 @@ use App\Models\Property;
 use Illuminate\Support\Facades\Log;
 use App\Services\GoogleServices\GoogleSheetsService;
 use Illuminate\Http\Request;
+use App\Http\Requests\PropertyRequest;
 use Illuminate\Support\Facades\Validator;
 use Exception;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -26,7 +27,7 @@ class PropertyController extends Controller
             'images' => $request->file('images')
         ];
 
-        $validator = Validator::make($data, Property::rules());
+        $validator = Validator::make($data, PropertyRequest::rules());
 
         if ($validator->fails()) {
             return ApiResponseClass::sendInvalidFields($validator->errors()->toArray(), Property::messages());
@@ -85,5 +86,39 @@ class PropertyController extends Controller
         }
 
         return ApiResponseClass::sendSuccess();
+    }
+
+    /**
+     * Lists all properties
+     * 
+     * @return JsonResponse
+     */
+    public function show () : JsonResponse
+    {
+        $properties = Property::all();
+
+        return ApiResponseClass::sendSuccess($properties);
+    }
+
+    /**
+     * Update Property
+   
+     * @return void
+     */
+    public function update (PropertyRequest $request, Property $property) : JsonResponse
+    {
+        $property->ProperyData = $request->propertyData;
+        $property->PersonalData = $request->personalData;
+
+        $property->save();
+        return ApiResponseClass::sendSuccess(['message' => 'Property updated successfully']);
+    }
+
+    public function destroy (Property $property) : JsonResponse
+    {
+        //TODO: perhaps something needs to be done to delete images? Not sure if this deletes images, needs testing
+        $property->delete();
+
+        return ApiResponseClass::sendSuccess(['message' => 'Property deleted successfully']);
     }
 }
