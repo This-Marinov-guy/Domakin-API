@@ -3,7 +3,6 @@
 namespace App\Files;
 
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
-use Illuminate\Support\Facades\Log;
 
 class CloudinaryService
 {

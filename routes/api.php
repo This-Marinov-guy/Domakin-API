@@ -34,8 +34,8 @@ Route::prefix('renting')->group(function () {
 });
 
 Route::prefix('property')->group(function () {
-    Route::post('/create', [PropertyController::class, 'create']);
-    Route::get('/show', [PropertyController::class, 'show']);
-    Route::post('/update', [PropertyController::class, 'update']);
-    Route::delete('/delete', [PropertyController::class, 'delete']);
+    Route::post('/create', [PropertyController::class, 'create'])->name('property.create');
+    Route::get('/show/{id}', [PropertyController::class, 'show'])->name('property.show');
+    Route::post('/update/{id}', [PropertyController::class, 'update'])->name('property.update');
+    Route::delete('/delete/{id}', [PropertyController::class, 'destroy'])->name('property.delete');
 });

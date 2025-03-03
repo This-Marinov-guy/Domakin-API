@@ -29,12 +29,12 @@ class Property extends Model
 
     public function PersonalData()
     {
-        return $this->hasOne(PersonalData::class);
+        return $this->hasOne(PersonalData::class, 'properties_id');
     }
 
     public function PropertyData()
     {
-        return $this->hasOne(PropertyData::class);
+        return $this->hasOne(PropertyData::class, 'properties_id');
     }
 
     // Helper method to set data

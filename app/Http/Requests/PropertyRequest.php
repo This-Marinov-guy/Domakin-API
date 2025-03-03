@@ -22,24 +22,24 @@ class PropertyRequest extends FormRequest
     public function rules(): array
     {
 
-        //TODO: i think we can add regex patterns to reduce XSS vulnerabilities.
+        //TODO: See if Regex patterns can be used for multiple languages, such as 
         return [
-            'personalData.name' => ['required', 'string', 'regex:/^[a-zA-Z\']+$/'], //Vladi, here is an example of a regex pattern validation. This particular pattern checks if the etered name contains only lower case letters, upper case letters, appostrophies, and any length of input 
-            'personalData.surname' => 'required|string',
-            'personalData.email' => 'required|email',
-            'personalData.phone' => 'required|string',
+            'id'                        => 'integer|min:1',
+            'personalData.name'         => 'required|string',
+            'personalData.surname'      => 'required|string',
+            'personalData.email'        => 'required|email',
+            'personalData.phone'        => 'required|integer',
 
-            'propertyData.city' => 'required|string',
-            'propertyData.address' => 'required|string',
-            'propertyData.size' => 'required|string',
-            'propertyData.period' => 'required|string',
-            'propertyData.rent' => 'required|string',
-            'propertyData.bills' => 'required|string',
-            'propertyData.flatmates' => 'required|string',
+            'propertyData.city'         => 'required|string',
+            'propertyData.address'      => 'required|string',
+            'propertyData.size'         => 'required|string',
+            'propertyData.period'       => 'required|string',
+            'propertyData.rent'         => 'required|string',
+            'propertyData.bills'        => 'required|string',
+            'propertyData.flatmates'    => 'required|string',
             'propertyData.registration' => 'required|string',
-            'propertyData.description.bg' => 'string|required_without:propertyData.description.en, propertyData.description.gr',
-            'propertyData.description.en' => 'string|required_without:propertyData.description.bg, propertyData.description.gr',
-            'propertyData.description.gr' => 'string|required_without:propertyData.description.en, propertyData.description.bg',
+            'propertyData.description'  => 'required|string',
+            //'propertyData.description.bg' => 'string|required_without:propertyData.description.en, propertyData.description.gr',// could be useful later
             
             'images' => 'required|array',
             
