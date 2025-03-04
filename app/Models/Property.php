@@ -27,12 +27,12 @@ class Property extends Model
         'status' => 1
     ];
 
-    public function PersonalData()
+    public function personalData()
     {
         return $this->hasOne(PersonalData::class);
     }
 
-    public function PropertyData()
+    public function propertyData()
     {
         return $this->hasOne(PropertyData::class);
     }
@@ -76,6 +76,15 @@ class Property extends Model
             'terms.contact' => 'required|accepted',
             'terms.legals' => 'required|accepted',
 
+        ];
+    }
+
+    public static function messages(): array
+    {
+        return [
+            'personalData.email.email' => [
+                'tag' => 'account:authentication.errors.email',
+            ],
         ];
     }
 }

@@ -13,17 +13,17 @@ return new class extends Migration
     {
         Schema::create('property_data', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('properties_id')->constrained()->onDelete('cascade');
+            $table->foreignId('property_id')->constrained()->onDelete('cascade');
             $table->string('city');
             $table->string('address');
             $table->string('size');
-            $table->string('period');
             $table->string('rent');
-            $table->string('bills');
-            $table->string('flatmates');
             $table->string('registration');
-            $table->string('description');
-            $table->json('images');
+            $table->json('bills');
+            $table->json('flatmates');
+            $table->json('period');
+            $table->json('description');
+            $table->text('images');
             $table->timestamps();
         });
     }

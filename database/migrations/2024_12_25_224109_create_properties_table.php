@@ -12,8 +12,6 @@ class CreatePropertiesTable extends Migration
             $table->id();
             $table->boolean(column: 'approved');
             $table->integer(column: 'status');
-            $table->json(column: 'personal_data');
-            $table->json('property_data');
             $table->timestamps();
         });
     }
