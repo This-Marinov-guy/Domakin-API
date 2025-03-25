@@ -87,6 +87,24 @@ class User extends Authenticatable
         ];
     }
 
+    public static function rulesEdit(): array
+    {
+        return [
+            'name' => 'required|string',
+            'phone' => 'required|string|unique:users,phone',
+            'email' => 'required|unique:users,email|email',
+            'password' => [
+                'string',
+                Password::min(8)
+                    ->mixedCase()
+                    ->letters()
+                    ->numbers()
+                    ->symbols(),
+            ],
+            'password_confirmation' => 'same:password',
+        ];
+    }
+
     public static function messages(): array
     {
         return [
