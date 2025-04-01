@@ -93,7 +93,14 @@ class User extends Authenticatable
             'name' => 'required|string',
             'phone' => 'required|string|unique:users,phone',
             'email' => 'required|unique:users,email|email',
+        ];
+    }
+
+    public static function rulesPassword(): array
+    {
+        return [
             'password' => [
+                'required',
                 'string',
                 Password::min(8)
                     ->mixedCase()
@@ -101,7 +108,7 @@ class User extends Authenticatable
                     ->numbers()
                     ->symbols(),
             ],
-            'password_confirmation' => 'same:password',
+            'password_confirmation' => 'required|same:password',
         ];
     }
 
