@@ -11,8 +11,6 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Classes\ApiResponseClass;
-use Cloudinary\Api\ApiResponse;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 class ProfileController extends Controller
@@ -75,7 +73,7 @@ class ProfileController extends Controller
                 'user' => $user,
             ]);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Failed to update profile: ' . $e->getMessage()], 500);
+            return ApiResponseClass::sendError('Failed to update profile: ' . $e->getMessage(), 500);
         }
     }
 }
