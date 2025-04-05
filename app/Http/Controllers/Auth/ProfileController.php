@@ -11,13 +11,17 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Classes\ApiResponseClass;
+use App\Services\Helpers;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 class ProfileController extends Controller
 {
     public function edit(Request $request, CloudinaryService $cloudinary, UserService $userService): JsonResponse
     {
-        $validator = Validator::make($request->all(), User::rulesEdit(), User::messages());
+        $user = $userService->getUserByRequest($request);
+
+        $validator = Validator::make($request->all(), User::rulesEdit($user->id), User::messages());
 
         if ($validator->fails()) {
             return ApiResponseClass::sendInvalidFields($validator->errors()->toArray(), User::messages());
@@ -31,37 +35,43 @@ class ProfileController extends Controller
             }
         }
 
-        $user = $userService->getUserByRequest($request);
-
         try {
-            $supabaseUpdateData = [
-                'email' => $request->email,
-                'phone' => $request->phone,
-                'user_metadata' => [
-                    'display_name' => $request->name
-                ]
-            ];
+            $supabaseUpdateData = [];
+
+            if ($request->email !== $user->email) {
+                $supabaseUpdateData['email'] = $request->email;
+            }
+
+            if ($request->phone !== $user->phone) {
+                $supabaseUpdateData['phone'] = $request->phone;
+            }
+
+            if ($request->name !== $user->name) {
+                $supabaseUpdateData['user_metadata']['display_name'] = $request->name;
+            }
 
             if ($request->password) {
                 $supabaseUpdateData['password'] = Hash::make($request->password);
             }
 
-            $profileImageUrl = $request->hasFile('profile_image') ? $cloudinary->singleUpload($request->file('profile_image'), [
+            $profileImageUrl = $request->hasFile('profileImage') ? $cloudinary->singleUpload($request->file('profileImage'), [
                 'folder' => "profiles/" . $user->id,
             ]) : null;
 
-            $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . env('SUPABASE_SERVICE_ROLE_KEY'),
-                'Content-Type' => 'application/json',
-                'apikey' => env('SUPABASE_SERVICE_ROLE_KEY'),
-            ])->put(env('SUPABASE_URL') . '/auth/v1/admin/users/' . $user->id, $supabaseUpdateData);
+            if (!empty($supabaseUpdateData)) {
+                $response = Http::withHeaders([
+                    'Authorization' => 'Bearer ' . env('SUPABASE_SERVICE_ROLE_KEY'),
+                    'Content-Type' => 'application/json',
+                    'apikey' => env('SUPABASE_SERVICE_ROLE_KEY'),
+                ])->put(env('SUPABASE_URL') . '/auth/v1/admin/users/' . $user->id, $supabaseUpdateData);
+    
+    
+                if (!$response->successful()) {
+                    throw new \Exception('Supabase update failed: ' . $response->body());
+                }
 
-
-            if (!$response->successful()) {
-                throw new \Exception('Supabase update failed: ' . $response->body());
+                $user->fill($request->only(keys: ['email', 'phone', 'name']));
             }
-
-            $user->fill($request->only(['email', 'phone', 'name']));
 
             if (!empty($profileImageUrl)) {
                 $user->profile_image = $profileImageUrl;

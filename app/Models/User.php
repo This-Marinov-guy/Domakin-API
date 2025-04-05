@@ -6,6 +6,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 
 class User extends Authenticatable
@@ -87,8 +88,24 @@ class User extends Authenticatable
         ];
     }
 
-    public static function rulesEdit(): array
+    public static function rulesEdit($userId = null): array
     {
+        if ($userId) {
+            return [
+                'name' => 'required|string',
+                'phone' => [
+                    'required',
+                    'string',
+                    Rule::unique('users', 'phone')->ignore($userId),
+                ],
+                'email' => [
+                    'required',
+                    'email',
+                    Rule::unique('users', 'email')->ignore($userId),
+                ],
+            ];
+        }
+
         return [
             'name' => 'required|string',
             'phone' => 'required|string|unique:users,phone',
