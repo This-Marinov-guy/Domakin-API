@@ -4,6 +4,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Property extends Model
 {
@@ -35,6 +36,16 @@ class Property extends Model
     public function propertyData()
     {
         return $this->hasOne(PropertyData::class);
+    }
+
+    public function propertyCreator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function lastUpdateBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     // Helper method to set data

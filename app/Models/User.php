@@ -149,4 +149,14 @@ class User extends Authenticatable
             ],
         ];
     }
+
+    public function userProperties()
+    {
+        return $this->hasMany(Property::class);
+    }
+
+    public function lastUpdatedProperty()
+    {
+        return $this->hasMany(Property::class);
+    }
 }
