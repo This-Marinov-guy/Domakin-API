@@ -60,6 +60,11 @@ class RegisteredUserController extends Controller
                 ...$request->all(),
                 'referral_code' => $referral_code
             ]);
+
+            $sheetsService->exportModelToSpreadsheet(
+                User::class,
+                'Users'
+            );
         } catch (\Exception $error) {
             Log::error($error->getMessage());
 
@@ -74,10 +79,6 @@ class RegisteredUserController extends Controller
             }
         }
 
-        $sheetsService->exportModelToSpreadsheet(
-            User::class,
-            'Users'
-        );
         return ApiResponseClass::sendSuccess(['user_created' => true]);
     }
 }
