@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->string('phone')->nullable();
             $table->text('profile_image')->nullable();
+            $table->string('referral_code');
             $table->timestamps();
         });
     }
