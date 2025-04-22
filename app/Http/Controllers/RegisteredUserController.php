@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Classes\ApiResponseClass;
 use App\Services\GoogleServices\GoogleSheetsService;
@@ -50,7 +51,7 @@ class RegisteredUserController extends Controller
         try {
             User::create([
                 ...$request->all(),
-                // 'password' => Hash::make($request->string(key: 'password')),
+                'referral_code' => $request->get('name') . '-' . strtoupper(Str::random(6))
             ]);
         } catch (\Exception $error) {
             Log::error($error->getMessage());
