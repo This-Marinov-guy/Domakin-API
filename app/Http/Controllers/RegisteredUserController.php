@@ -52,7 +52,7 @@ class RegisteredUserController extends Controller
         $referral_code = '';
 
         do {
-            $referral_code = Str::slug($request->name) . '-' . strtoupper(Str::random(6));
+            $referral_code = Str::slug($request->name) . '-' . Str::random(6);
         } while (User::where('referral_code', $referral_code)->exists());
 
         try {
