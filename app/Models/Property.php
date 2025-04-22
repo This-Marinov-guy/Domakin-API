@@ -10,7 +10,12 @@ class Property extends Model
 {
     protected $fillable = [
         'personal_data',
-        'property_data'
+        'property_data',
+        'created_by',
+        'last_updated_by',
+        'approved',
+        'status',
+        'release_timestamp',
     ];
 
     protected $casts = [

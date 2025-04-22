@@ -32,6 +32,7 @@ class User extends Authenticatable
         'email',
         'phone',
         'profile_image',
+        'referral_code',
     ];
 
     /**
