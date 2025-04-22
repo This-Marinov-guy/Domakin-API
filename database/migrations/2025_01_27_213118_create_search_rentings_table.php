@@ -27,7 +27,7 @@ return new class extends Migration
             $table->string('city');
             $table->string('letter')->nullable(); 
             $table->text('note')->nullable();
-        });
+            $table->text('referral_code')->nullable();        });
     }
 
     /**

@@ -24,6 +24,7 @@ return new class extends Migration
             $table->date('date');
             $table->string('time');
             $table->text('note')->nullable();
+            $table->text('referral_code')->nullable();
         });
     }
 

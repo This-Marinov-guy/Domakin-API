@@ -16,6 +16,7 @@ class Property extends Model
         'approved',
         'status',
         'release_timestamp',
+        'referral_code',
     ];
 
     protected $casts = [

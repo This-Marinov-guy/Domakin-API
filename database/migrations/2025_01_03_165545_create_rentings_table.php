@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string(column: 'email');
             $table->string(column: 'letter');
             $table->text(column: 'note')->nullable();
+            $table->text('referral_code')->nullable();
         });
     }
 

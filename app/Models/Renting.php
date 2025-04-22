@@ -19,6 +19,7 @@ class Renting extends Model
         'email',
         'letter',
         'note',
+        'referral_code',
     ];
 
     public static function rules(): array

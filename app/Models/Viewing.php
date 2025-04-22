@@ -21,6 +21,7 @@ class Viewing extends Model
         'date',
         'time',
         'note',
+        'referral_code',
     ];
 
     protected $attributes = [

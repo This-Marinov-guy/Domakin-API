@@ -25,6 +25,7 @@ class SearchRenting extends Model
         'budget',
         'city',
         'note',
+        'referral_code',
     ];
 
     public static function rules(): array

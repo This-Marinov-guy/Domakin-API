@@ -19,6 +19,8 @@ class CreatePropertiesTable extends Migration
             $table->boolean(column: 'approved')->default(false);
             $table->integer(column: 'status')->default(1);
             $table->dateTimeTz(column: 'release_timestamp')->nullable();
+            $table->text('referral_code')->nullable();
+
             $table->timestamps();
         });
     }
