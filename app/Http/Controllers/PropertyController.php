@@ -26,6 +26,7 @@ class PropertyController extends Controller
         $data = [
             'personalData' => json_decode($request->get('personalData'), true),
             'propertyData' => json_decode($request->get('propertyData'), true),
+            'referral_code' => $request->get('referral_code'),
             'terms' => json_decode($request->get('terms'), true),
             'images' => $request->file('images')
         ];
@@ -52,7 +53,9 @@ class PropertyController extends Controller
             ]);
             $data['propertyData']['images'] = implode(", ", $data['propertyData']['images']);
 
-            $property = Property::create();
+            $property = Property::create([
+                'referral_code' => $data['referral_code'],
+            ]);
 
             PersonalData::create([
                 'property_id' => $property->id,
