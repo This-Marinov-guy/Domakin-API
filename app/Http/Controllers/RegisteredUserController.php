@@ -48,10 +48,17 @@ class RegisteredUserController extends Controller
             }
         }
 
+        // TODO: move to background task
+        $referral_code = '';
+
+        do {
+            $referral_code = Str::slug($request->name) . '-' . strtoupper(Str::random(6));
+        } while (User::where('referral_code', $referral_code)->exists());
+
         try {
             User::create([
                 ...$request->all(),
-                'referral_code' => $request->get('name') . '-' . strtoupper(Str::random(6))
+                'referral_code' => $referral_code
             ]);
         } catch (\Exception $error) {
             Log::error($error->getMessage());
