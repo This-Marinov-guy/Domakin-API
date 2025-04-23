@@ -39,6 +39,8 @@ class Notification extends Mailable
 
     public function sendNotification()
     {
+        if (env('APP_ENV', 'prod') === 'dev') return;
+
         return Mail::to(Emails::SYSTEM['internal_receiver'])->send($this);
     }
 }
