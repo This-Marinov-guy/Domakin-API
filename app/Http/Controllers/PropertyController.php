@@ -6,6 +6,7 @@ use App\Classes\ApiResponseClass;
 use App\Files\CloudinaryService;
 use App\Http\Controllers\Controller;
 use App\Mail\Notification;
+use Illuminate\Support\Carbon;
 use App\Models\Property;
 use App\Services\UserService;
 use Illuminate\Support\Facades\Log;
@@ -22,7 +23,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 
 class PropertyController extends Controller
 {
-    public function fetchUserListings(Request $request, UserService $user): JsonResponse
+    public function fetchUserProperties(Request $request, UserService $user): JsonResponse
     {
         $userId = $user->extractIdFromRequest($request);
 
@@ -34,9 +35,26 @@ class PropertyController extends Controller
         return ApiResponseClass::sendSuccess($properties);
     }
 
-    public function fetchAllListings(): JsonResponse
+    public function fetchAllProperties(): JsonResponse
     {
         $properties = Property::with(['personalData', 'propertyData'])
+            ->get();
+
+        return ApiResponseClass::sendSuccess($properties);
+    }
+
+    /**
+     * Lists all active properties
+     * 
+     * @return JsonResponse
+     */
+    public function show(): JsonResponse
+    {
+        $properties = Property::with(['personalData', 'propertyData'])
+            ->whereNotNull('release_date')
+            ->where('release_date', '<', Carbon::now())
+            ->where('status', 1)
+            ->select('id')
             ->get();
 
         return ApiResponseClass::sendSuccess($properties);
@@ -107,18 +125,6 @@ class PropertyController extends Controller
         }
 
         return ApiResponseClass::sendSuccess();
-    }
-
-    /**
-     * Lists all properties
-     * 
-     * @return JsonResponse
-     */
-    public function show(): JsonResponse
-    {
-        $properties = Property::with(['personalData', 'propertyData']);
-
-        return ApiResponseClass::sendSuccess($properties);
     }
 
     /**

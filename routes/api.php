@@ -42,14 +42,15 @@ Route::prefix('renting')->group(function () {
 });
 
 Route::prefix('property')->group(function () {
-    Route::get('/list-extended', [PropertyController::class, 'fetchAllListings'])
+    Route::get('/list-extended', [PropertyController::class, 'fetchAllProperties'])
         ->middleware('auth.role:admin');
 
-    Route::get('/list', [PropertyController::class, 'fetchUserListings'])
+    Route::get('/list', [PropertyController::class, 'fetchUserProperties'])
         ->middleware('auth.role');
 
+    Route::get('/listing', [PropertyController::class, 'show']);
+    
     Route::post('/create', [PropertyController::class, 'create']);
-    Route::get('/show', [PropertyController::class, 'show']);
     Route::post('/update', [PropertyController::class, 'update']);
     Route::delete('/delete', [PropertyController::class, 'delete']);
 });
