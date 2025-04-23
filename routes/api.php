@@ -42,6 +42,12 @@ Route::prefix('renting')->group(function () {
 });
 
 Route::prefix('property')->group(function () {
+    Route::get('/list-extended', [PropertyController::class, 'fetchAllListings'])
+        ->middleware('auth.role:admin');
+
+    Route::get('/list', [PropertyController::class, 'fetchUserListings'])
+        ->middleware('auth.role');
+
     Route::post('/create', [PropertyController::class, 'create']);
     Route::get('/show', [PropertyController::class, 'show']);
     Route::post('/update', [PropertyController::class, 'update']);
@@ -61,6 +67,6 @@ Route::prefix('authentication')->group(function () {
 // Authentication
 Route::prefix('user')->group(function () {
     Route::post('/edit-details', [ProfileController::class, 'edit'])
-        ->middleware(AuthorizationMiddleware::class)
+        ->middleware('auth.role:admin')
         ->name('edit-user-details');
 });

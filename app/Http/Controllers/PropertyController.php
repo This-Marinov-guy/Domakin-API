@@ -22,6 +22,26 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 
 class PropertyController extends Controller
 {
+    public function fetchUserListings(Request $request, UserService $user): JsonResponse
+    {
+        $userId = $user->extractIdFromRequest($request);
+
+        $properties = Property::with(['personalData', 'propertyData'])
+            ->where('created_by', $userId)
+            ->select('id', 'status')
+            ->get();
+
+        return ApiResponseClass::sendSuccess($properties);
+    }
+
+    public function fetchAllListings(): JsonResponse
+    {
+        $properties = Property::with(['personalData', 'propertyData'])
+            ->get();
+
+        return ApiResponseClass::sendSuccess($properties);
+    }
+
     public function create(Request $request, CloudinaryService $cloudinary, GoogleSheetsService $sheetsService, PropertyService $propertyService, UserService $user): JsonResponse
     {
         $data = [
