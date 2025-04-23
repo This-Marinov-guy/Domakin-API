@@ -7,6 +7,7 @@ use App\Files\CloudinaryService;
 use App\Http\Controllers\Controller;
 use App\Mail\Notification;
 use App\Models\Property;
+use App\Services\UserService;
 use Illuminate\Support\Facades\Log;
 use App\Services\GoogleServices\GoogleSheetsService;
 use App\Http\Requests\PropertyRequest;
@@ -21,14 +22,16 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 
 class PropertyController extends Controller
 {
-    public function create(Request $request, CloudinaryService $cloudinary, GoogleSheetsService $sheetsService, PropertyService $propertyService): JsonResponse
+    public function create(Request $request, CloudinaryService $cloudinary, GoogleSheetsService $sheetsService, PropertyService $propertyService, UserService $user): JsonResponse
     {
         $data = [
             'personalData' => json_decode($request->get('personalData'), true),
             'propertyData' => json_decode($request->get('propertyData'), true),
-            'referral_code' => $request->get('referral_code'),
+            'referral_code' => $request->get('referralCode'),
             'terms' => json_decode($request->get('terms'), true),
-            'images' => $request->file('images')
+            'images' => $request->file('images'),
+            'created_by' => $user->extractIdFromRequest($request),
+            'last_updated_by' => $user->extractIdFromRequest($request),
         ];
 
         $validator = Validator::make($data, Property::rules());
@@ -55,6 +58,8 @@ class PropertyController extends Controller
 
             $property = Property::create([
                 'referral_code' => $data['referral_code'],
+                'created_by' => $data['created_by'],
+                'last_updated_by' => $data['last_updated_by'],
             ]);
 
             PersonalData::create([

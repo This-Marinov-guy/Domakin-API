@@ -9,10 +9,14 @@ class UserService
 {
     public function extractIdFromRequest($request)
     {
-        $token = $request->bearerToken();
-        $key = new \Firebase\JWT\Key(env('SUPABASE_JWT_SECRET'), 'HS256');
-        $decoded = JWT::decode($token, $key);
-        $userId = $decoded->sub;
+        try {
+            $token = $request->bearerToken();
+            $key = new \Firebase\JWT\Key(env('SUPABASE_JWT_SECRET'), 'HS256');
+            $decoded = JWT::decode($token, $key);
+            $userId = $decoded->sub ?? null;
+        } catch (\Exception $e) {
+            $userId = null;
+        }
 
         return $userId;
     }
