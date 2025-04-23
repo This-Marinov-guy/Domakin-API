@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Mail\Notification;
 use App\Services\GoogleServices\GoogleSheetsService;
 use App\Models\Viewing;
+use App\Services\Helpers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
@@ -37,20 +38,22 @@ class ViewingController extends Controller
 
     public function create(Request $request, GoogleSheetsService $sheetsService): JsonResponse
     {
-        $validator = Validator::make($request->all(), Viewing::rules(), Viewing::messages());
+        $data = Helpers::camelToSnakeObject($request->all());
+
+        $validator = Validator::make($data, Viewing::rules(), Viewing::messages());
 
         if ($validator->fails()) {
             return ApiResponseClass::sendInvalidFields($validator->errors()->toArray(), Viewing::messages());
         }
 
         try {
-            Viewing::create($request->all());
+            Viewing::create($data);
         } catch (Exception $error) {
             return ApiResponseClass::sendError($error->getMessage());
         }
 
         try {
-            (new Notification('New viewing request', 'viewing', $request->all()))->sendNotification();
+            (new Notification('New viewing request', 'viewing', $data))->sendNotification();
 
             $sheetsService->exportModelToSpreadsheet(
                 Viewing::class,

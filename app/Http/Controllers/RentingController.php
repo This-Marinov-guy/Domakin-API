@@ -26,6 +26,7 @@ class RentingController extends Controller
             'email' => $request->get('email'),
             'letter' => $request->file('letter'),
             'note' => $request->get('note'),
+            'referral_code' => $request->get('referralCode'),
             'terms' => json_decode($request->get('terms'), true),
         ];
 

@@ -31,6 +31,7 @@ class SearchRentingController extends Controller
             'budget' => $request->get('budget'),
             'city' => $request->get('city'),
             'note' => $request->get('note'),
+            'referral_code' => $request->get('referralCode'),
             'letter' => $request->file('letter') ?? null,
             'terms' => json_decode($request->get('terms'), true),
         ];
