@@ -41,4 +41,64 @@ class Helpers
 
         return $result;
     }
+
+
+    public static function decodeJsonKeys(array $items, array $keys): array
+    {
+        foreach ($items as &$item) {
+            foreach ($keys as $keyPath) {
+                $parts = explode('.', $keyPath);
+                $current = &$item;
+
+                // Navigate to the parent of the target value
+                $pathExists = true;
+                for ($i = 0; $i < count($parts) - 1; $i++) {
+                    if (!isset($current[$parts[$i]])) {
+                        $pathExists = false;
+                        break;
+                    }
+                    $current = &$current[$parts[$i]];
+                }
+
+                if ($pathExists) {
+                    $lastKey = end($parts);
+                    if (isset($current[$lastKey]) && is_string($current[$lastKey])) {
+                        $decoded = json_decode($current[$lastKey], true);
+                        if (json_last_error() === JSON_ERROR_NONE) {
+                            $current[$lastKey] = $decoded;
+                        }
+                    }
+                }
+            }
+        }
+        return $items;
+    }
+
+    public static function splitStringKeys(array $items, array $keys): array
+    {
+        foreach ($items as &$item) {
+            foreach ($keys as $keyPath) {
+                $parts = explode('.', $keyPath);
+                $current = &$item;
+
+                // Navigate to the parent of the target value
+                $pathExists = true;
+                for ($i = 0; $i < count($parts) - 1; $i++) {
+                    if (!isset($current[$parts[$i]])) {
+                        $pathExists = false;
+                        break;
+                    }
+                    $current = &$current[$parts[$i]];
+                }
+
+                if ($pathExists) {
+                    $lastKey = end($parts);
+                    if (isset($current[$lastKey]) && is_string($current[$lastKey])) {
+                        $current[$lastKey] = array_map('trim', explode(', ', $current[$lastKey]));
+                    }
+                }
+            }
+        }
+        return $items;
+    }
 }

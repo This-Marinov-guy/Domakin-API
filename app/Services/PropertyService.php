@@ -24,4 +24,12 @@ class PropertyService
 
         return $data;
     }
+
+    public function parseProperties($properties)
+    {
+        $modifiedProperties = Helpers::decodeJsonKeys($properties, ['property_data.bills', 'property_data.description', 'property_data.period', 'property_data.flatmates']);
+        $modifiedProperties = Helpers::splitStringKeys($modifiedProperties, ['property_data.images']);
+
+        return $modifiedProperties;
+    }
 }

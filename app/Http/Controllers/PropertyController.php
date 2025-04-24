@@ -14,6 +14,7 @@ use App\Services\GoogleServices\GoogleSheetsService;
 use App\Http\Requests\PropertyRequest;
 use App\Models\PersonalData;
 use App\Models\PropertyData;
+use App\Services\Helpers;
 use App\Services\PropertyService;
 use Illuminate\Support\Facades\Validator;
 use Exception;
@@ -48,14 +49,17 @@ class PropertyController extends Controller
      * 
      * @return JsonResponse
      */
-    public function show(): JsonResponse
+    public function show(PropertyService $propertyService): JsonResponse
     {
         $properties = Property::with(['personalData', 'propertyData'])
-            ->whereNotNull('release_date')
-            ->where('release_date', '<', Carbon::now())
-            ->where('status', 1)
+            ->whereNotNull('release_timestamp')
+            ->where('release_timestamp', '<', Carbon::now())
+            ->where('status', 2)
             ->select('id')
-            ->get();
+            ->get()
+            ->toArray();
+
+        $properties = $propertyService->parseProperties($properties);
 
         return ApiResponseClass::sendSuccess($properties);
     }
