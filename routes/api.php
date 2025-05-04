@@ -68,6 +68,6 @@ Route::prefix('authentication')->group(function () {
 // Authentication
 Route::prefix('user')->group(function () {
     Route::post('/edit-details', [ProfileController::class, 'edit'])
-        ->middleware('auth.role:admin')
+        ->middleware('auth.role')
         ->name('edit-user-details');
 });
