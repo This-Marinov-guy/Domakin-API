@@ -20,9 +20,9 @@ class AxiomLoggerMiddleware
     public function handle(Request $request, Closure $next)
     {
         // Skip logging for GET requests
-        // if ($request->isMethod('GET')) {
-        //     return $next($request);
-        // }
+        if ($request->isMethod('GET')) {
+            return $next($request);
+        }
 
         // Process the request
         $response = $next($request);
