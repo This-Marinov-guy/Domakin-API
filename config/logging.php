@@ -51,6 +51,13 @@ return [
     */
 
     'channels' => [
+        'axiom' => [
+            'driver' => 'axiom',
+            'api_token' => env('AXIOM_TOKEN'),
+            'dataset' => env('AXIOM_DATASET', 'laravel-logs'),
+            'enabled' => env('AXIOM_LOGGING_ENABLED', true),
+            'max_content_size' => env('AXIOM_MAX_CONTENT_SIZE', 1000000),
+        ],
 
         'stack' => [
             'driver' => 'stack',
