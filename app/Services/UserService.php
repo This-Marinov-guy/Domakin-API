@@ -11,6 +11,11 @@ class UserService
     {
         try {
             $token = $request->bearerToken();
+
+            if (!$token) {
+                return null;
+            }
+
             $key = new \Firebase\JWT\Key(env('SUPABASE_JWT_SECRET'), 'HS256');
             $decoded = JWT::decode($token, $key);
             $userId = $decoded->sub ?? null;
