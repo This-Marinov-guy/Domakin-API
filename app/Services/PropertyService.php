@@ -49,7 +49,7 @@ class PropertyService
                 'price' => $property['property_data']['rent'],
                 'title' => $property['property_data']['title']['en'],
                 'city' => $property['property_data']['city'],
-                'location' => Helpers::extractStreetName($property['property_data']['address']),
+                'location' => Helpers::extractStreetName($property['property_data']['address']) . ', ' . $property['property_data']['city'],
                 'description' => [
                     'property' => $property['property_data']['description']['en'],
                     'period' => $property['property_data']['period']['en'],
