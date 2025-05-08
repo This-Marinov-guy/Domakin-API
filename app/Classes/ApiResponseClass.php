@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Log;
 class ApiResponseClass
 {
     // For Common Error response use (so the user does not see the request broken)
-    public static function sendError($message = ErrorMessages::GENERAL['message'], $messageTag = ErrorMessages::GENERAL['tag'], $code = 200)
+    public static function sendError($message = ErrorMessages::GENERAL['message'], $messageTag = ErrorMessages::GENERAL['tag'], $code = 200, $encoding = JSON_UNESCAPED_UNICODE)
     {
         $response = [
             'status' => false,
@@ -16,10 +16,10 @@ class ApiResponseClass
             'tag' => $messageTag,
         ];
 
-        return response()->json($response, $code);
+        return response()->json($response, $code, [], $encoding);
     }
 
-    public static function sendInvalidFields($invalidFields = [], $errorMessages = [], $code = 200)
+    public static function sendInvalidFields($invalidFields = [], $errorMessages = [], $code = 200, $encoding = JSON_UNESCAPED_UNICODE)
     {
         $errorTags = [];
         $messageTag = ErrorMessages::REQUIRED_FIELDS['tag'];
@@ -74,11 +74,11 @@ class ApiResponseClass
             'status' => false,
             'invalid_fields' => array_keys($invalidFields), 
             'tag' => array_unique($errorTags),
-        ], $code);
+        ], $code, [], $encoding);
     }
 
     // For Success response 
-    public static function sendSuccess($data = [], $message = '', $messageTag = '', $code = 200)
+    public static function sendSuccess($data = [], $message = '', $messageTag = '', $code = 200, $encoding = JSON_UNESCAPED_UNICODE)
     {
         $response = [
             'status' => true,
@@ -96,6 +96,6 @@ class ApiResponseClass
             $response['tag'] = $messageTag;
         }
 
-        return response()->json($response, $code);
+        return response()->json($response, $code, [], $encoding);
     }
 }

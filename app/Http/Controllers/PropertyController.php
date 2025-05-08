@@ -55,11 +55,11 @@ class PropertyController extends Controller
             ->whereNotNull('release_timestamp')
             ->where('release_timestamp', '<', Carbon::now())
             ->where('status', 2)
-            ->select('id')
+            // ->select('id')
             ->get()
             ->toArray();
 
-        $properties = $propertyService->parseProperties($properties);
+        $properties = $propertyService->parsePropertiesForListing($properties);
 
         return ApiResponseClass::sendSuccess($properties);
     }
