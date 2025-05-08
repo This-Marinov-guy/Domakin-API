@@ -101,4 +101,14 @@ class Helpers
         }
         return $items;
     }
+
+    public static function extractStreetName($address)
+    {
+        // Match everything up to the first digit
+        if (preg_match('/^[^\d]*/', $address, $matches)) {
+            return trim($matches[0]);
+        }
+
+        return $address; // Fallback: return original if no match
+    }
 }
