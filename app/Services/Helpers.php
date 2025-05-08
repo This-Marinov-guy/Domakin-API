@@ -111,4 +111,28 @@ class Helpers
 
         return $address; // Fallback: return original if no match
     }
+
+    public static function getPreferredLanguage($default = 'en')
+    {
+        $langHeader = $_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? '';
+        if (preg_match('/^([a-z]{2})/i', $langHeader, $matches)) {
+            return strtolower($matches[1]);
+        }
+        return $default;
+    }
+
+    public static function getTranslatedValue($value, $locale = 'en', $escapeEmptyValues = true)
+    {
+        if (!is_array($value)) {
+            return $value;
+        }
+
+        $translated = $value[$locale] ?? null;
+
+        if ($escapeEmptyValues) {
+            return $translated ?: ($value['en'] ?? reset($value));
+        }
+
+        return $translated ?? ($value['en'] ?? reset($value));
+    }
 }

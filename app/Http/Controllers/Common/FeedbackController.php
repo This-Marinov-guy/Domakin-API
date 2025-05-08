@@ -6,6 +6,8 @@ use App\Classes\ApiResponseClass;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Feedback;
+use App\Helpers\Common;
+use Illuminate\Support\Facades\Log;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -14,9 +16,9 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 class FeedbackController extends Controller
 {
 
-    public function list(Request $request): JsonResponse
+    public function list(Request $request, Common $commonService): JsonResponse
     {
-        $language = $request->query('language') ?? null;
+        $language = $commonService->getPreferredLanguage();
 
         $cacheKey = $language ? "feedbacks:$language" : "feedbacks:all";
 

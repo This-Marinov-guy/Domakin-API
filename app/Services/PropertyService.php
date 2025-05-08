@@ -9,8 +9,7 @@ class PropertyService
 {
     public function modifyPropertyDataWithTranslations($data)
     {
-        $helpers = new Helpers();
-        $defaultTranslations = $helpers->getDefaultLocalesObject();
+        $defaultTranslations = Helpers::getDefaultLocalesObject();
 
         $values = ['title', 'period', 'bills', 'flatmates', 'description'];
 
@@ -36,7 +35,7 @@ class PropertyService
 
     // Note: this is a temporary mapping until we remove the list from the frontend json
     // TODO: fix translations
-    public function parsePropertiesForListing($properties)
+    public function parsePropertiesForListing($properties, $language = 'en')
     {
         $modifiedProperties = Helpers::decodeJsonKeys($properties, ['property_data.title', 'property_data.bills', 'property_data.description', 'property_data.period', 'property_data.flatmates']);
         $modifiedProperties = Helpers::splitStringKeys($modifiedProperties, ['property_data.images']);
@@ -47,14 +46,14 @@ class PropertyService
                 'status' => PropertyStatus::from($property['status'])->label(),
                 'statusCode' => $property['status'],
                 'price' => $property['property_data']['rent'],
-                'title' => $property['property_data']['title']['en'],
+                'title' => Helpers::getTranslatedValue($property['property_data']['title'], $language),
                 'city' => $property['property_data']['city'],
                 'location' => Helpers::extractStreetName($property['property_data']['address']) . ', ' . $property['property_data']['city'],
                 'description' => [
-                    'property' => $property['property_data']['description']['en'],
-                    'period' => $property['property_data']['period']['en'],
-                    'bills' => $property['property_data']['bills']['en'],
-                    'flatmates' => $property['property_data']['flatmates']['en']
+                    'property' => Helpers::getTranslatedValue($property['property_data']['description']),
+                    'period' => Helpers::getTranslatedValue($property['property_data']['period']),
+                    'bills' => Helpers::getTranslatedValue($property['property_data']['bills']),
+                    'flatmates' => Helpers::getTranslatedValue($property['property_data']['flatmates']),
                 ],
                 'main_image' => $property['property_data']['images'][0] ?? null,
                 'images' => array_slice($property['property_data']['images'], 1),
