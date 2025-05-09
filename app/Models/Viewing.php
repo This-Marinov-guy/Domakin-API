@@ -50,7 +50,9 @@ class Viewing extends Model
     public static function messages()
     {
         return [
-            
+            'email.email' => [
+                'tag' => 'account:authentication.errors.email',
+            ],
         ];
     }
     

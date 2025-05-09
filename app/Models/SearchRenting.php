@@ -53,6 +53,10 @@ class SearchRenting extends Model
 
     public static function messages()
     {
-        return [];
+        return [
+            'email.email' => [
+                'tag' => 'account:authentication.errors.email',
+            ],
+        ];
     }
 }
