@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('email');
             $table->string('city');
             $table->string('address', max(['max' => '100']));
-            $table->date('date');
+            $table->string('date');
             $table->string('time');
             $table->text('note')->nullable();
             $table->text('referral_code')->nullable();
