@@ -104,12 +104,15 @@ class Helpers
 
     public static function extractStreetName($address)
     {
+        // Remove all commas
+        $address = str_replace(',', '', $address);
+
         // Match everything up to the first digit
         if (preg_match('/^[^\d]*/', $address, $matches)) {
             return trim($matches[0]);
         }
 
-        return $address; // Fallback: return original if no match
+        return $address;
     }
 
     public static function getPreferredLanguage($default = 'en')
