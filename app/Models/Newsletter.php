@@ -27,6 +27,9 @@ class Newsletter extends Model
             'email.email' => [
                 'tag' => 'account:authentication.errors.email',
             ],
+            'email.unique' => [
+                'tag' => 'account:authentication.errors.email',
+            ],
         ];
     }
 }
