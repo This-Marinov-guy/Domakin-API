@@ -123,6 +123,12 @@ class Helpers
 
     public static function getTranslatedValue($value, $locale = 'en', $escapeEmptyValues = true, $fallback = '')
     {
+        // If the value is null, return fallback immediately
+        if (empty($value)) {
+            return $fallback;
+        }
+
+        // If the value is not an array, return it as-is
         if (!is_array($value)) {
             return $value;
         }
@@ -134,9 +140,13 @@ class Helpers
                 return $translated;
             }
 
-            return $value['en'] ?? ($fallback !== '' ? $fallback : reset($value));
+            if (!empty($value['en'])) {
+                return $value['en'];
+            }
+
+            return $fallback;
         }
 
-        return $translated ?? ($value['en'] ?? ($fallback !== '' ? $fallback : reset($value)));
+        return $translated ?? $value['en'] ?? $fallback;
     }
 }
