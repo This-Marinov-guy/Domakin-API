@@ -121,7 +121,7 @@ class Helpers
         return $default;
     }
 
-    public static function getTranslatedValue($value, $locale = 'en', $escapeEmptyValues = true)
+    public static function getTranslatedValue($value, $locale = 'en', $escapeEmptyValues = true, $fallback = '')
     {
         if (!is_array($value)) {
             return $value;
@@ -130,9 +130,13 @@ class Helpers
         $translated = $value[$locale] ?? null;
 
         if ($escapeEmptyValues) {
-            return $translated ?: ($value['en'] ?? reset($value));
+            if (!empty($translated)) {
+                return $translated;
+            }
+
+            return $value['en'] ?? ($fallback !== '' ? $fallback : reset($value));
         }
 
-        return $translated ?? ($value['en'] ?? reset($value));
+        return $translated ?? ($value['en'] ?? ($fallback !== '' ? $fallback : reset($value)));
     }
 }
