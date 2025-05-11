@@ -31,17 +31,23 @@ class PropertyController extends Controller
         $properties = Property::with(['personalData', 'propertyData'])
             ->where('created_by', $userId)
             ->select('id', 'status')
-            ->get();
+            ->get()
+            ->toArray();
 
-        return ApiResponseClass::sendSuccess($properties);
+        $modifiedProperties = Helpers::splitStringKeys($properties, ['property_data.images']);
+
+        return ApiResponseClass::sendSuccess($modifiedProperties);
     }
 
     public function fetchAllProperties(): JsonResponse
     {
         $properties = Property::with(['personalData', 'propertyData'])
-            ->get();
+            ->get()
+            ->toArray();
 
-        return ApiResponseClass::sendSuccess($properties);
+        $modifiedProperties = Helpers::splitStringKeys($properties, ['property_data.images']);
+
+        return ApiResponseClass::sendSuccess($modifiedProperties);
     }
 
     /**

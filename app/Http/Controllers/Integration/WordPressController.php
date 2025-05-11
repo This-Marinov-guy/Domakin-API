@@ -12,6 +12,8 @@ class WordPressController extends Controller
 {
     private const API_ENDPOINT = 'public-api.wordpress.com/wp/v2/sites/';
     private const PROTOCOL = 'https://';
+    private const PER_PAGE = 100;
+    private const PAGE = 1;
 
     /**
      * Get WordPress blog domain from environment
@@ -29,7 +31,10 @@ class WordPressController extends Controller
     public function getPosts()
     {
         try {
-            $response = Http::get(self::PROTOCOL . self::API_ENDPOINT . env('WORDPRESS_BLOG_ID') . '/posts');
+            $response = Http::get(self::PROTOCOL . self::API_ENDPOINT . env('WORDPRESS_BLOG_ID') . '/posts', [
+                'per_page' => self::PER_PAGE,
+                'page' => self::PAGE,
+            ]);
 
             if (!$response->successful()) {
                 return response()->json([
