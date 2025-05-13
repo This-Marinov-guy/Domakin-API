@@ -19,6 +19,11 @@ class PropertyService
                     ...$defaultTranslations,
                     'en' => $data[$key]
                 ]);
+            } else if ($key === 'title') {
+                $data[$key] = json_encode([
+                    ...$defaultTranslations,
+                    'en' => 'Really nice property'
+                ]);
             }
         }
 
