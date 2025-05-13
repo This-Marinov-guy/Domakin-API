@@ -60,6 +60,7 @@ class PropertyController extends Controller
         $properties = Property::with(['personalData', 'propertyData'])
             ->whereNotNull('release_timestamp')
             ->where('release_timestamp', '<', Carbon::now())
+            ->where('status', 2)
             // ->select('id')
             ->get()
             ->toArray();
@@ -67,6 +68,24 @@ class PropertyController extends Controller
         $properties = $propertyService->parsePropertiesForListing($properties);
 
         return ApiResponseClass::sendSuccess($properties);
+    }
+
+    /**
+     * Fetches a single property
+     * 
+     * @param Property $property
+     * @return JsonResponse
+     */
+    public function details(Property $property): JsonResponse
+    {
+        $property = Property::with(['personalData', 'propertyData'])
+            ->where('id', $property->id)
+            ->first()
+            ->toArray();
+
+        $property = Helpers::splitStringKeys($property, ['property_data.images']);
+
+        return ApiResponseClass::sendSuccess($property);
     }
 
     public function create(Request $request, CloudinaryService $cloudinary, GoogleSheetsService $sheetsService, PropertyService $propertyService, UserService $user): JsonResponse
@@ -137,18 +156,58 @@ class PropertyController extends Controller
     }
 
     /**
-     * Update Property
-   
-     * @return void
+     * Edits a property
      */
-    public function update(PropertyRequest $request, Property $property): JsonResponse
+    public function edit(Request $request, PropertyService $propertyService): JsonResponse
     {
-        $property->propertyData = $request->propertyData;
-        $property->personalData = $request->personalData;
+        $validator = Validator::make($request->all(), Property::editRules());
 
-        $property->save();
+        if ($validator->fails()) {
+            return ApiResponseClass::sendInvalidFields($validator->errors()->toArray(), Property::messages());
+        }
+
+        $property = Property::find($request->id);
+        if (!$property) {
+            return ApiResponseClass::sendError('Property not found');
+        }
+
+        $data = [
+            'propertyData' => [
+                ...$request->propertyData,
+                'images' => implode(', ', $request->propertyData['images']),
+            ],
+            'status' => $request->status,
+            'release_timestamp' => $request->releaseTimestamp,
+        ];
+
+        $data['propertyData'] = $propertyService->stringifyPropertyDataWithTranslations($data['propertyData']);
+
+        try {
+            $property->status = $data['status'];
+            $property->release_timestamp = $data['release_timestamp'];
+            $property->propertyData->update($data['propertyData']);
+
+            $property->save();
+        } catch (Exception $error) {
+            return ApiResponseClass::sendError($error->getMessage());
+        }
+
         return ApiResponseClass::sendSuccess(['message' => 'Property updated successfully']);
     }
+
+    // /**
+    //  * Update Property
+   
+    //  * @return void
+    //  */
+    // public function update(PropertyRequest $request, Property $property): JsonResponse
+    // {
+    //     $property->propertyData = $request->propertyData;
+    //     $property->personalData = $request->personalData;
+
+    //     $property->save();
+    //     return ApiResponseClass::sendSuccess(['message' => 'Property updated successfully']);
+    // }
 
     public function destroy(Property $property): JsonResponse
     {

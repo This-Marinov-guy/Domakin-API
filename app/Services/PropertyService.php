@@ -25,6 +25,19 @@ class PropertyService
         return $data;
     }
 
+    public function stringifyPropertyDataWithTranslations($data)
+    {
+        $values = ['title', 'period', 'bills', 'flatmates', 'description'];
+
+        foreach ($values as $key) {
+            if (isset($data[$key])) {
+                $data[$key] = json_encode($data[$key], JSON_UNESCAPED_UNICODE);
+            }
+        }
+
+        return $data;
+    }
+
     public function parseProperties($properties)
     {
         $modifiedProperties = Helpers::decodeJsonKeys($properties, ['property_data.title', 'property_data.bills', 'property_data.description', 'property_data.period', 'property_data.flatmates']);

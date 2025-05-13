@@ -57,8 +57,14 @@ class Property extends Model
     // Helper method to set data
     public function setData(array $data)
     {
-        $this->personal_data = $data['personalData'] ?? [];
-        $this->property_data = $data['propertyData'] ?? [];
+        if (isset($data['personalData'])) {
+            $this->personal_data = $data['personalData'];
+        }
+
+        if (isset($data['propertyData'])) {
+            $this->property_data = $data['propertyData'];
+        }
+
         return $this;
     }
 
@@ -93,6 +99,22 @@ class Property extends Model
             'terms.contact' => 'required|accepted',
             'terms.legals' => 'required|accepted',
 
+        ];
+    }
+
+    public static function editRules(): array
+    {
+        return [
+            'propertyData.city' => 'required|string',
+            'propertyData.address' => 'required|string',
+            'propertyData.size' => 'required|string',
+            'propertyData.period' => 'required',
+            'propertyData.rent' => 'required|string',
+            'propertyData.bills' => 'required',
+            'propertyData.title' => 'required',
+            'propertyData.flatmates' => 'required',
+            'propertyData.registration' => 'required',
+            'propertyData.description' => 'required',
         ];
     }
 

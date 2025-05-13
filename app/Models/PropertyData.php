@@ -15,6 +15,7 @@ class PropertyData extends Model
         'address',
         'size',
         'period',
+        'title',
         'rent',
         'bills',
         'flatmates',
