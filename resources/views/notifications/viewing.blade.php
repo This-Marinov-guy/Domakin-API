@@ -13,8 +13,8 @@
     <p>Email: {{ $data['email'] }}</p>
     <p>City: {{ $data['city'] }}</p>
     <p>Address: {{ $data['address'] }}</p>
-    <p>Date: {{ \Carbon\Carbon::parse($data['date'])->format('Y-m-d') }}</p>
-    <p>Time: {{ \Carbon\Carbon::parse($data['date'])->format('H:i:s') }}</p>
+    <p>Date: {{ $data['date'] }}</p>
+    <p>Time: {{ $data['time'] }}</p>
     <p>Note: {{ $data['note'] }}</p>
 </body>
 

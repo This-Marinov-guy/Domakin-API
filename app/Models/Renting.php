@@ -19,6 +19,7 @@ class Renting extends Model
         'email',
         'letter',
         'note',
+        'referral_code',
     ];
 
     public static function rules(): array
@@ -30,13 +31,18 @@ class Renting extends Model
             'email' => 'required|string|email',
             'letter' => 'required|file|mimes:pdf,doc,docx|max:4120',
 
-            'terms.contact' => 'required|boolean',
-            'terms.legals' => 'required|boolean',
+            'terms' => 'required|array',
+            'terms.contact' => 'required|accepted',
+            'terms.legals' => 'required|accepted',
         ];
     }
 
     public static function messages()
     {
-        return [];
+        return [
+            'email.email' => [
+                'tag' => 'account:authentication.errors.email',
+            ],
+        ];
     }
 }

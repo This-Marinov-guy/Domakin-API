@@ -10,6 +10,7 @@ class PersonalData extends Model
     use HasFactory;
 
     protected $fillable = [
+        'property_id',
         'name',
         'surname',
         'email',
@@ -18,6 +19,6 @@ class PersonalData extends Model
 
     public function property ()
     {
-        return $this->belingsTo(Property::class);
+        return $this->belongsTo(Property::class);
     }
 }

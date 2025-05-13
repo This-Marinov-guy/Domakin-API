@@ -11,21 +11,23 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('viewings', function (Blueprint $table) {
+        Schema::create('search_rentings', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
-            $table->integer(column: 'status');
             $table->string('name');
             $table->string('surname');
             $table->string('phone');
             $table->string('email');
+            $table->string('type')->nullable();
+            $table->integer('people'); 
+            $table->date('move_in'); 
+            $table->string('period');
+            $table->string('registration');
+            $table->integer('budget'); 
             $table->string('city');
-            $table->string('address', max(['max' => '100']));
-            $table->string('date');
-            $table->string('time');
+            $table->string('letter')->nullable(); 
             $table->text('note')->nullable();
-            $table->text('referral_code')->nullable();
-        });
+            $table->text('referral_code')->nullable();        });
     }
 
     /**
@@ -33,6 +35,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('viewings');
+        Schema::dropIfExists('search_rentings');
     }
 };

@@ -6,21 +6,78 @@ use App\Classes\ApiResponseClass;
 use App\Files\CloudinaryService;
 use App\Http\Controllers\Controller;
 use App\Mail\Notification;
+use Illuminate\Support\Carbon;
 use App\Models\Property;
+<<<<<<< HEAD
 use App\Models\PersonalData;
 use App\Models\PropertyData;
+=======
+use App\Services\UserService;
+>>>>>>> main
 use Illuminate\Support\Facades\Log;
+use App\Services\GoogleServices\GoogleSheetsService;
 use App\Http\Requests\PropertyRequest;
+use App\Models\PersonalData;
+use App\Models\PropertyData;
+use App\Services\Helpers;
+use App\Services\PropertyService;
 use Illuminate\Support\Facades\Validator;
 
 use Exception;
+use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 
 class PropertyController extends Controller
 {
-    public function create(PropertyRequest $request, CloudinaryService $cloudinary): JsonResponse
+    public function fetchUserProperties(Request $request, UserService $user): JsonResponse
     {
+        $userId = $user->extractIdFromRequest($request);
+
+        $properties = Property::with(['personalData', 'propertyData'])
+            ->where('created_by', $userId)
+            ->select('id', 'status')
+            ->get()
+            ->toArray();
+
+        $modifiedProperties = Helpers::splitStringKeys($properties, ['property_data.images']);
+
+        return ApiResponseClass::sendSuccess($modifiedProperties);
+    }
+
+    public function fetchAllProperties(): JsonResponse
+    {
+        $properties = Property::with(['personalData', 'propertyData'])
+            ->get()
+            ->toArray();
+
+        $modifiedProperties = Helpers::splitStringKeys($properties, ['property_data.images']);
+
+        return ApiResponseClass::sendSuccess($modifiedProperties);
+    }
+
+    /**
+     * Lists all active properties
+     * 
+     * @return JsonResponse
+     */
+    public function show(PropertyService $propertyService): JsonResponse
+    {
+        $properties = Property::with(['personalData', 'propertyData'])
+            ->whereNotNull('release_timestamp')
+            ->where('release_timestamp', '<', Carbon::now())
+            // ->select('id')
+            ->get()
+            ->toArray();
+
+        $properties = $propertyService->parsePropertiesForListing($properties);
+
+        return ApiResponseClass::sendSuccess($properties);
+    }
+
+    public function create(Request $request, CloudinaryService $cloudinary, GoogleSheetsService $sheetsService, PropertyService $propertyService, UserService $user): JsonResponse
+    {
+<<<<<<< HEAD
         // $data = [
         //     'personalData' => json_decode($request->get('personalData'), true),
         //     'propertyData' => json_decode($request->get('propertyData'), true),
@@ -63,6 +120,30 @@ class PropertyController extends Controller
         $propertyData['description'] = [
             'en' => $propertyData['description']	
         ];
+=======
+        $data = [
+            'personalData' => json_decode($request->get('personalData'), true),
+            'propertyData' => json_decode($request->get('propertyData'), true),
+            'referral_code' => $request->get('referralCode'),
+            'terms' => json_decode($request->get('terms'), true),
+            'images' => $request->file('images'),
+            'created_by' => $user->extractIdFromRequest($request),
+            'last_updated_by' => $user->extractIdFromRequest($request),
+        ];
+
+        $validator = Validator::make($data, Property::rules());
+
+        if ($validator->fails()) {
+            return ApiResponseClass::sendInvalidFields($validator->errors()->toArray(), Property::messages());
+        }
+
+        // save folder name
+        $folder =
+            substr($data['propertyData']['description'], 0, 10) . '|' . date('Y-m-d H:i:s');
+
+        // modify property data with translations
+        $data['propertyData'] = $propertyService->modifyPropertyDataWithTranslations($data['propertyData']);
+>>>>>>> main
 
             $propertyData['folder'] = $folder;
             
@@ -98,7 +179,9 @@ class PropertyController extends Controller
                 'personal_data' => json_encode($personalData),
                 'property_data' => json_encode($propertyData)
             ]);
+            $data['propertyData']['images'] = implode(", ", $data['propertyData']['images']);
 
+<<<<<<< HEAD
             $personalDataModel = new PersonalData($personalData);
             $property->personalData()->save($personalDataModel);
 
@@ -115,6 +198,22 @@ class PropertyController extends Controller
             'description' => json_encode($propertyData['description']),
             'images' => json_encode($propertyData['images']),
             'properties_id' => $property->id,
+=======
+            $property = Property::create([
+                'referral_code' => $data['referral_code'],
+                'created_by' => $data['created_by'],
+                'last_updated_by' => $data['last_updated_by'],
+            ]);
+
+            PersonalData::create([
+                'property_id' => $property->id,
+                ...$data['personalData'],
+            ]);
+
+            PropertyData::create([
+                'property_id' => $property->id,
+                ...$data['propertyData'],
+>>>>>>> main
             ]);
             $property->propertyData()->save($propertyDataModel);
 
@@ -123,7 +222,16 @@ class PropertyController extends Controller
         }
 
         try {
+<<<<<<< HEAD
             (new Notification('New property uploaded', 'property', $request->all))->sendNotification();
+=======
+            (new Notification('New property uploaded', 'property', $data))->sendNotification();
+
+            $sheetsService->exportModelToSpreadsheet(
+                Property::class,
+                'Properties'
+            );
+>>>>>>> main
         } catch (Exception $error) {
             Log::error($error->getMessage());
         }
@@ -132,6 +240,7 @@ class PropertyController extends Controller
     }
 
     /**
+<<<<<<< HEAD
      * Lists all properties in Properties Table
      * 
      * @return JsonResponse
@@ -145,11 +254,14 @@ class PropertyController extends Controller
 
 
     /**
+=======
+>>>>>>> main
      * Update Property
    
      * @param PropertyRequest $request
      * @return void
      */
+<<<<<<< HEAD
     public function update (PropertyRequest $request, Property $property, CloudinaryService $cloudinary, $id) : JsonResponse
     {
         $property = Property::findOrFail($id);
@@ -215,6 +327,12 @@ class PropertyController extends Controller
             } else {
                 return ApiResponseClass::sendError('Property not found');
             }
+=======
+    public function update(PropertyRequest $request, Property $property): JsonResponse
+    {
+        $property->propertyData = $request->propertyData;
+        $property->personalData = $request->personalData;
+>>>>>>> main
 
         return ApiResponseClass::sendSuccess(['message' => 'Property updated successfully']);
             
@@ -224,6 +342,7 @@ class PropertyController extends Controller
         }
     }
 
+<<<<<<< HEAD
     /**
      * Delete Property
      * 
@@ -232,6 +351,9 @@ class PropertyController extends Controller
      * @return JsonResponse
      */
     public function destroy ($id, Property $property) : JsonResponse
+=======
+    public function destroy(Property $property): JsonResponse
+>>>>>>> main
     {
         //TODO: perhaps something needs to be done to delete images? Not sure if this deletes images, needs testing
         $property = Property::findOrFail($id);

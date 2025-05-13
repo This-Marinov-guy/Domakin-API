@@ -7,6 +7,7 @@
     "require": {
         "php": "^8.2",
         "cloudinary-labs/cloudinary-laravel": "^2.2",
+        "firebase/php-jwt": "^6.11",
         "google/apiclient": "^2.18",
         "guzzlehttp/guzzle": "^7.5",
         "laravel/framework": "^11.9",

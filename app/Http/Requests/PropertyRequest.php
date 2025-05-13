@@ -38,13 +38,18 @@ class PropertyRequest extends FormRequest
             'propertyData.bills'        => 'required|string',
             'propertyData.flatmates'    => 'required|string',
             'propertyData.registration' => 'required|string',
+<<<<<<< HEAD
             'propertyData.description'  => 'required|string',
             //'propertyData.description.bg' => 'string|required_without:propertyData.description.en, propertyData.description.gr',// could be useful later
             
+=======
+            'propertyData.description' => 'required|string',
+>>>>>>> main
             'images' => 'required|array',
-            
-            'terms.contact' => 'required|boolean',
-            'terms.legals' => 'required|boolean',
+
+            'terms' => 'required|array',
+            'terms.contact' => 'required|accepted',
+            'terms.legals' => 'required|accepted',
         ];
     }
 }

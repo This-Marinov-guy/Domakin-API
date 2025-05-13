@@ -6,13 +6,14 @@ use App\Classes\ApiResponseClass;
 use App\Http\Controllers\Controller;
 use App\Models\Newsletter;
 use Illuminate\Http\Request;
+use App\Services\GoogleServices\GoogleSheetsService;
 use Illuminate\Support\Facades\Validator;
 use Exception;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 class NewsletterController extends Controller
 {
-    public function create(Request $request): JsonResponse
+    public function create(Request $request, GoogleSheetsService $sheetsService): JsonResponse
     {
         $validator = Validator::make($request->all(), Newsletter::rules(), Newsletter::messages());
 
@@ -23,13 +24,51 @@ class NewsletterController extends Controller
                 return ApiResponseClass::sendSuccess();
             }
 
-            return ApiResponseClass::sendInvalidFields($validator->errors()->toArray());
+            return ApiResponseClass::sendInvalidFields($validator->errors()->toArray(), Newsletter::messages());
         }
 
         try {
             Newsletter::create($request->all());
         } catch (Exception $error) {
             return ApiResponseClass::sendError($error->getMessage());
+        }
+
+        try {
+            $sheetsService->exportModelToSpreadsheet(
+                Newsletter::class,
+                'Newsletter emails'
+            );
+        } catch (Exception $error) {
+            //do nothing        
+        }
+
+        return ApiResponseClass::sendSuccess();
+    }
+
+    public function destroy(Request $request, GoogleSheetsService $sheetsService): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|string|email',
+            'id' => 'required|integer',
+        ]);
+
+        if ($validator->fails()) {
+            return ApiResponseClass::sendInvalidFields($validator->errors()->toArray());
+        }
+
+        try {
+            Newsletter::where('id', $request->id)->where('email', $request->email)->delete();
+        } catch (Exception $error) {
+            return ApiResponseClass::sendError("No mail found!");
+        }
+
+        try {
+            $sheetsService->exportModelToSpreadsheet(
+                Newsletter::class,
+                'Newsletter emails'
+            );
+        } catch (Exception $error) {
+            //do nothing        
         }
 
         return ApiResponseClass::sendSuccess();

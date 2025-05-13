@@ -24,7 +24,12 @@ class Newsletter extends Model
     public static function messages()
     {
         return [
-            'email.unique' => 'The email address has already been subscribed.',
+            'email.email' => [
+                'tag' => 'account:authentication.errors.email',
+            ],
+            'email.unique' => [
+                'tag' => 'account:authentication.errors.email',
+            ],
         ];
     }
 }

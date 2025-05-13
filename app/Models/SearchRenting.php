@@ -5,27 +5,27 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Viewing extends Model
+class SearchRenting extends Model
 {
     use HasFactory;
 
-    protected $table = 'viewings';
+    protected $table = 'search_rentings';
 
     protected $fillable = [
         'name',
         'surname',
         'phone',
         'email',
+        'letter',
+        'people',
+        'type',
+        'move_in',
+        'period',
+        'registration',
+        'budget',
         'city',
-        'address',
-        'date',
-        'time',
         'note',
         'referral_code',
-    ];
-
-    protected $attributes = [
-        'status' => 1
     ];
 
     public static function rules(): array
@@ -35,18 +35,22 @@ class Viewing extends Model
             'surname' => 'required|string',
             'phone' => 'required|string',
             'email' => 'required|string|email',
+            'letter' => 'nullable|file|mimes:pdf,doc,docx|max:4120',
+            'people' => 'required|integer',
+            'type' => 'required|string',
+            'move_in' => 'required|string',
+            'period' => 'required|string',
+            'registration' => 'required|string',
+            'budget' => 'required|integer',
             'city' => 'required|string',
-            'address' => 'required|string|max:50',
-            'date' => 'required|string',
-            'time' => 'required|string',
+            'note' => 'nullable|string',
 
-            'terms' => 'required|array',
+            'terms' => 'required|array', 
             'terms.contact' => 'required|accepted',
             'terms.legals' => 'required|accepted',
         ];
     }
 
-    // TODO: add messages
     public static function messages()
     {
         return [
@@ -55,5 +59,4 @@ class Viewing extends Model
             ],
         ];
     }
-    
 }
