@@ -19,23 +19,6 @@
     <h2>Property Information</h2>
     <p><strong>City:</strong> {{ $data['propertyData']['city'] ?? 'N/A' }}</p>
     <p><strong>Address:</strong> {{ $data['propertyData']['address'] ?? 'N/A' }}</p>
-    <!-- <p><strong>Size:</strong> {{ $data['propertyData']['size'] }}</p>
-
-    <p><strong>Rent:</strong> {{ $data['propertyData']['rent'] }}</p>
-    <p><strong>Registration:</strong> {{ $data['propertyData']['registration'] }}</p>
-    <p><strong>Period:</strong> {{ json_decode($data['propertyData']['period'], true)['en'] ?? 'N/A' }}</p>
-    <p><strong>Bills:</strong> {{ json_decode($data['propertyData']['bills'], true)['en'] ?? 'N/A' }}</p>
-    <p><strong>Flatmates:</strong> {{ json_decode($data['propertyData']['flatmates'], true)['en'] ?? 'N/A' }}</p>
-    <p><strong>Description:</strong> {{ json_decode($data['propertyData']['description'], true)['en'] ?? 'N/A' }}</p> -->
-<!-- 
-    <br />
-
-    <h2>Images</h2>
-    <div>
-        @foreach(explode(', ', $data['images']) as $image)
-        <img src="{{ $image }}" alt="Property Image" style="max-width: 300px; margin: 20px;">
-        @endforeach
-    </div> -->
 </body>
 
 </html>
