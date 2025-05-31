@@ -24,30 +24,19 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 
 class PropertyController extends Controller
 {
-    public function fetchUserProperties(Request $request, UserService $user): JsonResponse
+    public function fetchUserProperties(Request $request, UserService $user, PropertyService $propertyService): JsonResponse
     {
         $userId = $user->extractIdFromRequest($request);
-
-        $properties = Property::with(['personalData', 'propertyData'])
-            ->where('created_by', $userId)
-            ->select('id', 'status')
-            ->get()
-            ->toArray();
-
-        $modifiedProperties = Helpers::splitStringKeys($properties, ['property_data.images']);
-
-        return ApiResponseClass::sendSuccess($modifiedProperties);
+        $query = Property::where('created_by', $userId)->select('id', 'status');
+        $paginated = $propertyService->paginateProperties($query, $request);
+        return ApiResponseClass::sendSuccess($paginated);
     }
 
-    public function fetchAllProperties(): JsonResponse
+    public function fetchAllProperties(Request $request, PropertyService $propertyService): JsonResponse
     {
-        $properties = Property::with(['personalData', 'propertyData'])
-            ->get()
-            ->toArray();
-
-        $modifiedProperties = Helpers::splitStringKeys($properties, ['property_data.images']);
-
-        return ApiResponseClass::sendSuccess($modifiedProperties);
+        $query = Property::query();
+        $paginated = $propertyService->paginateProperties($query, $request);
+        return ApiResponseClass::sendSuccess($paginated);
     }
 
     /**

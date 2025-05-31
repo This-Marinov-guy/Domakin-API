@@ -80,4 +80,32 @@ class PropertyService
 
         return $modifiedProperties;
     }
+
+    /**
+     * Paginate properties with optional relations and transformation.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param \Illuminate\Http\Request $request
+     * @param array $relations
+     * @param array $splitKeys
+     * @return array
+     */
+    public function paginateProperties($query, $request, $relations = ['personalData', 'propertyData'], $splitKeys = ['property_data.images'])
+    {
+        $perPage = (int)($request->get('per_page', 15));
+        $page = (int)($request->get('page', 1));
+        $paginator = $query->with($relations)->paginate($perPage, ['*'], 'page', $page);
+        $items = $paginator->items();
+        $items = array_map(function ($item) {
+            return is_array($item) ? $item : $item->toArray();
+        }, $items);
+        $items = Helpers::splitStringKeys($items, $splitKeys);
+        return [
+            'properties' => $items,
+            'current_page' => $paginator->currentPage(),
+            'last_page' => $paginator->lastPage(),
+            'per_page' => $paginator->perPage(),
+            'total' => $paginator->total(),
+        ];
+    }
 }
