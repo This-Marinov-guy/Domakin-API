@@ -94,7 +94,10 @@ class PropertyService
     {
         $perPage = (int)($request->get('per_page', 15));
         $page = (int)($request->get('page', 1));
-        $paginator = $query->with($relations)->paginate($perPage, ['*'], 'page', $page);
+        $paginator = $query
+            ->orderByDesc('created_at')
+            ->with($relations)
+            ->paginate($perPage, ['*'], 'page', $page);
         $items = $paginator->items();
         $items = array_map(function ($item) {
             return is_array($item) ? $item : $item->toArray();
