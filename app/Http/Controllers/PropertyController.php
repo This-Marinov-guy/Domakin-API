@@ -49,7 +49,7 @@ class PropertyController extends Controller
         $properties = Property::with(['personalData', 'propertyData'])
             ->whereNotNull('release_timestamp')
             ->where('release_timestamp', '<', Carbon::now())
-            ->whereIn('status', [2, 3])
+            ->whereIn('status', values: [1, 2, 3])
          // ->select('id')
             ->get()
             ->toArray();
