@@ -147,7 +147,7 @@ class PropertyController extends Controller
     /**
      * Edits a property
      */
-    public function edit(Request $request, PropertyService $propertyService): JsonResponse
+    public function edit(Request $request, PropertyService $propertyService, UserService $user): JsonResponse
     {
         $validator = Validator::make($request->all(), Property::editRules());
 
@@ -173,6 +173,7 @@ class PropertyController extends Controller
 
         try {
             $property->status = $data['status'];
+            $property->last_updated_by =  $user->extractIdFromRequest($request);
             $property->release_timestamp = $data['release_timestamp'];
             $property->propertyData->update($data['propertyData']);
 
