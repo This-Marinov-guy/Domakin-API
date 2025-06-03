@@ -44,7 +44,7 @@ class SearchRentingController extends Controller
 
         if ($data['letter']) {
             $data['letter'] = $cloudinary->singleUpload($data['letter'], [
-                'resource_type' => 'raw',
+                'resource_type' => 'auto',
                 'folder' => "motivational_letters",
             ]);
         }
