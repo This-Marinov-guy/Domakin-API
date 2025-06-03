@@ -37,7 +37,8 @@ class RentingController extends Controller
         }
 
         $data['letter'] = $cloudinary->singleUpload($data['letter'], [
-            'resource_type' => 'auto',
+            'public_id' => uniqid() . '.' .  $request->file('letter')->getClientOriginalExtension(),
+            'resource_type' => 'raw',
             'folder' => "motivational_letters",
         ]);
 
