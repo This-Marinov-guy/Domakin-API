@@ -50,7 +50,7 @@ class PropertyController extends Controller
             ->whereNotNull('release_timestamp')
             ->where('release_timestamp', '<', Carbon::now())
             ->whereIn('status', values: [1, 2, 3])
-         // ->select('id')
+            // ->select('id')
             ->get()
             ->toArray();
 
@@ -65,16 +65,16 @@ class PropertyController extends Controller
      * @param Property $property
      * @return JsonResponse
      */
-    public function details(Property $property): JsonResponse
+    public function details($id): JsonResponse
     {
-        $property = Property::with(['personalData', 'propertyData'])
-            ->where('id', $property->id)
+        $propertyData = Property::with(['personalData', 'propertyData'])
+            ->where('id', $id)
             ->first()
             ->toArray();
 
-        $property = Helpers::splitStringKeys($property, ['property_data.images']);
+        $propertyData = Helpers::splitStringKeys([$propertyData], ['property_data.images']);
 
-        return ApiResponseClass::sendSuccess($property);
+        return ApiResponseClass::sendSuccess($propertyData[0]);
     }
 
     public function create(Request $request, CloudinaryService $cloudinary, GoogleSheetsService $sheetsService, PropertyService $propertyService, UserService $user): JsonResponse
@@ -187,7 +187,7 @@ class PropertyController extends Controller
 
     // /**
     //  * Update Property
-   
+
     //  * @return void
     //  */
     // public function update(PropertyRequest $request, Property $property): JsonResponse

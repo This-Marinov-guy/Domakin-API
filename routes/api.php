@@ -48,6 +48,8 @@ Route::prefix('property')->group(function () {
     Route::get('/list', [PropertyController::class, 'fetchUserProperties'])
         ->middleware('auth.role');
 
+    Route::get('/details/{id}', [PropertyController::class, 'details']);
+
     Route::get('/listing', [PropertyController::class, 'show']);
 
     Route::post('/create', [PropertyController::class, 'create']);
