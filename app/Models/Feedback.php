@@ -52,7 +52,7 @@ class Feedback extends Model
     {
         return [
             'name' => 'nullable|string|max:255',
-            'content' => 'required|string|max:500',
+            'content' => 'required|string|max:1000',
             'language' => 'nullable|string|max:10',
         ];
     }
@@ -61,7 +61,7 @@ class Feedback extends Model
     {
         return [
             'content' => [
-                'tag' => 'The content must not be empty or exceed 255 characters.',
+                'tag' => 'The content must not be empty or exceed 1000 characters.',
             ]
         ];
     }
