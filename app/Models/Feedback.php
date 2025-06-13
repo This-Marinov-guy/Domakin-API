@@ -52,26 +52,17 @@ class Feedback extends Model
     {
         return [
             'name' => 'nullable|string|max:255',
-            'content' => 'required|string|max:400',
-            'language' => 'nullable|string|max:2',
+            'content' => 'required|string|max:500',
+            'language' => 'nullable|string|max:10',
         ];
     }
 
     public static function messages()
     {
         return [
-            'content.required' => [
-                'message' => 'The content field cannot be empty.',
-                'tag' => '',
-            ],
-            'content.string' => [
-                'message' => 'The content must be a string.',
-                'tag' => '',
-            ],
-            'content.max' => [
-                'message' => 'The content must not exceed 255 characters.',
-                'tag' => '',
-            ],
+            'content' => [
+                'tag' => 'The content must not be empty or exceed 255 characters.',
+            ]
         ];
     }
 }
