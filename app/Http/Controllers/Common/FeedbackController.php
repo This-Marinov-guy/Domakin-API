@@ -29,7 +29,7 @@ class FeedbackController extends Controller
                 $query->where('language', $language);
             }
 
-            return $query->get()->toArray();
+            return $query->orderBy('id', 'desc')->get()->toArray();
         });
 
         return ApiResponseClass::sendSuccess($approvedFeedbacks);
