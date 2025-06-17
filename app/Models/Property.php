@@ -109,7 +109,7 @@ class Property extends Model
             'propertyData.address' => 'required|string',
             'propertyData.size' => 'required|string',
             'propertyData.period' => 'required',
-            'propertyData.rent' => 'required|string',
+            'propertyData.rent' => 'required|numeric',
             'propertyData.bills' => 'required',
             'propertyData.title' => 'required',
             'propertyData.flatmates' => 'required',
