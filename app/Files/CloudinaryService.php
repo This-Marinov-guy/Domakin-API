@@ -39,7 +39,7 @@ class CloudinaryService
             $options['folder'] = $this->sanitizeFolderName($options['folder']);
             
             if (env('APP_ENV') !== 'prod') {
-                $options['folder'] = 'test/' . $options['folder'];
+            $options['folder'] = 'test/' . $options['folder'];
             }
         }
 
@@ -57,7 +57,7 @@ class CloudinaryService
             $options['folder'] = $this->sanitizeFolderName($options['folder']);
             
             if (env('APP_ENV') !== 'prod') {
-                $options['folder'] = 'test/' . $options['folder'];
+            $options['folder'] = 'test/' . $options['folder'];
             }
         }
 

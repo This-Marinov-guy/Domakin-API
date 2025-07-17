@@ -61,6 +61,17 @@ class GoogleCalendarService
         string $location = '',
         int $durationMinutes = 60
     ): ?string {
+        // Only create calendar events in production
+        if (env('APP_ENV') !== 'prod') {
+            Log::info('Calendar event creation skipped - not in production environment', [
+                'title' => $title,
+                'date' => $date,
+                'time' => $time,
+                'environment' => env('APP_ENV')
+            ]);
+            return null;
+        }
+
         try {
             // Parse date and time
             $dateTime = Carbon::createFromFormat('Y-m-d H:i', $date . ' ' . $time, 'Europe/Amsterdam');
@@ -129,6 +140,16 @@ class GoogleCalendarService
         string $location = '',
         int $durationMinutes = 60
     ): ?string {
+        // Only create calendar events in production
+        if (env('APP_ENV') !== 'prod') {
+            Log::info('Calendar event creation skipped - not in production environment', [
+                'title' => $title,
+                'datetime' => $dateTime,
+                'environment' => env('APP_ENV')
+            ]);
+            return null;
+        }
+
         try {
             // Try to parse the datetime string
             $parsedDateTime = Carbon::parse($dateTime, 'Europe/Amsterdam');
