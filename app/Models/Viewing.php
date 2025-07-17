@@ -22,6 +22,7 @@ class Viewing extends Model
         'time',
         'note',
         'referral_code',
+        'google_calendar_id',
     ];
 
     protected $attributes = [

@@ -11,6 +11,7 @@ use App\Http\Controllers\RentingController;
 use App\Http\Controllers\SearchRentingController;
 use App\Http\Controllers\ViewingController;
 use App\Http\Controllers\Integration\WordPressController;
+use App\Http\Controllers\Test;
 
 // Note: common routes with basic functionality
 Route::prefix('common')->group(function () {
@@ -72,4 +73,10 @@ Route::prefix('user')->group(function () {
     Route::post('/edit-details', [ProfileController::class, 'edit'])
         ->middleware('auth.role')
         ->name('edit-user-details');
+});
+
+// Test routes for Google Calendar
+Route::prefix('test')->group(function () {
+    Route::post('/calendar/create-event', [Test::class, 'testCalendarEvent']);
+    Route::post('/calendar/create-event-datetime', [Test::class, 'testCalendarEventFromDateTime']);
 });
