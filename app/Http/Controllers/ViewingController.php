@@ -68,7 +68,7 @@ class ViewingController extends Controller
             $formattedTime = $data['time'];
 
             // Create event title
-            $eventTitle = $data['address'] . ', ' . $data['city'];
+            $eventTitle = "Viewing for " . $data['name'] . ", " . $data['city'];
 
             // Create event description
             $description = "Name: " . $data['name'] . " " . $data['surname'] . "\n";
@@ -85,7 +85,8 @@ class ViewingController extends Controller
                 time: $formattedTime,
                 description: $description,
                 title: $eventTitle,
-                durationMinutes: 60
+                location: $data['address'] . ', ' . $data['city'],
+                durationMinutes: 30
             );
 
             if ($eventId) {
