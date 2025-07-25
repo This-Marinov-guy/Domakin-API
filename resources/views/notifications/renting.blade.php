@@ -7,7 +7,7 @@
 
 <body>
     <h1>New Renting from {{ $data['name'] }} for {{ $data['property'] }}</h1>
-    <p>Property: {{ $data['property'] }}</p>
+    <p>Property Address: {{ $data['address'] }}</p>
     <p>Name: {{ $data['name'] }}</p>
     <p>Surname: {{ $data['surname'] }}</p>
     <p>Phone: {{ $data['phone'] }}</p>

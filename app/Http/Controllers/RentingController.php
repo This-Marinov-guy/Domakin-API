@@ -23,6 +23,7 @@ class RentingController extends Controller
             'name' => $request->get('name'),
             'surname' => $request->get('surname'),
             'phone' => $request->get('phone'),
+            'address' => $request->get('address'),
             'email' => $request->get('email'),
             'letter' => $request->file('letter'),
             'note' => $request->get('note'),
