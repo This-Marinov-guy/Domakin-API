@@ -26,6 +26,11 @@ class DemoConfigMiddleware
             Config::set('database.connections.pgsql.username', env('DEMO_DB_USERNAME', config('database.connections.pgsql.username')));
             Config::set('database.connections.pgsql.password', env('DEMO_DB_PASSWORD', config('database.connections.pgsql.password')));
 
+            // Override Supabase to use DEMO_* variables
+            Config::set('supabase.url', env('DEMO_SUPABASE_URL', config('supabase.url')));
+            Config::set('supabase.service_role_key', env('DEMO_SUPABASE_SERVICE_ROLE_KEY', config('supabase.service_role_key')));
+            Config::set('supabase.jwt_secret', env('DEMO_SUPABASE_JWT_SECRET', config('supabase.jwt_secret')));
+
             // Ensure connection uses updated configuration
             DB::purge('pgsql');
             DB::reconnect('pgsql');

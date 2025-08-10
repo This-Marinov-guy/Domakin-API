@@ -60,10 +60,10 @@ class ProfileController extends Controller
 
             if (!empty($supabaseUpdateData)) {
                 $response = Http::withHeaders([
-                    'Authorization' => 'Bearer ' . env('SUPABASE_SERVICE_ROLE_KEY'),
+                    'Authorization' => 'Bearer ' . config('supabase.service_role_key'),
                     'Content-Type' => 'application/json',
-                    'apikey' => env('SUPABASE_SERVICE_ROLE_KEY'),
-                ])->put(env('SUPABASE_URL') . '/auth/v1/admin/users/' . $user->id, $supabaseUpdateData);
+                    'apikey' => config('supabase.service_role_key'),
+                ])->put(rtrim(config('supabase.url'), '/') . '/auth/v1/admin/users/' . $user->id, $supabaseUpdateData);
     
     
                 if (!$response->successful()) {

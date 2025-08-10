@@ -32,7 +32,7 @@ class AuthorizationMiddleware
         try {
             // Decode the JWT token
             // You'll need to get your Supabase JWT secret from your Supabase dashboard
-            $decoded = JWT::decode($token, new Key(env('SUPABASE_JWT_SECRET'), 'HS256'));
+            $decoded = JWT::decode($token, new Key(config('supabase.jwt_secret'), 'HS256'));
 
             // The user ID is typically in the 'sub' claim
             $userId = $decoded->sub;
