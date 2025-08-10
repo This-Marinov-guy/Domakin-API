@@ -12,7 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('viewings', function (Blueprint $table) {
-            $table->string('google_calendar_id')->nullable()->after('referral_code');
+            if (!Schema::hasColumn('viewings', 'google_calendar_id')) {
+                $table->string('google_calendar_id')->nullable()->after('referral_code');
+            }
         });
     }
 

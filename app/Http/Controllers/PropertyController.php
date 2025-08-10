@@ -16,6 +16,7 @@ use App\Models\PersonalData;
 use App\Models\PropertyData;
 use App\Services\Helpers;
 use App\Services\PropertyService;
+use App\Services\Payment\PaymentLinkService;
 use Illuminate\Support\Facades\Validator;
 use Exception;
 use Illuminate\Http\Request;
@@ -77,7 +78,7 @@ class PropertyController extends Controller
         return ApiResponseClass::sendSuccess($propertyData[0]);
     }
 
-    public function create(Request $request, CloudinaryService $cloudinary, GoogleSheetsService $sheetsService, PropertyService $propertyService, UserService $user): JsonResponse
+    public function create(Request $request, CloudinaryService $cloudinary, GoogleSheetsService $sheetsService, PropertyService $propertyService, UserService $user, PaymentLinkService $paymentLinks): JsonResponse
     {
         $data = [
             'personalData' => json_decode($request->get('personalData'), true),
@@ -122,9 +123,17 @@ class PropertyController extends Controller
                 ...$data['personalData'],
             ]);
 
+            // Create payment link based on rent (EUR), rounded up
+            $rent = (float) ($request->input('propertyData.rent') ?? ($data['propertyData']['rent'] ?? 0));
+            $paymentLink = null;
+            if ($rent > 0) {
+                $paymentLink = $paymentLinks->createPropertyFeeLink($rent);
+            }
+
             PropertyData::create([
                 'property_id' => $property->id,
                 ...$data['propertyData'],
+                'payment_link' => $paymentLink,
             ]);
         } catch (Exception $error) {
             return ApiResponseClass::sendError($error->getMessage());
@@ -147,7 +156,7 @@ class PropertyController extends Controller
     /**
      * Edits a property
      */
-    public function edit(Request $request, PropertyService $propertyService, UserService $user): JsonResponse
+    public function edit(Request $request, PropertyService $propertyService, UserService $user, PaymentLinkService $paymentLinks): JsonResponse
     {
         $validator = Validator::make($request->all(), Property::editRules());
 
@@ -170,6 +179,12 @@ class PropertyController extends Controller
         ];
 
         $data['propertyData'] = $propertyService->stringifyPropertyDataWithTranslations($data['propertyData']);
+
+        // Refresh payment link if rent is present and > 0
+        $rent = (float) ($request->input('propertyData.rent') ?? ($property->propertyData->rent ?? 0));
+        if ($rent > 0) {
+            $data['propertyData']['payment_link'] = $paymentLinks->createPropertyFeeLink($rent);
+        }
 
         try {
             $property->status = $data['status'];

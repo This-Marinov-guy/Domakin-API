@@ -22,6 +22,7 @@ class PropertyData extends Model
         'registration',
         'description',
         'images',
+        'payment_link',
     ]; 
 
     public function property()
