@@ -19,7 +19,11 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => [env('FRONTEND_URL', 'http://localhost:3000'), 'https://domakin.nl'],
+    'allowed_origins' => [
+        env('FRONTEND_URL', 'http://localhost:3000'),
+        'https://domakin.nl',
+        'https://demo.domakin.nl',
+    ],
 
     'allowed_origins_patterns' => [],
 
