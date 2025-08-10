@@ -11,6 +11,10 @@ class ProdFirewallMiddleware
     public function handle(Request $request, Closure $next): Response
     {
         if (app()->environment('prod')) {
+            // Allow webhook postbacks without an Origin/Referer
+            if ($request->is('api/webhook/stripe')) {
+                return $next($request);
+            }
             $allowedDomains = [
                 'domakin.nl',
                 'demo.domakin.nl',

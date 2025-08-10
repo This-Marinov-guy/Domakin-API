@@ -23,6 +23,7 @@ class Viewing extends Model
         'note',
         'referral_code',
         'google_calendar_id',
+        'payment_link',
     ];
 
     protected $attributes = [

@@ -11,6 +11,7 @@ use App\Http\Controllers\RentingController;
 use App\Http\Controllers\SearchRentingController;
 use App\Http\Controllers\ViewingController;
 use App\Http\Controllers\Integration\WordPressController;
+use App\Http\Controllers\Webhook\StripeWebhookController;
 use App\Http\Controllers\Test;
 
 // Note: common routes with basic functionality
@@ -80,3 +81,6 @@ Route::prefix('test')->group(function () {
     Route::post('/calendar/create-event', [Test::class, 'testCalendarEvent']);
     Route::post('/calendar/create-event-datetime', [Test::class, 'testCalendarEventFromDateTime']);
 });
+
+// Stripe webhook (no auth)
+Route::post('/webhooks/stripe/checkout', [StripeWebhookController::class, 'handle']);

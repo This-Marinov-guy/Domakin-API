@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Mail\Notification;
 use App\Services\GoogleServices\GoogleSheetsService;
 use App\Services\GoogleServices\GoogleCalendarService;
+use App\Services\Payment\PaymentLinkService;
 use App\Models\Viewing;
 use App\Services\Helpers;
 use Illuminate\Http\Request;
@@ -38,7 +39,7 @@ class ViewingController extends Controller
         return ApiResponseClass::sendSuccess($viewing->toArray());
     }
 
-    public function create(Request $request, GoogleSheetsService $sheetsService, GoogleCalendarService $calendarService): JsonResponse
+    public function create(Request $request, GoogleSheetsService $sheetsService, GoogleCalendarService $calendarService, PaymentLinkService $paymentLinks): JsonResponse
     {
         $data = Helpers::camelToSnakeObject($request->all());
 
@@ -52,6 +53,45 @@ class ViewingController extends Controller
             $viewing = Viewing::create($data);
         } catch (Exception $error) {
             return ApiResponseClass::sendError($error->getMessage());
+        }
+
+        // Create Stripe payment link based on viewing time (NL timezone)
+        try {
+            $viewingDateTime = Carbon::createFromFormat('d-m-Y H:i', $data['date'] . ' ' . $data['time'], 'Europe/Amsterdam');
+            $nowNl = Carbon::now('Europe/Amsterdam');
+            $isStandard = $viewingDateTime->gt($nowNl->copy()->addDay());
+            $amountEur = $isStandard ? 50 : 100;
+
+            $paymentLink = $paymentLinks->createPropertyFeeLink($amountEur, 'Viewing Fee', [
+                'checkout_type' => 'viewing',
+                'viewing_id' => (string) $viewing->id,
+            ]);
+            if ($paymentLink) {
+                $viewing->update(['payment_link' => $paymentLink]);
+                // Append to the specified Google Sheet
+                $sheetId = '1asA0dtjw7jk7BADin97SaMNDiB_Eb0m6yClPKp-6iAQ';
+                $typeValue = $isStandard ? 'standard' : 'express';
+                $sheetsService->appendRow($sheetId, 'viewingsAndLinks', [
+                    $viewing->id,
+                    $data['name'] . ' ' . $data['surname'],
+                    $data['date'],
+                    $data['time'],
+                    $data['address'] . ' ' . $data['city'],
+                    $typeValue,
+                    false, // Went (unchecked)
+                    $paymentLink,
+                    false, // Paid (unchecked)
+                ]);
+            } else {
+                Log::warning('Failed to create Stripe payment link for viewing', [
+                    'viewing_id' => $viewing->id,
+                    'amount' => $amountEur,
+                ]);
+            }
+        } catch (Exception $error) {
+            Log::error('Error creating Stripe payment link: ' . $error->getMessage(), [
+                'viewing_id' => $viewing->id ?? null
+            ]);
         }
 
         // Create Google Calendar event
@@ -112,11 +152,6 @@ class ViewingController extends Controller
 
         try {
             (new Notification('New viewing request', 'viewing', $data))->sendNotification();
-
-            $sheetsService->exportModelToSpreadsheet(
-                Viewing::class,
-                'Viewings'
-            );
         } catch (Exception $error) {
             Log::error($error->getMessage());
         }

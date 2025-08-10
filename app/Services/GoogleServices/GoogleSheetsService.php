@@ -47,16 +47,101 @@ class GoogleSheetsService
     }
 
     /**
+     * Append a single row to a specific spreadsheet and sheet
+     *
+     * @param string $spreadsheetId
+     * @param string $sheetName
+     * @param array $rowValues
+     * @return void
+     */
+    public function appendRow(string $spreadsheetId, string $sheetName, array $rowValues): void
+    {
+        try {
+            $this->ensureSheetExists($sheetName, $spreadsheetId);
+
+            $valueRange = new \Google\Service\Sheets\ValueRange([
+                'values' => [ $rowValues ]
+            ]);
+
+            $this->service->spreadsheets_values->append(
+                $spreadsheetId,
+                $sheetName,
+                $valueRange,
+                ['valueInputOption' => 'RAW']
+            );
+        } catch (\Exception $e) {
+            Log::error('Failed to append row to Google Sheet: '.$e->getMessage());
+        }
+    }
+
+    /**
+     * Mark the Paid checkbox to TRUE for the row that contains the given payment link URL.
+     * Assumes the Paid column is immediately after the Payment Link column in the row we append.
+     *
+     * @param string $spreadsheetId
+     * @param string $sheetName
+     * @param string $paymentLinkUrl
+     * @return bool
+     */
+    public function markPaidByPaymentLink(string $spreadsheetId, string $sheetName, string $paymentLinkUrl): bool
+    {
+        try {
+            $response = $this->service->spreadsheets_values->get($spreadsheetId, $sheetName);
+            $values = $response->getValues();
+            if (empty($values)) {
+                return false;
+            }
+
+            // Find the row and column index of the payment link
+            foreach ($values as $rowIndex => $row) {
+                foreach ($row as $colIndex => $cell) {
+                    if ($cell === $paymentLinkUrl) {
+                        // Paid column is the next column
+                        $paidColIndex = $colIndex + 1; // zero-based
+                        $a1Notation = $sheetName.'!'.self::columnIndexToLetter($paidColIndex + 1).($rowIndex + 1);
+                        $valueRange = new \Google\Service\Sheets\ValueRange([
+                            'values' => [[true]]
+                        ]);
+                        $this->service->spreadsheets_values->update(
+                            $spreadsheetId,
+                            $a1Notation,
+                            $valueRange,
+                            ['valueInputOption' => 'RAW']
+                        );
+                        return true;
+                    }
+                }
+            }
+            return false;
+        } catch (\Exception $e) {
+            Log::error('Failed to mark paid in Google Sheet: '.$e->getMessage());
+            return false;
+        }
+    }
+
+    protected static function columnIndexToLetter(int $colNumber): string
+    {
+        $letter = '';
+        while ($colNumber > 0) {
+            $temp = ($colNumber - 1) % 26;
+            $letter = chr($temp + 65) . $letter;
+            $colNumber = (int)(($colNumber - $temp - 1) / 26);
+        }
+        return $letter;
+    }
+
+    /**
      * Check if sheet exists and create if it doesn't
      *
      * @param string $sheetName
      * @return void
      */
-    protected function ensureSheetExists(string $sheetName): void
+    protected function ensureSheetExists(string $sheetName, ?string $spreadsheetId = null): void
     {
         try {
+            $targetSpreadsheetId = $spreadsheetId ?: $this->spreadsheetId;
             // Get all sheets in the spreadsheet
-            $spreadsheet = $this->service->spreadsheets->get($this->spreadsheetId);
+            $spreadsheet = $this->service->spreadsheets->get($targetSpreadsheetId);
             $sheets = $spreadsheet->getSheets();
 
             // Check if sheet exists
@@ -82,7 +167,7 @@ class GoogleSheetsService
                     ]
                 ]);
 
-                $this->service->spreadsheets->batchUpdate($this->spreadsheetId, $body);
+                $this->service->spreadsheets->batchUpdate($targetSpreadsheetId, $body);
                 Log::info("Created new sheet: $sheetName");
             }
         } catch (\Exception $e) {

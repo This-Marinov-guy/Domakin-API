@@ -16,7 +16,7 @@ class PaymentLinkService
         $this->stripe = new StripeClient($secretKey);
     }
 
-    public function createPropertyFeeLink(float $amountEur, string $productName = 'Property Fee (1 month rent)'): ?string
+    public function createPropertyFeeLink(float $amountEur, string $productName = 'Property Fee (1 month rent)', array $metadata = []): ?string
     {
         try {
             $amountEur = ceil($amountEur);
@@ -38,7 +38,8 @@ class PaymentLinkService
                         'price' => $price->id,
                         'quantity' => 1,
                     ]
-                ]
+                ],
+                'metadata' => $metadata,
             ]);
 
             return $paymentLink->url;
