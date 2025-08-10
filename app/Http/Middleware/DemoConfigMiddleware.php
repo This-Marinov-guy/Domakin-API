@@ -11,9 +11,11 @@ class DemoConfigMiddleware
 {
     public function handle(Request $request, Closure $next)
     {
-        $host = $request->getHost();
+        // Determine calling origin (browser) rather than API host
+        $originHeader = $request->headers->get('Origin') ?: $request->headers->get('Referer');
+        $originHost = $originHeader ? (parse_url($originHeader, PHP_URL_HOST) ?: null) : null;
 
-        if ($host === 'demo.domakin.nl') {
+        if ($originHost === 'demo.domakin.nl') {
             // Override Axiom dataset for demo environment
             Config::set('services.axiom.dataset', env('DEMO_AXIOM_DATASET', config('services.axiom.dataset')));
             // Disable outbound email notifications on demo
@@ -31,7 +33,7 @@ class DemoConfigMiddleware
             Config::set('supabase.service_role_key', env('DEMO_SUPABASE_SERVICE_ROLE_KEY', config('supabase.service_role_key')));
             Config::set('supabase.jwt_secret', env('DEMO_SUPABASE_JWT_SECRET', config('supabase.jwt_secret')));
 
-            // Ensure connection uses updated configuration
+            // Ensure connection uses updated configuration (lazy connection will also pick this up)
             DB::purge('pgsql');
             DB::reconnect('pgsql');
         }

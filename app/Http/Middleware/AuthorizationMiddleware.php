@@ -32,7 +32,10 @@ class AuthorizationMiddleware
         try {
             // Resolve the correct JWT secret (demo host may use DEMO_SUPABASE_JWT_SECRET)
             $jwtSecret = config('supabase.jwt_secret');
-            if ($request->getHost() === 'demo.domakin.nl') {
+            // Resolve by Origin/Referer host (frontend) rather than API host
+            $originHeader = $request->headers->get('Origin') ?: $request->headers->get('Referer');
+            $originHost = $originHeader ? (parse_url($originHeader, PHP_URL_HOST) ?: null) : null;
+            if ($originHost === 'demo.domakin.nl') {
                 $jwtSecret = env('DEMO_SUPABASE_JWT_SECRET', $jwtSecret);
             }
 
