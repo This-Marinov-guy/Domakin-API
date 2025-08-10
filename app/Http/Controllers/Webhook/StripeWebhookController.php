@@ -15,7 +15,7 @@ class StripeWebhookController extends Controller
     public function handle(Request $request, GoogleSheetsService $sheets): Response
     {
         $signatureHeader = $request->header('Stripe-Signature');
-        $webhookSecret = env('STRIPE_WEBHOOK_SECRET');
+        $webhookSecret = env('STRIPE_WEBHOOK_CH_KEY');
 
         $payload = $request->getContent();
 
