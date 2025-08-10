@@ -60,9 +60,10 @@ class ViewingController extends Controller
             $viewingDateTime = Carbon::createFromFormat('d-m-Y H:i', $data['date'] . ' ' . $data['time'], 'Europe/Amsterdam');
             $nowNl = Carbon::now('Europe/Amsterdam');
             $isStandard = $viewingDateTime->gt($nowNl->copy()->addDay());
+            $paymentLinkName = $isStandard ? 'Viewing Fee' : 'Express Viewing Fee';
             $amountEur = $isStandard ? 50 : 100;
 
-            $paymentLink = $paymentLinks->createPropertyFeeLink($amountEur, 'Viewing Fee', [
+            $paymentLink = $paymentLinks->createPropertyFeeLink($amountEur, $paymentLinkName, [
                 'checkout_type' => 'viewing',
                 'viewing_id' => (string) $viewing->id,
             ]);
@@ -71,16 +72,17 @@ class ViewingController extends Controller
                 // Append to the specified Google Sheet
                 $sheetId = '1asA0dtjw7jk7BADin97SaMNDiB_Eb0m6yClPKp-6iAQ';
                 $typeValue = $isStandard ? 'standard' : 'express';
-                $sheetsService->appendRow($sheetId, 'viewingsAndLinks', [
+                // Update the first row with empty ID instead of appending
+                $sheetsService->updateFirstEmptyIdRow($sheetId, 'viewingsAndLinks', [
                     $viewing->id,
                     $data['name'] . ' ' . $data['surname'],
                     $data['date'],
                     $data['time'],
                     $data['address'] . ' ' . $data['city'],
                     $typeValue,
-                    false, // Went (unchecked)
+                    '', // Went (leave unchecked)
                     $paymentLink,
-                    false, // Paid (unchecked)
+                    '', // Paid (leave unchecked)
                 ]);
             } else {
                 Log::warning('Failed to create Stripe payment link for viewing', [

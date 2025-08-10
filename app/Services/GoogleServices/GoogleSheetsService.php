@@ -119,6 +119,65 @@ class GoogleSheetsService
         }
     }
 
+    /**
+     * Update the first row where the ID column (column A) is empty.
+     * Writes row values starting from column A to the number of provided values.
+     *
+     * @param string $spreadsheetId
+     * @param string $sheetName
+     * @param array $rowValues Values ordered by columns starting at A (e.g., [ID, Name, Date, ...])
+     * @return bool True if a row was updated, false otherwise
+     */
+    public function updateFirstEmptyIdRow(string $spreadsheetId, string $sheetName, array $rowValues): bool
+    {
+        try {
+            $response = $this->service->spreadsheets_values->get($spreadsheetId, $sheetName);
+            $values = $response->getValues();
+
+            // If no data or only header, the first writable row is row 2
+            $startRowIndex = 1; // zero-based index for row 2
+            if (empty($values)) {
+                $targetRowNumber = 2; // A2
+            } else {
+                $targetRowNumber = null;
+                foreach ($values as $rowIndex => $row) {
+                    if ($rowIndex === 0) {
+                        continue; // skip header
+                    }
+                    $idCell = $row[0] ?? '';
+                    if ($idCell === '' || $idCell === null) {
+                        $targetRowNumber = $rowIndex + 1; // convert to 1-based
+                        break;
+                    }
+                }
+
+                // If no empty-id row found, optionally use the next row after the last
+                if ($targetRowNumber === null) {
+                    $targetRowNumber = count($values) + 1;
+                }
+            }
+
+            $lastColLetter = self::columnIndexToLetter(count($rowValues));
+            $range = sprintf('%s!A%d:%s%d', $sheetName, $targetRowNumber, $lastColLetter, $targetRowNumber);
+
+            $valueRange = new \Google\Service\Sheets\ValueRange([
+                'values' => [ $rowValues ],
+            ]);
+
+            $this->service->spreadsheets_values->update(
+                $spreadsheetId,
+                $range,
+                $valueRange,
+                ['valueInputOption' => 'RAW']
+            );
+
+            return true;
+        } catch (\Exception $e) {
+            Log::error('Failed to update first empty ID row: '.$e->getMessage());
+            return false;
+        }
+    }
+
     protected static function columnIndexToLetter(int $colNumber): string
     {
         $letter = '';
