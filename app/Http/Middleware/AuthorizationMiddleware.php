@@ -30,17 +30,31 @@ class AuthorizationMiddleware
         }
 
         try {
+            // Resolve the correct JWT secret (demo host may use DEMO_SUPABASE_JWT_SECRET)
+            $jwtSecret = config('supabase.jwt_secret');
+            if ($request->getHost() === 'demo.domakin.nl') {
+                $jwtSecret = env('DEMO_SUPABASE_JWT_SECRET', $jwtSecret);
+            }
+
             // Decode the JWT token
-            // You'll need to get your Supabase JWT secret from your Supabase dashboard
-            $decoded = JWT::decode($token, new Key(config('supabase.jwt_secret'), 'HS256'));
+            $decoded = JWT::decode($token, new Key($jwtSecret, 'HS256'));
 
             // The user ID is typically in the 'sub' claim
             $userId = $decoded->sub;
 
-            // Role information might be in different places depending on your Supabase setup
-            // It could be in app_metadata, user_metadata, or a custom claim
-            // Adjust this according to your JWT structure
-            $userRole = $decoded->user_roles ?? null;
+            // Try resolving role from common Supabase claim locations
+            $userRole = null;
+            if (isset($decoded->user_roles)) {
+                $userRole = $decoded->user_roles;
+            } elseif (isset($decoded->app_metadata) && is_object($decoded->app_metadata)) {
+                if (isset($decoded->app_metadata->role)) {
+                    $userRole = $decoded->app_metadata->role;
+                } elseif (isset($decoded->app_metadata->roles) && is_array($decoded->app_metadata->roles)) {
+                    $userRole = $decoded->app_metadata->roles[0] ?? null;
+                }
+            } elseif (isset($decoded->role)) {
+                $userRole = $decoded->role;
+            }
 
             // Add user ID to request for use in controllers
             $request->attributes->add(['user_id' => $userId]);
