@@ -38,7 +38,7 @@ class StripeWebhookController extends Controller
                 $paymentLinkId = $session->payment_link ?? null;
                 $referenceViewingId = $session->client_reference_id ?? ($session->client_reference_id ?? null);
 
-                if ($referenceViewingId) {
+                if ($referenceViewingId && config('sheets.export_enabled', true)) {
                     $sheetId = \App\Constants\Sheets::VIEWINGS_SHEET_ID;
                     $sheets->markPaidByViewingId($sheetId, \App\Constants\Sheets::VIEWINGS_TAB, (string)$referenceViewingId);
                 } elseif ($paymentLinkId) {
@@ -47,7 +47,7 @@ class StripeWebhookController extends Controller
                     $paymentLinkUrl = $plink->url ?? null;
                     $checkoutType = $plink->metadata['checkout_type'] ?? null;
 
-                    if ($paymentLinkUrl && $checkoutType === 'viewing') {
+                    if ($paymentLinkUrl && $checkoutType === 'viewing' && config('sheets.export_enabled', true)) {
                         $sheetId = \App\Constants\Sheets::VIEWINGS_SHEET_ID;
                         $sheets->markPaidByPaymentLink($sheetId, \App\Constants\Sheets::VIEWINGS_TAB, $paymentLinkUrl);
                     }

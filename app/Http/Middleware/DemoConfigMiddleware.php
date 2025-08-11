@@ -20,6 +20,8 @@ class DemoConfigMiddleware
             Config::set('services.axiom.dataset', env('DEMO_AXIOM_DATASET', config('services.axiom.dataset')));
             // Disable outbound email notifications on demo
             Config::set('mail.notifications_enabled', false);
+            // Disable Google Sheets export on demo
+            Config::set('sheets.export_enabled', false);
 
             // Point default pgsql connection to DEMO_DB_* credentials
             Config::set('database.connections.pgsql.host', env('DEMO_DB_HOST', config('database.connections.pgsql.host')));

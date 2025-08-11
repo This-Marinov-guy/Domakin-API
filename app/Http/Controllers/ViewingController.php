@@ -66,21 +66,23 @@ class ViewingController extends Controller
             $paymentLink = $baseLink . (str_contains($baseLink, '?') ? '&' : '?') . 'client_reference_id=' . $viewing->id;
             if ($paymentLink) {
                 $viewing->update(['payment_link' => $paymentLink]);
-                // Append to the specified Google Sheet
-                $sheetId = Sheets::VIEWINGS_SHEET_ID;
-                $typeValue = $isStandard ? 'standard' : 'express';
-                // Update the first row with empty ID instead of appending
-                $sheetsService->updateFirstEmptyIdRow($sheetId, Sheets::VIEWINGS_TAB, [
-                    $viewing->id,
-                    $data['name'] . ' ' . $data['surname'],
-                    $data['date'],
-                    $data['time'],
-                    $data['address'] . ' ' . $data['city'],
-                    $typeValue,
-                    '', // Went (leave unchecked)
-                    $paymentLink,
-                    '', // Paid (leave unchecked)
-                ]);
+                // Append to the specified Google Sheet (skip on demo)
+                if (config('sheets.export_enabled', true)) {
+                    $sheetId = Sheets::VIEWINGS_SHEET_ID;
+                    $typeValue = $isStandard ? 'standard' : 'express';
+                    // Update the first row with empty ID instead of appending
+                    $sheetsService->updateFirstEmptyIdRow($sheetId, Sheets::VIEWINGS_TAB, [
+                        $viewing->id,
+                        $data['name'] . ' ' . $data['surname'],
+                        $data['date'],
+                        $data['time'],
+                        $data['address'] . ' ' . $data['city'],
+                        $typeValue,
+                        '', // Went (leave unchecked)
+                        $paymentLink,
+                        '', // Paid (leave unchecked)
+                    ]);
+                }
             } else {
                 Log::warning('Failed to create Stripe payment link for viewing', [
                     'viewing_id' => $viewing->id,
