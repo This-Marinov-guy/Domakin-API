@@ -7,7 +7,8 @@ use App\Http\Controllers\Controller;
 use App\Mail\Notification;
 use App\Services\GoogleServices\GoogleSheetsService;
 use App\Services\GoogleServices\GoogleCalendarService;
-use App\Services\Payment\PaymentLinkService;
+use App\Constants\Sheets;
+use App\Constants\Payments;
 use App\Models\Viewing;
 use App\Services\Helpers;
 use Illuminate\Http\Request;
@@ -39,7 +40,7 @@ class ViewingController extends Controller
         return ApiResponseClass::sendSuccess($viewing->toArray());
     }
 
-    public function create(Request $request, GoogleSheetsService $sheetsService, GoogleCalendarService $calendarService, PaymentLinkService $paymentLinks): JsonResponse
+    public function create(Request $request, GoogleSheetsService $sheetsService, GoogleCalendarService $calendarService): JsonResponse
     {
         $data = Helpers::camelToSnakeObject($request->all());
 
@@ -55,25 +56,21 @@ class ViewingController extends Controller
             return ApiResponseClass::sendError($error->getMessage());
         }
 
-        // Create Stripe payment link based on viewing time (NL timezone)
+        // Select Stripe checkout link based on viewing time (NL timezone)
         try {
             $viewingDateTime = Carbon::createFromFormat('d-m-Y H:i', $data['date'] . ' ' . $data['time'], 'Europe/Amsterdam');
             $nowNl = Carbon::now('Europe/Amsterdam');
             $isStandard = $viewingDateTime->gt($nowNl->copy()->addDay());
-            $paymentLinkName = $isStandard ? 'Viewing Fee' : 'Express Viewing Fee';
-            $amountEur = $isStandard ? 50 : 100;
-
-            $paymentLink = $paymentLinks->createPropertyFeeLink($amountEur, $paymentLinkName, [
-                'checkout_type' => 'viewing',
-                'viewing_id' => (string) $viewing->id,
-            ]);
+            $baseLink = $isStandard ? Payments::STRIPE_VIEWING_STANDARD_LINK : Payments::STRIPE_VIEWING_EXPRESS_LINK;
+            // Attach viewing id so webhook can identify the row via client_reference_id
+            $paymentLink = $baseLink . (str_contains($baseLink, '?') ? '&' : '?') . 'client_reference_id=' . $viewing->id;
             if ($paymentLink) {
                 $viewing->update(['payment_link' => $paymentLink]);
                 // Append to the specified Google Sheet
-                $sheetId = '1asA0dtjw7jk7BADin97SaMNDiB_Eb0m6yClPKp-6iAQ';
+                $sheetId = Sheets::VIEWINGS_SHEET_ID;
                 $typeValue = $isStandard ? 'standard' : 'express';
                 // Update the first row with empty ID instead of appending
-                $sheetsService->updateFirstEmptyIdRow($sheetId, 'viewingsAndLinks', [
+                $sheetsService->updateFirstEmptyIdRow($sheetId, Sheets::VIEWINGS_TAB, [
                     $viewing->id,
                     $data['name'] . ' ' . $data['surname'],
                     $data['date'],
@@ -87,11 +84,10 @@ class ViewingController extends Controller
             } else {
                 Log::warning('Failed to create Stripe payment link for viewing', [
                     'viewing_id' => $viewing->id,
-                    'amount' => $amountEur,
                 ]);
             }
         } catch (Exception $error) {
-            Log::error('Error creating Stripe payment link: ' . $error->getMessage(), [
+            Log::error('Error preparing Stripe payment link: ' . $error->getMessage(), [
                 'viewing_id' => $viewing->id ?? null
             ]);
         }

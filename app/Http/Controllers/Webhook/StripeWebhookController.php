@@ -36,16 +36,20 @@ class StripeWebhookController extends Controller
             if ($type === 'checkout.session.completed') {
                 $session = $event->data->object;
                 $paymentLinkId = $session->payment_link ?? null;
+                $referenceViewingId = $session->client_reference_id ?? ($session->client_reference_id ?? null);
 
-                if ($paymentLinkId) {
+                if ($referenceViewingId) {
+                    $sheetId = \App\Constants\Sheets::VIEWINGS_SHEET_ID;
+                    $sheets->markPaidByViewingId($sheetId, \App\Constants\Sheets::VIEWINGS_TAB, (string)$referenceViewingId);
+                } elseif ($paymentLinkId) {
                     $client = new StripeClient(env('STRIPE_SECRET_KEY') ?: env('STRIPE_SECRET'));
                     $plink = $client->paymentLinks->retrieve($paymentLinkId, []);
                     $paymentLinkUrl = $plink->url ?? null;
                     $checkoutType = $plink->metadata['checkout_type'] ?? null;
 
                     if ($paymentLinkUrl && $checkoutType === 'viewing') {
-                        $sheetId = '1asA0dtjw7jk7BADin97SaMNDiB_Eb0m6yClPKp-6iAQ';
-                        $sheets->markPaidByPaymentLink($sheetId, 'viewingsAndLinks', $paymentLinkUrl);
+                        $sheetId = \App\Constants\Sheets::VIEWINGS_SHEET_ID;
+                        $sheets->markPaidByPaymentLink($sheetId, \App\Constants\Sheets::VIEWINGS_TAB, $paymentLinkUrl);
                     }
                 }
             }

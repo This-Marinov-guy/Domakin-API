@@ -120,6 +120,54 @@ class GoogleSheetsService
     }
 
     /**
+     * Mark the Paid checkbox to TRUE for the row with the given viewing ID in column A.
+     */
+    public function markPaidByViewingId(string $spreadsheetId, string $sheetName, string $viewingId): bool
+    {
+        try {
+            $response = $this->service->spreadsheets_values->get($spreadsheetId, $sheetName);
+            $values = $response->getValues();
+            if (empty($values)) {
+                return false;
+            }
+
+            foreach ($values as $rowIndex => $row) {
+                if ($rowIndex === 0) {
+                    continue;
+                }
+                $idCell = $row[0] ?? '';
+                if ((string)$idCell === (string)$viewingId) {
+                    // Paid column index: find header row and column name 'Paid?' else assume I (9th)
+                    $paidColIndex = 9 - 1; // default I column (index 8)
+                    if (!empty($values[0])) {
+                        foreach ($values[0] as $headerIndex => $header) {
+                            if (stripos((string)$header, 'paid') !== false) {
+                                $paidColIndex = $headerIndex;
+                                break;
+                            }
+                        }
+                    }
+                    $a1Notation = $sheetName.'!'.self::columnIndexToLetter($paidColIndex + 1).($rowIndex + 1);
+                    $valueRange = new \Google\Service\Sheets\ValueRange([
+                        'values' => [[true]]
+                    ]);
+                    $this->service->spreadsheets_values->update(
+                        $spreadsheetId,
+                        $a1Notation,
+                        $valueRange,
+                        ['valueInputOption' => 'RAW']
+                    );
+                    return true;
+                }
+            }
+            return false;
+        } catch (\Exception $e) {
+            Log::error('Failed to mark paid by viewing id in Google Sheet: '.$e->getMessage());
+            return false;
+        }
+    }
+
+    /**
      * Update the first row where the ID column (column A) is empty.
      * Writes row values starting from column A to the number of provided values.
      *
