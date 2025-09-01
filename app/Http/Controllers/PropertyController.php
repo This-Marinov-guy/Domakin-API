@@ -28,7 +28,7 @@ class PropertyController extends Controller
     public function fetchUserProperties(Request $request, UserService $user, PropertyService $propertyService): JsonResponse
     {
         $userId = $user->extractIdFromRequest($request);
-        $query = Property::where('created_by', $userId)->select('id', 'status');
+        $query = Property::where('created_by', $userId)->select('id', 'status', 'referral_code');
         $paginated = $propertyService->paginateProperties($query, $request);
         return ApiResponseClass::sendSuccess($paginated);
     }
@@ -98,7 +98,7 @@ class PropertyController extends Controller
 
         // save folder name
         $folder =
-            substr($data['propertyData']['description'], 0, 10) . '|' . date('Y-m-d H:i:s');
+            substr($data['propertyData']['description']['en'] ?? $data['propertyData']['description'], 0, 10) . '|' . date('Y-m-d H:i:s');
 
         // modify property data with translations
         $data['propertyData'] = $propertyService->modifyPropertyDataWithTranslations($data['propertyData']);
@@ -156,40 +156,92 @@ class PropertyController extends Controller
     /**
      * Edits a property
      */
-    public function edit(Request $request, PropertyService $propertyService, UserService $user, PaymentLinkService $paymentLinks): JsonResponse
+    public function edit(Request $request, PropertyService $propertyService, UserService $user, PaymentLinkService $paymentLinks, CloudinaryService $cloudinary): JsonResponse
     {
-        $validator = Validator::make($request->all(), Property::editRules());
+        $data = [
+            'propertyData' => json_decode($request->get('propertyData'), true),
+            'id' => $request->get('id'),
+            'referral_code' => $request->get('referralCode'),
+            'status' => $request->get('status'),
+            'approved' => $request->get('approved'),
+            'release_timestamp' => $request->get('release_timestamp'),
+            'terms' => json_decode($request->get('terms'), true),
+            'newImages' => $request->file('newImages'),
+            'last_updated_by' => $user->extractIdFromRequest($request),
+        ];
+
+        $property = Property::find(id: $request->get('id'));
+
+        Log::info(json_encode($request));
+
+        if (!$property) {
+            return ApiResponseClass::sendError('Property not found');
+        }
+
+        $validator = Validator::make($data, Property::editRules());
 
         if ($validator->fails()) {
             return ApiResponseClass::sendInvalidFields($validator->errors()->toArray(), Property::messages());
         }
 
-        $property = Property::find($request->id);
-        if (!$property) {
-            return ApiResponseClass::sendError('Property not found');
+        // Process images - handle both existing images string and new uploads
+        $finalImages = [];
+
+        // 1. Handle existing images (order updates or removals)
+        if (!empty($request->get('images'))) {
+            $existingImages = $request->get('images');
+            if (is_string($existingImages)) {
+                $existingImages = explode(',', $existingImages);
+                $existingImages = array_map('trim', $existingImages);
+            }
+            $finalImages = is_array($existingImages) ? $existingImages : [];
+        } elseif (!empty($data['propertyData']['images'])) {
+            $existingImages = $data['propertyData']['images'];
+            if (is_string($existingImages)) {
+                $existingImages = explode(',', $existingImages);
+                $existingImages = array_map('trim', $existingImages);
+            }
+            $finalImages = is_array($existingImages) ? $existingImages : [];
         }
 
-        $data = [
-            'propertyData' => [
-                ...$request->propertyData,
-                'images' => implode(', ', $request->propertyData['images']),
-            ],
-            'status' => $request->status,
-            'release_timestamp' => $request->releaseTimestamp,
-        ];
+        // 2. Handle new image uploads if present
+        if ($request->hasFile('newImages')) {
+            // Get existing folder or create new one if needed
+            $folder = $property->propertyData->folder ??
+                substr($propertyData['title']['en'] ?? ($propertyData['title'] ?? ''), 0, 10) . '|' . date('Y-m-d H:i:s');
+
+            // Upload new images
+            $uploadedImages = $cloudinary->multiUpload($data['newImages'], [
+                'folder' => "properties/" . $folder,
+            ]);
+
+            // Combine with existing images
+            $finalImages = array_merge($finalImages, $uploadedImages);
+
+            // Ensure folder is set in property data
+            if (empty($property->propertyData->folder)) {
+                $data['propertyData']['folder'] = $folder;
+            }
+        }
+
+        // 3. Update images field with final result
+        if (!empty($finalImages)) {
+            $data['propertyData']['images'] = implode(', ', $finalImages);
+        }
 
         $data['propertyData'] = $propertyService->stringifyPropertyDataWithTranslations($data['propertyData']);
 
         // Refresh payment link if rent is present and > 0
-        $rent = (float) ($request->input('propertyData.rent') ?? ($property->propertyData->rent ?? 0));
+        $rent = (float) (($propertyData['rent'] ?? null) ?? ($property->propertyData->rent ?? 0));
         if ($rent > 0) {
             $data['propertyData']['payment_link'] = $paymentLinks->createPropertyFeeLink($rent);
         }
 
         try {
             $property->status = $data['status'];
-            $property->last_updated_by =  $user->extractIdFromRequest($request);
+            $property->last_updated_by = $user->extractIdFromRequest($request);
             $property->release_timestamp = $data['release_timestamp'];
+            $property->referral_code = $data['referral_code'];
             $property->propertyData->update($data['propertyData']);
 
             $property->save();

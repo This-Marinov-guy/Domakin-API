@@ -21,6 +21,7 @@ class PropertyData extends Model
         'flatmates',
         'registration',
         'description',
+        'folder',
         'images',
         'payment_link',
     ]; 
