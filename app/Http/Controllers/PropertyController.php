@@ -164,15 +164,13 @@ class PropertyController extends Controller
             'referral_code' => $request->get('referralCode'),
             'status' => $request->get('status'),
             'approved' => $request->get('approved'),
-            'release_timestamp' => $request->get('release_timestamp'),
+            'release_timestamp' => $request->get('releaseTimestamp'),
             'terms' => json_decode($request->get('terms'), true),
             'newImages' => $request->file('newImages'),
             'last_updated_by' => $user->extractIdFromRequest($request),
         ];
 
         $property = Property::find(id: $request->get('id'));
-
-        Log::info(json_encode($request));
 
         if (!$property) {
             return ApiResponseClass::sendError('Property not found');

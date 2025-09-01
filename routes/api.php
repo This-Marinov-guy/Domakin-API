@@ -55,7 +55,7 @@ Route::prefix('property')->group(function () {
     Route::get('/listing', [PropertyController::class, 'show']);
 
     Route::post('/create', [PropertyController::class, 'create']);
-    Route::put('/edit', [PropertyController::class, 'edit'])->middleware('auth.role:admin');
+    Route::post('/edit', [PropertyController::class, 'edit'])->middleware('auth.role:admin');
     Route::delete('/delete', [PropertyController::class, 'delete']);
 });
 
