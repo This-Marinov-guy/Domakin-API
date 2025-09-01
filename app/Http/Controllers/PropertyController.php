@@ -271,4 +271,39 @@ class PropertyController extends Controller
 
         return ApiResponseClass::sendSuccess(['message' => 'Property deleted successfully']);
     }
+
+    /**
+     * Creates a payment link for a property
+     */
+    public function createPaymentLink(Request $request, PaymentLinkService $paymentLinks): JsonResponse
+    {
+        $propertyId = $request->get('id');
+        $name = $request->get('name');
+        
+        $property = Property::with('propertyData')->find($propertyId);
+        
+        if (!$property) {
+            return ApiResponseClass::sendError('Property not found');
+        }
+        
+        $rent = (float)($property->propertyData->rent ?? 0);
+        if ($rent <= 0) {
+            return ApiResponseClass::sendError('Property rent must be greater than 0');
+        }
+        
+        $address = $property->propertyData->address ?? '';
+        $title = $name 
+            ? "One time Domakin Comission - {$name} | {$address}"
+            : "One time Domakin Comission - {$address}";
+        
+        try {
+            $paymentLink = $paymentLinks->createPropertyFeeLink($rent, $title);
+            
+            return ApiResponseClass::sendSuccess([
+                'payment_link' => $paymentLink
+            ]);
+        } catch (Exception $error) {
+            return ApiResponseClass::sendError($error->getMessage());
+        }
+    }
 }

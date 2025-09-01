@@ -57,6 +57,7 @@ Route::prefix('property')->group(function () {
     Route::post('/create', [PropertyController::class, 'create']);
     Route::post('/edit', [PropertyController::class, 'edit'])->middleware('auth.role:admin');
     Route::delete('/delete', [PropertyController::class, 'delete']);
+    Route::post('/payment/create-link', [PropertyController::class, 'createPaymentLink'])->middleware('auth.role:admin');
 });
 
 Route::prefix('authentication')->group(function () {
