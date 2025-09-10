@@ -16,14 +16,18 @@ class PaymentLinkService
         $this->stripe = new StripeClient($secretKey);
     }
 
-    public function createPropertyFeeLink(float $amountEur, string $productName = 'Property Fee (1 month rent)', array $metadata = []): ?string
+    public function createPropertyFeeLink(float $amountEur, string $productName = 'Property Fee (1 month rent)', string $description = null, array $metadata = []): ?string
     {
+        // If description is null, use the product name as the description
+        if ($description === null) {
+            $description = $productName;
+        }
         try {
             $amountEur = ceil($amountEur);
             $unitAmount = (int)($amountEur * 100);
             
             // Check for existing links with the same parameters
-            $existingLink = $this->findExistingPaymentLink($unitAmount, $productName);
+            $existingLink = $this->findExistingPaymentLink($unitAmount, $productName, $description);
             if ($existingLink) {
                 Log::info("Using existing payment link for {$productName} with amount {$amountEur}EUR");
                 return $existingLink;
@@ -31,6 +35,7 @@ class PaymentLinkService
 
             $product = $this->stripe->products->create([
                 'name' => $productName,
+                'description' => $description,
             ]);
 
             $price = $this->stripe->prices->create([
@@ -57,13 +62,14 @@ class PaymentLinkService
     }
     
     /**
-     * Find an existing payment link with the same amount and product name
+     * Find an existing payment link with the same amount, product name, and description
      * 
      * @param int $unitAmount Amount in cents
      * @param string $productName Product name to match
+     * @param string $description Product description to match
      * @return string|null URL of existing payment link or null if not found
      */
-    private function findExistingPaymentLink(int $unitAmount, string $productName): ?string
+    private function findExistingPaymentLink(int $unitAmount, string $productName, string $description): ?string
     {
         try {
             // Get all active payment links
@@ -86,8 +92,10 @@ class PaymentLinkService
                 $productId = $lineItem->price->product;
                 $product = $this->stripe->products->retrieve($productId);
                 
-                // Check if the amount and product name match
-                if ($product->name === $productName && $lineItem->price->unit_amount === $unitAmount) {
+                // Check if the amount, product name, and description match
+                if ($product->name === $productName && 
+                    $lineItem->price->unit_amount === $unitAmount && 
+                    $product->description === $description) {
                     return $link->url;
                 }
             }
