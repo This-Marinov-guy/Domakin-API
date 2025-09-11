@@ -10,7 +10,8 @@ class ProdFirewallMiddleware
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if (app()->environment('prod')) {
+        // TODO: Remove this once we have a proper firewall that wont block SSR requests
+        if (app()->environment('prod') && false) {
             // Allow webhook postbacks without an Origin/Referer
             if ($request->is('api/webhook/stripe')) {
                 return $next($request);
