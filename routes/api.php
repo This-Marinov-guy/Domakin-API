@@ -77,11 +77,5 @@ Route::prefix('user')->group(function () {
         ->name('edit-user-details');
 });
 
-// Test routes for Google Calendar
-Route::prefix('test')->group(function () {
-    Route::post('/calendar/create-event', [Test::class, 'testCalendarEvent']);
-    Route::post('/calendar/create-event-datetime', [Test::class, 'testCalendarEventFromDateTime']);
-});
-
 // Stripe webhook (no auth)
 Route::post('/webhooks/stripe/checkout', [StripeWebhookController::class, 'handle']);

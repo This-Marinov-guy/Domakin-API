@@ -11,11 +11,7 @@ class ProdFirewallMiddleware
     public function handle(Request $request, Closure $next): Response
     {
         // TODO: Remove this once we have a proper firewall that wont block SSR requests
-        if (app()->environment('prod')) {
-            // Allow webhook postbacks without an Origin/Referer
-            if ($request->is('api/webhook/stripe')) {
-                return $next($request);
-            }
+        if (true) {            
             $allowedDomains = [
                 'domakin.nl',
                 'demo.domakin.nl',
@@ -26,7 +22,7 @@ class ProdFirewallMiddleware
                 ?? null;
 
             // Block if origin/referrer is missing or not in allowed list
-            if (!$originHost || !$this->isAllowed($originHost, $allowedDomains)) {
+            if ((!$originHost || !$this->isAllowed($originHost, $allowedDomains)) && !$this->isPublicEndpoint($request)) {
                 return response()->json([
                     'message' => 'Forbidden by firewall',
                 ], 403);
@@ -54,6 +50,54 @@ class ProdFirewallMiddleware
             }
         }
         return false;
+    }
+    private static array $publicPatterns = [
+        'api/webhooks/stripe/*',
+        'api/blog/*',
+        'api/property/listing',
+        'api/property/list',
+        'api/feedback/list',
+    ];
+
+    private function isPublicEndpoint(Request $request): bool
+    {
+        // Only allow GET for public endpoints (except webhooks which need POST)
+        if ($request->method() !== 'GET') {
+            $path = $request->path();
+            // Allow POST only for webhooks
+            return $request->method() === 'POST' && $this->matchesPattern($path, 'api/webhook/stripe/*');
+        }
+
+        // Check if the path matches any of our public patterns
+        $path = $request->path();
+        foreach (self::$publicPatterns as $pattern) {
+            if ($this->matchesPattern($path, $pattern)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+    
+    /**
+     * Check if a path matches a wildcard pattern
+     * 
+     * @param string $path The path to check
+     * @param string $pattern The pattern to match against (can contain * wildcards)
+     * @return bool
+     */
+    private function matchesPattern(string $path, string $pattern): bool
+    {
+        // If the pattern doesn't contain wildcards, use simple string comparison
+        if (strpos($pattern, '*') === false) {
+            return $path === $pattern;
+        }
+        
+        // Convert the pattern to a regular expression
+        $regex = preg_quote($pattern, '/');
+        $regex = str_replace('\*', '.*', $regex);
+        
+        return (bool) preg_match('/^' . $regex . '$/', $path);
     }
 }
 
