@@ -10,23 +10,25 @@ class ProdFirewallMiddleware
 {
     public function handle(Request $request, Closure $next): Response
     {
-        // TODO: Remove this once we have a proper firewall that wont block SSR requests
-        if (true) {            
-            $allowedDomains = [
-                'domakin.nl',
-                'demo.domakin.nl',
-            ];
+        $allowedDomains = [
+            'domakin.nl',
+            'demo.domakin.nl',
+        ];
 
-            $originHost = $this->extractHost($request->headers->get('Origin'))
-                ?? $this->extractHost($request->headers->get('Referer'))
-                ?? null;
+        // IDK why this didnt work
+        if (env('APP_ENV') === 'dev') {
+            // $allowedDomains[] = 'localhost';
+        }
 
-            // Block if origin/referrer is missing or not in allowed list
-            if ((!$originHost || !$this->isAllowed($originHost, $allowedDomains)) && !$this->isPublicEndpoint($request)) {
-                return response()->json([
-                    'message' => 'Forbidden by firewall',
-                ], 403);
-            }
+        $originHost = $this->extractHost($request->headers->get('Origin'))
+            ?? $this->extractHost($request->headers->get('Referer'))
+            ?? null;
+
+        // Block if origin/referrer is missing or not in allowed list
+        if ((!$originHost || !$this->isAllowed($originHost, $allowedDomains)) && !$this->isPublicEndpoint($request)) {
+            return response()->json([
+                'message' => 'Forbidden by firewall',
+            ], 403);
         }
 
         return $next($request);
@@ -54,8 +56,7 @@ class ProdFirewallMiddleware
     private static array $publicPatterns = [
         'api/webhooks/stripe/*',
         'api/blog/*',
-        'api/property/listing',
-        'api/property/list',
+        'api/property/*',
         'api/feedback/list',
     ];
 
