@@ -22,6 +22,7 @@ Route::prefix('common')->group(function () {
 
 Route::prefix('blog')->group(function () {
     Route::get('/posts', [WordPressController::class, 'getPosts']);
+    Route::get('/post-by-slug/{slug}', [WordPressController::class, 'getPostBySlug']);
     Route::get('/post/{id}', [WordPressController::class, 'getPostDetails']);
 });
 

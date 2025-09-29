@@ -72,6 +72,7 @@ class WordPressController extends Controller
 
                 return [
                     'id' => $post['id'],
+                    'slug' => $post['slug'],
                     'thumbnail' => $firstImageSrc,
                     'title' => trim(html_entity_decode(strip_tags($post['title']['rendered']), ENT_QUOTES, 'UTF-8')),
                     'description' => $description,
@@ -86,7 +87,7 @@ class WordPressController extends Controller
     }
 
     /**
-     * Get specific WordPress post details
+     * Get specific WordPress post details by ID
      *
      * @param int $postId
      * @return \Illuminate\Http\JsonResponse
@@ -105,32 +106,84 @@ class WordPressController extends Controller
                 ], 200);
             }
 
-            $stylesResponse = Http::get(
-                'https://' . $this->getBlogDomain() . '/wp-includes/css/dist/block-library/style.min.css'
-            );
-
-            $post = $postResponse->json();
-            $processedContent = $post['content']['rendered'];
-
-            // Replace http with https
-            $processedContent = str_replace('http://', 'https://', $processedContent);
-
-            // Fix relative image paths to use the blog domain
-            $processedContent = str_replace(
-                'src="/wp-content',
-                'src="https://' . $this->getBlogDomain() . '/wp-content',
-                $processedContent
-            );
-
-            return ApiResponseClass::sendSuccess([
-                'title' => trim(html_entity_decode(strip_tags($post['title']['rendered']), ENT_QUOTES, 'UTF-8')),
-                'content' => $processedContent ?? null,
-                'styles' => $stylesResponse->successful() ? $stylesResponse->body() : null,
-            ]);
+            return $this->formatPostResponse($postResponse);
         } catch (Exception $e) {
             Log::error('WordPress API Error: ' . $e->getMessage());
 
             return ApiResponseClass::sendError($e->getMessage());
         }
+    }
+    
+    /**
+     * Get specific WordPress post details by slug
+     *
+     * @param string $slug
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getPostBySlug($slug)
+    {
+        try {
+            $postResponse = Http::get(
+                self::PROTOCOL . self::API_ENDPOINT . env('WORDPRESS_BLOG_ID') . "/posts",
+                [
+                    'slug' => $slug,
+                    '_embed' => true
+                ]
+            );
+
+            if (!$postResponse->successful() || empty($postResponse->json())) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Post not found'
+                ], 200);
+            }
+
+            // WordPress returns an array of posts when using slug parameter
+            // We need to get the first (and usually only) item
+            $postResponse = Http::get(
+                self::PROTOCOL . self::API_ENDPOINT . env('WORDPRESS_BLOG_ID') . "/posts/" . $postResponse->json()[0]['id'],
+                ['_embed' => true]
+            );
+
+            return $this->formatPostResponse($postResponse);
+        } catch (Exception $e) {
+            Log::error('WordPress API Error: ' . $e->getMessage());
+
+            return ApiResponseClass::sendError($e->getMessage());
+        }
+    }
+    
+    /**
+     * Format post response with common processing
+     * 
+     * @param \Illuminate\Http\Client\Response $postResponse
+     * @return \Illuminate\Http\JsonResponse
+     */
+    private function formatPostResponse($postResponse)
+    {
+        $stylesResponse = Http::get(
+            'https://' . $this->getBlogDomain() . '/wp-includes/css/dist/block-library/style.min.css'
+        );
+
+        $post = $postResponse->json();
+        $processedContent = $post['content']['rendered'];
+
+        // Replace http with https
+        $processedContent = str_replace('http://', 'https://', $processedContent);
+
+        // Fix relative image paths to use the blog domain
+        $processedContent = str_replace(
+            'src="/wp-content',
+            'src="https://' . $this->getBlogDomain() . '/wp-content',
+            $processedContent
+        );
+
+        return ApiResponseClass::sendSuccess([
+            'id' => $post['id'],
+            'slug' => $post['slug'],
+            'title' => trim(html_entity_decode(strip_tags($post['title']['rendered']), ENT_QUOTES, 'UTF-8')),
+            'content' => $processedContent ?? null,
+            'styles' => $stylesResponse->successful() ? $stylesResponse->body() : null,
+        ]);
     }
 }
