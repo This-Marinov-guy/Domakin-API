@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\ProfileController;
 use App\Http\Controllers\RegisteredUserController;
 use App\Http\Middleware\AuthorizationMiddleware;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\CareerController;
 use App\Http\Controllers\Common\FeedbackController;
 use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\PropertyController;
@@ -42,6 +43,10 @@ Route::prefix('viewing')->group(function () {
 Route::prefix('renting')->group(function () {
     Route::post('/searching/create', [SearchRentingController::class, 'create']);
     Route::post('/create', [RentingController::class, 'create']);
+});
+
+Route::prefix('career')->group(function () {
+    Route::post('/apply', [CareerController::class, 'apply']);
 });
 
 Route::prefix('property')->group(function () {

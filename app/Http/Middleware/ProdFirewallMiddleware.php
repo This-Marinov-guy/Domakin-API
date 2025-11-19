@@ -17,7 +17,7 @@ class ProdFirewallMiddleware
 
         // IDK why this didnt work
         if (env('APP_ENV') === 'dev') {
-            // $allowedDomains[] = 'localhost';
+            $allowedDomains[] = 'localhost';
         }
 
         $originHost = $this->extractHost($request->headers->get('Origin'))
