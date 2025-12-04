@@ -19,6 +19,9 @@
     <h2>Property Information</h2>
     <p><strong>City:</strong> {{ $data['propertyData']['city'] ?? 'N/A' }}</p>
     <p><strong>Address:</strong> {{ $data['propertyData']['address'] ?? 'N/A' }}</p>
+    <p><strong>Postcode:</strong> {{ $data['propertyData']['postcode'] ?? 'N/A' }}</p>
+    <p><strong>Pets Allowed:</strong> {{ isset($data['propertyData']['petsAllowed']) ? ($data['propertyData']['petsAllowed'] ? 'Yes' : 'No') : (isset($data['propertyData']['pets_allowed']) ? ($data['propertyData']['pets_allowed'] ? 'Yes' : 'No') : 'N/A') }}</p>
+    <p><strong>Smoking Allowed:</strong> {{ isset($data['propertyData']['smokingAllowed']) ? ($data['propertyData']['smokingAllowed'] ? 'Yes' : 'No') : (isset($data['propertyData']['smoking_allowed']) ? ($data['propertyData']['smoking_allowed'] ? 'Yes' : 'No') : 'N/A') }}</p>
 </body>
 
 </html>
