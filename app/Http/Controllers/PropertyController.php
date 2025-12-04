@@ -15,6 +15,7 @@ use App\Http\Requests\PropertyRequest;
 use App\Models\PersonalData;
 use App\Models\PropertyData;
 use App\Services\Helpers;
+use App\Services\Integrations\SignalIntegrationService;
 use App\Services\PropertyService;
 use App\Services\Payment\PaymentLinkService;
 use Illuminate\Support\Facades\Validator;
@@ -78,7 +79,7 @@ class PropertyController extends Controller
         return ApiResponseClass::sendSuccess($propertyData[0]);
     }
 
-    public function create(Request $request, CloudinaryService $cloudinary, GoogleSheetsService $sheetsService, PropertyService $propertyService, UserService $user, PaymentLinkService $paymentLinks): JsonResponse
+    public function create(Request $request, CloudinaryService $cloudinary, GoogleSheetsService $sheetsService, PropertyService $propertyService, UserService $user, PaymentLinkService $paymentLinks, SignalIntegrationService $signalIntegrationService): JsonResponse
     {
         $data = [
             'personalData' => json_decode($request->get('personalData'), true),
@@ -146,6 +147,12 @@ class PropertyController extends Controller
                 Property::class,
                 'Properties'
             );
+        } catch (Exception $error) {
+            Log::error($error->getMessage());
+        }
+
+        try {
+            $signalIntegrationService->submitProperty($property);
         } catch (Exception $error) {
             Log::error($error->getMessage());
         }
