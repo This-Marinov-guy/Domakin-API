@@ -86,12 +86,15 @@ class Property extends Model
 
             'propertyData.city' => 'required|string',
             'propertyData.address' => 'required|string',
+            'propertyData.postcode' => 'required|string',
+            'propertyData.pets_allowed' => 'required|boolean',
+            'propertyData.smoking_allowed' => 'required|boolean',
             'propertyData.size' => 'required|string',
             'propertyData.period' => 'required|string',
             'propertyData.rent' => 'required|string',
             'propertyData.bills' => 'required|string',
             'propertyData.flatmates' => 'required|string',
-            'propertyData.registration' => 'required|string',
+            'propertyData.registration' => 'required|boolean',
             'propertyData.description' => 'required|string',
             'images' => 'required|array',
 
