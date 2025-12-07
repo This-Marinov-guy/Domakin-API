@@ -10,7 +10,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Classes\ApiResponseClass;
 use App\Services\GoogleServices\GoogleSheetsService;
 use Illuminate\Support\Facades\Log;
-
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 /**
@@ -135,11 +135,29 @@ class RegisteredUserController extends Controller
             $referral_code = Str::slug($name) . '-' . Str::random(6);
         } while (User::where('referral_code', $referral_code)->exists());
 
+        // Get user ID from Supabase auth.users table by email, or use the one from request if not found
+        $email = $request->get('email');
+        $userId = $request->get('id');
+        
+        try {
+            $existingUser = DB::connection('pgsql')
+                ->table('auth.users')
+                ->where('email', $email)
+                ->first();
+            
+            if ($existingUser && isset($existingUser->id)) {
+                $userId = $existingUser->id;
+            }
+        } catch (\Exception $e) {
+            // If auth.users table doesn't exist or connection fails, log and continue with request ID
+            Log::warning('Failed to query auth.users table: ' . $e->getMessage());
+        }
+
         try {
             User::create([
-                'id' => $request->get('id'),
+                'id' => $userId,
                 'name' => $name,
-                'email' => $request->get('email'),
+                'email' => $email,
                 'phone' => $request->get('phone'),
                 'password' => $request->get('password'),
                 'referral_code' => $referral_code
