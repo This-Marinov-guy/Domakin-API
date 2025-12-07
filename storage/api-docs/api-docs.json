@@ -10,7 +10,7 @@
     },
     "servers": [
         {
-            "url": "http://localhost:8000",
+            "url": "https://orange.domakin.nl",
             "description": "API Server"
         }
     ],
@@ -1059,10 +1059,6 @@
                                         ],
                                         "example": "web"
                                     },
-                                    "terms": {
-                                        "description": "JSON string of terms",
-                                        "type": "string"
-                                    },
                                     "images": {
                                         "description": "Property images",
                                         "type": "array",
@@ -1205,10 +1201,6 @@
                                     "releaseTimestamp": {
                                         "type": "string",
                                         "format": "date-time"
-                                    },
-                                    "terms": {
-                                        "description": "JSON string of terms",
-                                        "type": "string"
                                     },
                                     "images": {
                                         "description": "Comma-separated image URLs",
@@ -1684,8 +1676,7 @@
                                     "phone",
                                     "email",
                                     "letter",
-                                    "interface",
-                                    "terms"
+                                    "interface"
                                 ],
                                 "properties": {
                                     "property": {
@@ -1731,10 +1722,6 @@
                                             "signal"
                                         ],
                                         "example": "signal"
-                                    },
-                                    "terms": {
-                                        "description": "JSON string with terms.contact and terms.legals",
-                                        "type": "string"
                                     }
                                 },
                                 "type": "object"
@@ -1751,8 +1738,7 @@
                                         "letter": "<file>",
                                         "note": "Additional notes about the application",
                                         "referralCode": "REF123",
-                                        "interface": "signal",
-                                        "terms": "{contact:true,legals:true}"
+                                        "interface": "signal"
                                     }
                                 },
                                 "web_interface": {
@@ -1766,8 +1752,7 @@
                                         "letter": "<file>",
                                         "note": "Web application notes",
                                         "referralCode": "WEB123",
-                                        "interface": "web",
-                                        "terms": "{contact:true,legals:true}"
+                                        "interface": "web"
                                     }
                                 },
                                 "mobile_interface": {
@@ -1781,8 +1766,7 @@
                                         "letter": "<file>",
                                         "note": "Mobile application notes",
                                         "referralCode": "MOB123",
-                                        "interface": "mobile",
-                                        "terms": "{contact:true,legals:true}"
+                                        "interface": "mobile"
                                     }
                                 }
                             }
@@ -1900,8 +1884,7 @@
                                     "registration",
                                     "budget",
                                     "city",
-                                    "interface",
-                                    "terms"
+                                    "interface"
                                 ],
                                 "properties": {
                                     "name": {
@@ -1970,10 +1953,6 @@
                                             "signal"
                                         ],
                                         "example": "web"
-                                    },
-                                    "terms": {
-                                        "description": "JSON string with terms",
-                                        "type": "string"
                                     }
                                 },
                                 "type": "object"

@@ -190,7 +190,6 @@ class PropertyController extends Controller
      *                 @OA\Property(property="propertyData", type="string", description="JSON string of property data"),
      *                 @OA\Property(property="referralCode", type="string"),
      *                 @OA\Property(property="interface", type="string", enum={"web", "mobile", "signal"}, example="web", description="Interface source"),
-     *                 @OA\Property(property="terms", type="string", description="JSON string of terms"),
      *                 @OA\Property(property="images", type="array", @OA\Items(type="string", format="binary"), description="Property images")
      *             )
      *         )
@@ -324,7 +323,6 @@ class PropertyController extends Controller
      *                 @OA\Property(property="status", type="integer", example=1),
      *                 @OA\Property(property="approved", type="boolean", example=true),
      *                 @OA\Property(property="releaseTimestamp", type="string", format="date-time"),
-     *                 @OA\Property(property="terms", type="string", description="JSON string of terms"),
      *                 @OA\Property(property="images", type="string", description="Comma-separated image URLs"),
      *                 @OA\Property(property="newImages", type="array", @OA\Items(type="string", format="binary"), description="New images to upload")
      *             )

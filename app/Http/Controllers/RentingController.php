@@ -29,7 +29,7 @@ class RentingController extends Controller
      *         @OA\MediaType(
      *             mediaType="multipart/form-data",
      *             @OA\Schema(
-     *                 required={"property", "name", "surname", "phone", "email", "letter", "interface", "terms"},
+     *                 required={"property", "name", "surname", "phone", "email", "letter", "interface"},
      *                 @OA\Property(property="property", type="string", description="Property ID", example="123"),
      *                 @OA\Property(property="name", type="string", example="John"),
      *                 @OA\Property(property="surname", type="string", example="Doe"),
@@ -39,7 +39,6 @@ class RentingController extends Controller
      *                 @OA\Property(property="note", type="string", example="Additional notes about the application"),
      *                 @OA\Property(property="referralCode", type="string", example="REF123"),
      *                 @OA\Property(property="interface", type="string", enum={"web", "mobile", "signal"}, example="signal", description="Interface source"),
-     *                 @OA\Property(property="terms", type="string", description="JSON string with terms.contact and terms.legals")
      *             ),
      *             @OA\Examples(
      *                 example="signal_interface",
@@ -54,7 +53,6 @@ class RentingController extends Controller
      *                     "note": "Additional notes about the application",
      *                     "referralCode": "REF123",
      *                     "interface": "signal",
-     *                     "terms": "{contact:true,legals:true}"
      *                 }
      *             ),
      *             @OA\Examples(
@@ -69,8 +67,7 @@ class RentingController extends Controller
      *                     "letter": "<file>",
      *                     "note": "Web application notes",
      *                     "referralCode": "WEB123",
-     *                     "interface": "web",
-     *                     "terms": "{contact:true,legals:true}"
+     *                     "interface": "web"
      *                 }
      *             ),
      *             @OA\Examples(
@@ -85,8 +82,7 @@ class RentingController extends Controller
      *                     "letter": "<file>",
      *                     "note": "Mobile application notes",
      *                     "referralCode": "MOB123",
-     *                     "interface": "mobile",
-     *                     "terms": "{contact:true,legals:true}"
+     *                     "interface": "mobile"
      *                 }
      *             )
      *         )
