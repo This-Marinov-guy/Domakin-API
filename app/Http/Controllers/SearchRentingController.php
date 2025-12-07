@@ -26,7 +26,7 @@ class SearchRentingController extends Controller
      *         @OA\MediaType(
      *             mediaType="multipart/form-data",
      *             @OA\Schema(
-     *                 required={"name", "surname", "phone", "email", "people", "type", "moveIn", "period", "registration", "budget", "city", "terms"},
+     *                 required={"name", "surname", "phone", "email", "people", "type", "moveIn", "period", "registration", "budget", "city", "interface", "terms"},
      *                 @OA\Property(property="name", type="string", example="John"),
      *                 @OA\Property(property="surname", type="string", example="Doe"),
      *                 @OA\Property(property="phone", type="string", example="+31 6 12345678"),
@@ -41,6 +41,7 @@ class SearchRentingController extends Controller
      *                 @OA\Property(property="note", type="string"),
      *                 @OA\Property(property="referralCode", type="string"),
      *                 @OA\Property(property="letter", type="string", format="binary", description="Optional motivational letter"),
+     *                 @OA\Property(property="interface", type="string", enum={"web", "mobile", "signal"}, example="web", description="Interface source"),
      *                 @OA\Property(property="terms", type="string", description="JSON string with terms")
      *             )
      *         )
@@ -89,6 +90,7 @@ class SearchRentingController extends Controller
             'city' => $request->get('city'),
             'note' => $request->get('note'),
             'referral_code' => $request->get('referralCode'),
+            'interface' => $request->get('interface'),
             'letter' => $request->file('letter') ?? null,
             'terms' => json_decode($request->get('terms'), true),
         ];

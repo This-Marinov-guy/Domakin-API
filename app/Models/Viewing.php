@@ -24,6 +24,7 @@ class Viewing extends Model
         'referral_code',
         'google_calendar_id',
         'payment_link',
+        'interface',
     ];
 
     protected $attributes = [
@@ -41,6 +42,7 @@ class Viewing extends Model
             'address' => 'required|string|max:50',
             'date' => 'required|string',
             'time' => 'required|string',
+            'interface' => 'required|string|in:web,mobile,signal',
 
             'terms' => 'required|array',
             'terms.contact' => 'required|accepted',

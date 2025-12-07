@@ -20,6 +20,7 @@ class Renting extends Model
         'letter',
         'note',
         'referral_code',
+        'interface',
     ];
 
     public static function rules(): array
@@ -30,6 +31,7 @@ class Renting extends Model
             'phone' => 'required|string|min:6',
             'email' => 'required|string|email',
             'letter' => 'required|file|mimes:pdf,doc,docx|max:4120',
+            'interface' => 'required|string|in:web,mobile,signal',
 
             'terms' => 'required|array',
             'terms.contact' => 'required|accepted',

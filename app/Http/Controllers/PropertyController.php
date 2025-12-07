@@ -189,6 +189,7 @@ class PropertyController extends Controller
      *                 @OA\Property(property="personalData", type="string", description="JSON string of personal data"),
      *                 @OA\Property(property="propertyData", type="string", description="JSON string of property data"),
      *                 @OA\Property(property="referralCode", type="string"),
+     *                 @OA\Property(property="interface", type="string", enum={"web", "mobile", "signal"}, example="web", description="Interface source"),
      *                 @OA\Property(property="terms", type="string", description="JSON string of terms"),
      *                 @OA\Property(property="images", type="array", @OA\Items(type="string", format="binary"), description="Property images")
      *             )
@@ -228,6 +229,7 @@ class PropertyController extends Controller
             'personalData' => json_decode($request->get('personalData'), true),
             'propertyData' => json_decode($request->get('propertyData'), true),
             'referral_code' => $request->get('referralCode'),
+            'interface' => $request->get('interface'),
             'terms' => json_decode($request->get('terms'), true),
             'images' => $request->file('images'),
             'created_by' => $user->extractIdFromRequest($request),
@@ -258,6 +260,7 @@ class PropertyController extends Controller
 
             $property = Property::create([
                 'referral_code' => $data['referral_code'],
+                'interface' => $data['interface'] ?? null,
                 'created_by' => $data['created_by'],
                 'last_updated_by' => $data['last_updated_by'],
             ]);

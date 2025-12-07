@@ -29,7 +29,7 @@ class RentingController extends Controller
      *         @OA\MediaType(
      *             mediaType="multipart/form-data",
      *             @OA\Schema(
-     *                 required={"property", "name", "surname", "phone", "email", "letter", "terms"},
+     *                 required={"property", "name", "surname", "phone", "email", "letter", "interface", "terms"},
      *                 @OA\Property(property="property", type="string", description="Property ID"),
      *                 @OA\Property(property="name", type="string", example="John"),
      *                 @OA\Property(property="surname", type="string", example="Doe"),
@@ -39,6 +39,7 @@ class RentingController extends Controller
      *                 @OA\Property(property="letter", type="string", format="binary", description="Motivational letter (PDF/DOC/DOCX)"),
      *                 @OA\Property(property="note", type="string"),
      *                 @OA\Property(property="referralCode", type="string"),
+     *                 @OA\Property(property="interface", type="string", enum={"web", "mobile", "signal"}, example="web", description="Interface source"),
      *                 @OA\Property(property="terms", type="string", description="JSON string with terms.contact and terms.legals")
      *             )
      *         )
@@ -87,6 +88,7 @@ class RentingController extends Controller
             'letter' => $request->file('letter'),
             'note' => $request->get('note'),
             'referral_code' => $request->get('referralCode'),
+            'interface' => $request->get('interface'),
             'terms' => json_decode($request->get('terms'), true),
         ];
 

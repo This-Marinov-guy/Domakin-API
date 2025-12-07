@@ -26,6 +26,7 @@ class SearchRenting extends Model
         'city',
         'note',
         'referral_code',
+        'interface',
     ];
 
     public static function rules(): array
@@ -44,6 +45,7 @@ class SearchRenting extends Model
             'budget' => 'required|integer',
             'city' => 'required|string',
             'note' => 'nullable|string',
+            'interface' => 'required|string|in:web,mobile,signal',
 
             'terms' => 'required|array', 
             'terms.contact' => 'required|accepted',

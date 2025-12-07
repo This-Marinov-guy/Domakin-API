@@ -97,13 +97,14 @@ class ViewingController extends Controller
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             required={"property_id", "name", "email", "phone", "date", "time"},
+     *             required={"property_id", "name", "email", "phone", "date", "time", "interface"},
      *             @OA\Property(property="property_id", type="integer", example=1),
      *             @OA\Property(property="name", type="string", example="John Doe"),
      *             @OA\Property(property="email", type="string", format="email", example="john@example.com"),
      *             @OA\Property(property="phone", type="string", example="+31 6 12345678"),
      *             @OA\Property(property="date", type="string", format="date", example="2025-12-10"),
-     *             @OA\Property(property="time", type="string", example="14:00")
+     *             @OA\Property(property="time", type="string", example="14:00"),
+     *             @OA\Property(property="interface", type="string", enum={"web", "mobile", "signal"}, example="web", description="Interface source")
      *         )
      *     ),
      *     @OA\Response(

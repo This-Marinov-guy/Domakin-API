@@ -1049,6 +1049,16 @@
                                     "referralCode": {
                                         "type": "string"
                                     },
+                                    "interface": {
+                                        "description": "Interface source",
+                                        "type": "string",
+                                        "enum": [
+                                            "web",
+                                            "mobile",
+                                            "signal"
+                                        ],
+                                        "example": "web"
+                                    },
                                     "terms": {
                                         "description": "JSON string of terms",
                                         "type": "string"
@@ -1674,6 +1684,7 @@
                                     "phone",
                                     "email",
                                     "letter",
+                                    "interface",
                                     "terms"
                                 ],
                                 "properties": {
@@ -1711,6 +1722,16 @@
                                     },
                                     "referralCode": {
                                         "type": "string"
+                                    },
+                                    "interface": {
+                                        "description": "Interface source",
+                                        "type": "string",
+                                        "enum": [
+                                            "web",
+                                            "mobile",
+                                            "signal"
+                                        ],
+                                        "example": "web"
                                     },
                                     "terms": {
                                         "description": "JSON string with terms.contact and terms.legals",
@@ -1833,6 +1854,7 @@
                                     "registration",
                                     "budget",
                                     "city",
+                                    "interface",
                                     "terms"
                                 ],
                                 "properties": {
@@ -1892,6 +1914,16 @@
                                         "description": "Optional motivational letter",
                                         "type": "string",
                                         "format": "binary"
+                                    },
+                                    "interface": {
+                                        "description": "Interface source",
+                                        "type": "string",
+                                        "enum": [
+                                            "web",
+                                            "mobile",
+                                            "signal"
+                                        ],
+                                        "example": "web"
                                     },
                                     "terms": {
                                         "description": "JSON string with terms",
@@ -2104,7 +2136,8 @@
                                     "email",
                                     "phone",
                                     "date",
-                                    "time"
+                                    "time",
+                                    "interface"
                                 ],
                                 "properties": {
                                     "property_id": {
@@ -2132,6 +2165,16 @@
                                     "time": {
                                         "type": "string",
                                         "example": "14:00"
+                                    },
+                                    "interface": {
+                                        "description": "Interface source",
+                                        "type": "string",
+                                        "enum": [
+                                            "web",
+                                            "mobile",
+                                            "signal"
+                                        ],
+                                        "example": "web"
                                     }
                                 },
                                 "type": "object"

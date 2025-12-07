@@ -17,6 +17,7 @@ class Property extends Model
         'status',
         'release_timestamp',
         'referral_code',
+        'interface',
     ];
 
     protected $casts = [
@@ -97,6 +98,7 @@ class Property extends Model
             'propertyData.registration' => 'required|boolean',
             'propertyData.description' => 'required|string',
             'images' => 'required|array',
+            'interface' => 'required|string|in:web,mobile,signal',
 
             'terms' => 'required|array',
             'terms.contact' => 'required|accepted',
