@@ -137,6 +137,7 @@ class RegisteredUserController extends Controller
 
         try {
             User::create([
+                'id' => $request->get('id'),
                 'name' => $name,
                 'email' => $request->get('email'),
                 'phone' => $request->get('phone'),
