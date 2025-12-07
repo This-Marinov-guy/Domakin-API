@@ -23,7 +23,7 @@ class DomainWhitelistMiddleware
         
         if (!$originHost) {
             return response()->json([
-                'message' => 'Unauthorized origin',
+                'message' => 'Access denied',
             ], 403);
         }
 
@@ -57,7 +57,7 @@ class DomainWhitelistMiddleware
 
         // If neither check passes, block the request
         return response()->json([
-            'message' => 'Unauthorized origin',
+            'message' => 'Access denied',
         ], 403);
     }
 

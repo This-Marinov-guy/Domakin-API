@@ -10,14 +10,11 @@ class ProdFirewallMiddleware
 {
     public function handle(Request $request, Closure $next): Response
     {
-        $allowedDomains = [
-            'domakin.nl',
-            'demo.domakin.nl',
-        ];
-
-        // IDK why this didnt work
+        $allowedDomains = config('domains.allowed_domains', []);
+        
+        // Add dev domains if in development environment
         if (env('APP_ENV') === 'dev') {
-            $allowedDomains[] = 'localhost';
+            $allowedDomains = array_merge($allowedDomains, config('domains.dev_domains', []));
         }
 
         // Get origin - headers are case-insensitive in Laravel
@@ -61,14 +58,6 @@ class ProdFirewallMiddleware
         }
         return false;
     }
-    private static array $publicPatterns = [
-        'api/webhooks/stripe/*',
-        'api/blog/*',
-        'api/property/*',
-        'api/feedback/list',
-        'api/renting/create', // Excluded from firewall, uses DomainWhitelistMiddleware instead
-    ];
-
     private function isPublicEndpoint(Request $request): bool
     {
         $path = $request->path();
@@ -78,9 +67,9 @@ class ProdFirewallMiddleware
             return true;
         }
 
-        // Check if the path matches any of our public patterns
-        $path = $request->path();
-        foreach (self::$publicPatterns as $pattern) {
+        // Check if the path matches any of our public patterns from config
+        $publicPatterns = config('firewall.public_patterns', []);
+        foreach ($publicPatterns as $pattern) {
             if ($this->matchesPattern($path, $pattern)) {
                 return true;
             }
