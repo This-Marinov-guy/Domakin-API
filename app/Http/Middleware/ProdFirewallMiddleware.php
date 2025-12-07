@@ -20,12 +20,13 @@ class ProdFirewallMiddleware
             $allowedDomains[] = 'localhost';
         }
 
-        $originHost = $this->extractHost($request->headers->get('Origin'))
-            ?? $this->extractHost($request->headers->get('Referer'))
-            ?? null;
+        // Get origin - headers are case-insensitive in Laravel
+        $origin = $request->header('Origin') ?? $request->header('Referer');
+        $originHost = $this->extractHost($origin);
+
 
         // Block if origin/referrer is missing or not in allowed list
-        if ((!$originHost || !$this->isAllowed($originHost, $allowedDomains)) && !$this->isPublicEndpoint($request)) {
+        if (!$originHost && !($this->isPublicEndpoint($request) && $this->isAllowed($originHost, $allowedDomains))) {
             return response()->json([
                 'message' => 'Forbidden by firewall',
             ], 403);
@@ -38,6 +39,13 @@ class ProdFirewallMiddleware
     {
         if (!$url) {
             return null;
+        }
+
+        // If URL doesn't have a protocol, parse_url won't work correctly
+        // Check if it's already just a hostname
+        if (!preg_match('/^https?:\/\//', $url)) {
+            // It's likely just a hostname, return as-is
+            return trim($url);
         }
 
         $parts = parse_url($url);
@@ -58,15 +66,16 @@ class ProdFirewallMiddleware
         'api/blog/*',
         'api/property/*',
         'api/feedback/list',
+        'api/renting/create', // Excluded from firewall, uses DomainWhitelistMiddleware instead
     ];
 
     private function isPublicEndpoint(Request $request): bool
     {
-        // Only allow GET for public endpoints (except webhooks which need POST)
-        if ($request->method() !== 'GET') {
-            $path = $request->path();
+        $path = $request->path();
+
+        if ($request->method() === 'POST' && $this->matchesPattern($path, 'api/webhook/stripe/*')) {
             // Allow POST only for webhooks
-            return $request->method() === 'POST' && $this->matchesPattern($path, 'api/webhook/stripe/*');
+            return true;
         }
 
         // Check if the path matches any of our public patterns
@@ -79,7 +88,7 @@ class ProdFirewallMiddleware
 
         return false;
     }
-    
+
     /**
      * Check if a path matches a wildcard pattern
      * 
@@ -93,13 +102,11 @@ class ProdFirewallMiddleware
         if (strpos($pattern, '*') === false) {
             return $path === $pattern;
         }
-        
+
         // Convert the pattern to a regular expression
         $regex = preg_quote($pattern, '/');
         $regex = str_replace('\*', '.*', $regex);
-        
+
         return (bool) preg_match('/^' . $regex . '$/', $path);
     }
 }
-
-

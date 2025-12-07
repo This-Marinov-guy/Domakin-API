@@ -42,7 +42,7 @@ Route::prefix('viewing')->group(function () {
 
 Route::prefix('renting')->group(function () {
     Route::post('/searching/create', [SearchRentingController::class, 'create']);
-    Route::post('/create', [RentingController::class, 'create']);
+    Route::post('/create', [RentingController::class, 'create'])->middleware('domain.whitelist');
 });
 
 Route::prefix('career')->group(function () {
