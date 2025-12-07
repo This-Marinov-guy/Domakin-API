@@ -31,7 +31,8 @@ class ProfileController extends Controller
      *         @OA\MediaType(
      *             mediaType="multipart/form-data",
      *             @OA\Schema(
-     *                 @OA\Property(property="name", type="string", example="John Doe"),
+     *                 @OA\Property(property="firstName", type="string", example="John"),
+     *                 @OA\Property(property="lastName", type="string", example="Doe"),
      *                 @OA\Property(property="email", type="string", format="email", example="user@example.com"),
      *                 @OA\Property(property="phone", type="string", example="+31 6 12345678"),
      *                 @OA\Property(property="password", type="string", description="New password (optional)"),
@@ -96,6 +97,15 @@ class ProfileController extends Controller
         }
 
         try {
+            // Combine firstName and lastName into name
+            $firstName = $request->get('firstName');
+            $lastName = $request->get('lastName');
+            $name = null;
+            
+            if ($firstName || $lastName) {
+                $name = trim(($firstName ?? '') . ' ' . ($lastName ?? ''));
+            }
+
             $supabaseUpdateData = [];
 
             if ($request->email !== $user->email) {
@@ -106,8 +116,8 @@ class ProfileController extends Controller
                 $supabaseUpdateData['phone'] = $request->phone;
             }
 
-            if ($request->name !== $user->name) {
-                $supabaseUpdateData['user_metadata']['display_name'] = $request->name;
+            if ($name && $name !== $user->name) {
+                $supabaseUpdateData['user_metadata']['display_name'] = $name;
             }
 
             if ($request->password) {
@@ -130,7 +140,11 @@ class ProfileController extends Controller
                     throw new \Exception('Supabase update failed: ' . $response->body());
                 }
 
-                $user->fill($request->only(keys: ['email', 'phone', 'name']));
+                $updateData = ['email' => $request->email, 'phone' => $request->phone];
+                if ($name) {
+                    $updateData['name'] = $name;
+                }
+                $user->fill($updateData);
             }
 
             if (!empty($profileImageUrl)) {

@@ -72,10 +72,11 @@ class RegisteredUserController extends Controller
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             required={"email", "password", "name"},
+     *             required={"email", "password", "firstName", "lastName"},
      *             @OA\Property(property="email", type="string", format="email", example="user@example.com"),
      *             @OA\Property(property="password", type="string", example="password123"),
-     *             @OA\Property(property="name", type="string", example="John Doe"),
+     *             @OA\Property(property="firstName", type="string", example="John"),
+     *             @OA\Property(property="lastName", type="string", example="Doe"),
      *             @OA\Property(property="phone", type="string", example="+31 6 12345678"),
      *             @OA\Property(property="isSSO", type="boolean", example=false)
      *         )
@@ -124,16 +125,22 @@ class RegisteredUserController extends Controller
             }
         }
 
+        // Combine firstName and lastName into name
+        $name = trim(($request->get('firstName') ?? '') . ' ' . ($request->get('lastName') ?? ''));
+
         // TODO: move to background task
         $referral_code = '';
 
         do {
-            $referral_code = Str::slug($request->name) . '-' . Str::random(6);
+            $referral_code = Str::slug($name) . '-' . Str::random(6);
         } while (User::where('referral_code', $referral_code)->exists());
 
         try {
             User::create([
-                ...$request->all(),
+                'name' => $name,
+                'email' => $request->get('email'),
+                'phone' => $request->get('phone'),
+                'password' => $request->get('password'),
                 'referral_code' => $referral_code
             ]);
 

@@ -72,7 +72,8 @@ class User extends Authenticatable
     public static function rules(): array
     {
         return [
-            'name' => 'required|string',
+            'firstName' => 'required|string',
+            'lastName' => 'required|string',
             'phone' => 'required|string|min:6|unique:users,phone',
             'email' => 'required|unique:users,email|email',
             'password' => [
@@ -93,7 +94,8 @@ class User extends Authenticatable
     {
         if ($userId) {
             return [
-                'name' => 'required|string',
+                'firstName' => 'required|string',
+                'lastName' => 'required|string',
                 'phone' => [
                     'required',
                     'string',
@@ -109,7 +111,8 @@ class User extends Authenticatable
         }
 
         return [
-            'name' => 'required|string',
+            'firstName' => 'required|string',
+            'lastName' => 'required|string',
             'phone' => 'required|string|min:6|unique:users,phone',
             'email' => 'required|unique:users,email|email',
         ];

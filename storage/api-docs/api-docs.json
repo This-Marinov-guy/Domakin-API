@@ -28,9 +28,13 @@
                         "multipart/form-data": {
                             "schema": {
                                 "properties": {
-                                    "name": {
+                                    "firstName": {
                                         "type": "string",
-                                        "example": "John Doe"
+                                        "example": "John"
+                                    },
+                                    "lastName": {
+                                        "type": "string",
+                                        "example": "Doe"
                                     },
                                     "email": {
                                         "type": "string",
@@ -1540,7 +1544,8 @@
                                 "required": [
                                     "email",
                                     "password",
-                                    "name"
+                                    "firstName",
+                                    "lastName"
                                 ],
                                 "properties": {
                                     "email": {
@@ -1552,9 +1557,13 @@
                                         "type": "string",
                                         "example": "password123"
                                     },
-                                    "name": {
+                                    "firstName": {
                                         "type": "string",
-                                        "example": "John Doe"
+                                        "example": "John"
+                                    },
+                                    "lastName": {
+                                        "type": "string",
+                                        "example": "Doe"
                                     },
                                     "phone": {
                                         "type": "string",

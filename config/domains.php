@@ -44,9 +44,15 @@ return [
     */
 
     'terms_required_domains' => [
+        'localhost',
+        '127.0.0.1',
         'domakin.nl',
         'www.domakin.nl',
         'demo.domakin.nl',
+        'https://www.domakin.nl',
+        'https://www.demo.domakin.nl',
+        'https://domakin.nl',
+        'https://demo.domakin.nl',
         // Add domains that require terms acceptance
     ],
 ];
