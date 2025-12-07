@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 /**
  * @OA\Info(
  *     title="Domakin API",
- *     version="2.0.0",
- *     description="API documentation for Domakin platform",
+ *     version="1.0.0",
+ *     description="API documentation for Domakin platform - Version 1",
  *     @OA\Contact(
  *         email="support@domakin.nl"
  *     )

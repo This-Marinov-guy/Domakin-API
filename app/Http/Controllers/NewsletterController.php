@@ -18,7 +18,7 @@ class NewsletterController extends Controller
 {
     /**
      * @OA\Post(
-     *     path="/api/common/newsletter/subscribe",
+     *     path="/api/v1/common/newsletter/subscribe",
      *     summary="Subscribe to newsletter",
      *     tags={"Newsletter"},
      *     @OA\RequestBody(
@@ -32,7 +32,7 @@ class NewsletterController extends Controller
      *         response=200,
      *         description="Subscribed successfully",
      *         @OA\JsonContent(
-     *             @OA\Property(property="status", type="boolean", example=true)
+     *             @OA\Property(property="stawwwtus", type="boolean", example=true)
      *         )
      *     ),
      *     @OA\Response(
@@ -40,6 +40,7 @@ class NewsletterController extends Controller
      *         description="Validation error",
      *         @OA\JsonContent(
      *             @OA\Property(property="status", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Please fill/fix the required fields!"),
      *             @OA\Property(property="invalid_fields", type="array", @OA\Items(type="string"), example={"email"}),
      *             @OA\Property(property="tag", type="array", @OA\Items(type="string"), example={"account:authentication.errors.email"})
      *         )
@@ -89,7 +90,7 @@ class NewsletterController extends Controller
 
     /**
      * @OA\Delete(
-     *     path="/api/common/newsletter/unsubscribe",
+     *     path="/api/v1/common/newsletter/unsubscribe",
      *     summary="Unsubscribe from newsletter",
      *     tags={"Newsletter"},
      *     @OA\RequestBody(
@@ -112,6 +113,7 @@ class NewsletterController extends Controller
      *         description="Validation error",
      *         @OA\JsonContent(
      *             @OA\Property(property="status", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Please fill/fix the required fields!"),
      *             @OA\Property(property="invalid_fields", type="array", @OA\Items(type="string")),
      *             @OA\Property(property="tag", type="array", @OA\Items(type="string"))
      *         )

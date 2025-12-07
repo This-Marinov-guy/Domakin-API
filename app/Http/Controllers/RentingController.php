@@ -21,7 +21,7 @@ class RentingController extends Controller
 {
     /**
      * @OA\Post(
-     *     path="/api/renting/create",
+     *     path="/api/v1/renting/create",
      *     summary="Submit a renting application",
      *     tags={"Renting"},
      *     @OA\RequestBody(
@@ -46,8 +46,12 @@ class RentingController extends Controller
      *     @OA\Response(
      *         response=200,
      *         description="Application submitted successfully",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="status", type="boolean", example=true)
+     *         @OA\MediaType(
+     *             mediaType="application/json",
+     *             @OA\Schema(
+     *                 @OA\Property(property="status", type="boolean", example=true)
+     *             ),
+     *             example={"status": true}
      *         )
      *     ),
      *     @OA\Response(
@@ -55,6 +59,7 @@ class RentingController extends Controller
      *         description="Validation error",
      *         @OA\JsonContent(
      *             @OA\Property(property="status", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Please fill/fix the required fields!"),
      *             @OA\Property(property="invalid_fields", type="array", @OA\Items(type="string"), example={"email", "phone"}),
      *             @OA\Property(property="tag", type="array", @OA\Items(type="string"), example={"account:authentication.errors.email", "account:authentication.errors.phone_invalid"})
      *         )

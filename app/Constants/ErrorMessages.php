@@ -10,7 +10,7 @@ class ErrorMessages
     ];
 
     public const REQUIRED_FIELDS = [
-        'message' => 'Please fill the required fields!',
+        'message' => 'Please fill/fix the required fields!',
         'tag' => 'api.fill_fields'
     ];
 }

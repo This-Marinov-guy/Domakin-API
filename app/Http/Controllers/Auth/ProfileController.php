@@ -22,7 +22,7 @@ class ProfileController extends Controller
 {
     /**
      * @OA\Post(
-     *     path="/api/user/edit-details",
+     *     path="/api/v1/user/edit-details",
      *     summary="Update user profile",
      *     tags={"User"},
      *     security={{"bearerAuth":{}}},
@@ -52,6 +52,7 @@ class ProfileController extends Controller
      *         description="Validation error",
      *         @OA\JsonContent(
      *             @OA\Property(property="status", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Please fill/fix the required fields!"),
      *             @OA\Property(property="invalid_fields", type="array", @OA\Items(type="string"), example={"email", "phone"}),
      *             @OA\Property(property="tag", type="array", @OA\Items(type="string"), example={"account:authentication.errors.email", "account:authentication.errors.phone_invalid"})
      *         )

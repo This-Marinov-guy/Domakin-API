@@ -31,7 +31,7 @@ class PropertyController extends Controller
 {
     /**
      * @OA\Get(
-     *     path="/api/property/list",
+     *     path="/api/v1/property/list",
      *     summary="Get user's properties",
      *     tags={"Properties"},
      *     security={{"bearerAuth":{}}},
@@ -69,7 +69,7 @@ class PropertyController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/api/property/list-extended",
+     *     path="/api/v1/property/list-extended",
      *     summary="Get all properties (Admin only)",
      *     tags={"Properties"},
      *     security={{"bearerAuth":{}}},
@@ -106,7 +106,7 @@ class PropertyController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/api/property/listing",
+     *     path="/api/v1/property/listing",
      *     summary="List all active properties",
      *     tags={"Properties"},
      *     @OA\Response(
@@ -139,7 +139,7 @@ class PropertyController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/api/property/details/{id}",
+     *     path="/api/v1/property/details/{id}",
      *     summary="Get property details",
      *     tags={"Properties"},
      *     @OA\Parameter(
@@ -177,7 +177,7 @@ class PropertyController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/api/property/create",
+     *     path="/api/v1/property/create",
      *     summary="Create a new property",
      *     tags={"Properties"},
      *     security={{"bearerAuth":{}}},
@@ -206,6 +206,7 @@ class PropertyController extends Controller
      *         description="Validation error",
      *         @OA\JsonContent(
      *             @OA\Property(property="status", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Please fill/fix the required fields!"),
      *             @OA\Property(property="invalid_fields", type="array", @OA\Items(type="string"), example={"personalData.email", "propertyData.city"}),
      *             @OA\Property(property="tag", type="array", @OA\Items(type="string"), example={"account:authentication.errors.email", "account:authentication.errors.required_fields"})
      *         )
@@ -304,7 +305,7 @@ class PropertyController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/api/property/edit",
+     *     path="/api/v1/property/edit",
      *     summary="Edit a property (Admin only)",
      *     tags={"Properties"},
      *     security={{"bearerAuth":{}}},
@@ -348,6 +349,7 @@ class PropertyController extends Controller
      *         description="Validation error",
      *         @OA\JsonContent(
      *             @OA\Property(property="status", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Please fill/fix the required fields!"),
      *             @OA\Property(property="invalid_fields", type="array", @OA\Items(type="string")),
      *             @OA\Property(property="tag", type="array", @OA\Items(type="string"))
      *         )
@@ -465,7 +467,7 @@ class PropertyController extends Controller
 
     /**
      * @OA\Delete(
-     *     path="/api/property/delete",
+     *     path="/api/v1/property/delete",
      *     summary="Delete a property",
      *     tags={"Properties"},
      *     security={{"bearerAuth":{}}},
@@ -496,7 +498,7 @@ class PropertyController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/api/property/payment/create-link",
+     *     path="/api/v1/property/payment/create-link",
      *     summary="Create payment link for a property (Admin only)",
      *     tags={"Properties"},
      *     security={{"bearerAuth":{}}},

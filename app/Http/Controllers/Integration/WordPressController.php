@@ -28,7 +28,7 @@ class WordPressController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/api/blog/posts",
+     *     path="/api/v1/blog/posts",
      *     summary="Get all blog posts",
      *     tags={"Blog"},
      *     @OA\Response(
@@ -113,7 +113,7 @@ class WordPressController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/api/blog/post/{id}",
+     *     path="/api/v1/blog/post/{id}",
      *     summary="Get blog post by ID",
      *     tags={"Blog"},
      *     @OA\Parameter(
@@ -161,7 +161,7 @@ class WordPressController extends Controller
     
     /**
      * @OA\Get(
-     *     path="/api/blog/post-by-slug/{slug}",
+     *     path="/api/v1/blog/post-by-slug/{slug}",
      *     summary="Get blog post by slug",
      *     tags={"Blog"},
      *     @OA\Parameter(

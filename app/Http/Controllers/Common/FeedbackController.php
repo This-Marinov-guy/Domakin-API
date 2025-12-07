@@ -20,7 +20,7 @@ class FeedbackController extends Controller
 {
     /**
      * @OA\Get(
-     *     path="/api/feedback/list",
+     *     path="/api/v1/feedback/list",
      *     summary="List approved feedbacks",
      *     tags={"Feedback"},
      *     @OA\Parameter(
@@ -61,7 +61,7 @@ class FeedbackController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/api/feedback/create",
+     *     path="/api/v1/feedback/create",
      *     summary="Create a feedback",
      *     tags={"Feedback"},
      *     @OA\RequestBody(
@@ -85,6 +85,7 @@ class FeedbackController extends Controller
      *         description="Validation error",
      *         @OA\JsonContent(
      *             @OA\Property(property="status", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Please fill/fix the required fields!"),
      *             @OA\Property(property="invalid_fields", type="array", @OA\Items(type="string"), example={"content", "language"}),
      *             @OA\Property(property="tag", type="array", @OA\Items(type="string"), example={"account:authentication.errors.required_fields"})
      *         )

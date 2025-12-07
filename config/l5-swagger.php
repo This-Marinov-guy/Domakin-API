@@ -99,6 +99,7 @@ return [
              * `scanOptions.exclude` overwrites this
              */
             'excludes' => [
+                base_path('app/Http/Controllers/EmailVerificationNotificationController.php'),
                 base_path('app/Http/Controllers/Auth/EmailVerificationNotificationController.php'),
                 base_path('app/Http/Controllers/Auth/PasswordResetLinkController.php'),
                 base_path('app/Http/Controllers/Auth/NewPasswordController.php'),
@@ -162,9 +163,12 @@ return [
              * @see \OpenApi\scan
              */
             'exclude' => [
+                base_path('app/Http/Controllers/EmailVerificationNotificationController.php'),
                 base_path('app/Http/Controllers/Auth/EmailVerificationNotificationController.php'),
                 base_path('app/Http/Controllers/Auth/PasswordResetLinkController.php'),
                 base_path('app/Http/Controllers/Auth/NewPasswordController.php'),
+                base_path('app/Http/Controllers/PasswordResetLinkController.php'),
+                base_path('app/Http/Controllers/NewPasswordController.php'),
                 base_path('app/Http/Controllers/VerifyEmailController.php'),
             ],
 

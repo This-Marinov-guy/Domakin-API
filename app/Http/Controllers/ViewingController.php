@@ -26,7 +26,7 @@ class ViewingController extends Controller
 {
     /**
      * @OA\Get(
-     *     path="/api/viewing/list",
+     *     path="/api/v1/viewing/list",
      *     summary="List all viewings",
      *     tags={"Viewing"},
      *     @OA\Response(
@@ -49,7 +49,7 @@ class ViewingController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/api/viewing/details/{id}",
+     *     path="/api/v1/viewing/details/{id}",
      *     summary="Get viewing details",
      *     tags={"Viewing"},
      *     @OA\Parameter(
@@ -91,7 +91,7 @@ class ViewingController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/api/viewing/create",
+     *     path="/api/v1/viewing/create",
      *     summary="Create a viewing appointment",
      *     tags={"Viewing"},
      *     @OA\RequestBody(
@@ -118,6 +118,7 @@ class ViewingController extends Controller
      *         description="Validation error",
      *         @OA\JsonContent(
      *             @OA\Property(property="status", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Please fill/fix the required fields!"),
      *             @OA\Property(property="invalid_fields", type="array", @OA\Items(type="string"), example={"email", "phone"}),
      *             @OA\Property(property="tag", type="array", @OA\Items(type="string"), example={"account:authentication.errors.email", "account:authentication.errors.phone_invalid"})
      *         )

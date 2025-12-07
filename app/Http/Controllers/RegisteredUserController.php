@@ -20,7 +20,7 @@ class RegisteredUserController extends Controller
 {
     /**
      * @OA\Post(
-     *     path="/api/authentication/validate-credentials",
+     *     path="/api/v1/authentication/validate-credentials",
      *     summary="Validate user credentials before registration",
      *     tags={"Authentication"},
      *     @OA\RequestBody(
@@ -43,6 +43,7 @@ class RegisteredUserController extends Controller
      *         description="Validation error",
      *         @OA\JsonContent(
      *             @OA\Property(property="status", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Please fill/fix the required fields!"),
      *             @OA\Property(property="invalid_fields", type="array", @OA\Items(type="string")),
      *             @OA\Property(property="tag", type="array", @OA\Items(type="string"))
      *         )
@@ -65,7 +66,7 @@ class RegisteredUserController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/api/authentication/register",
+     *     path="/api/v1/authentication/register",
      *     summary="Register a new user",
      *     tags={"Authentication"},
      *     @OA\RequestBody(
@@ -92,6 +93,7 @@ class RegisteredUserController extends Controller
      *         description="Validation error",
      *         @OA\JsonContent(
      *             @OA\Property(property="status", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Please fill/fix the required fields!"),
      *             @OA\Property(property="invalid_fields", type="array", @OA\Items(type="string"), example={"email", "password"}),
      *             @OA\Property(property="tag", type="array", @OA\Items(type="string"), example={"account:authentication.errors.email", "account:authentication.errors.password"})
      *         )

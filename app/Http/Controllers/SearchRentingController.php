@@ -18,7 +18,7 @@ class SearchRentingController extends Controller
 {
     /**
      * @OA\Post(
-     *     path="/api/renting/searching/create",
+     *     path="/api/v1/renting/searching/create",
      *     summary="Submit a property search request",
      *     tags={"Renting"},
      *     @OA\RequestBody(
@@ -57,6 +57,7 @@ class SearchRentingController extends Controller
      *         description="Validation error",
      *         @OA\JsonContent(
      *             @OA\Property(property="status", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Please fill/fix the required fields!"),
      *             @OA\Property(property="invalid_fields", type="array", @OA\Items(type="string"), example={"email", "phone"}),
      *             @OA\Property(property="tag", type="array", @OA\Items(type="string"), example={"account:authentication.errors.email", "account:authentication.errors.phone_invalid"})
      *         )

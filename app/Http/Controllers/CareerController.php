@@ -20,7 +20,7 @@ class CareerController extends Controller
 {
     /**
      * @OA\Post(
-     *     path="/api/career/apply",
+     *     path="/api/v1/career/apply",
      *     summary="Submit a career application",
      *     tags={"Career"},
      *     @OA\RequestBody(
@@ -52,6 +52,7 @@ class CareerController extends Controller
      *         description="Validation error",
      *         @OA\JsonContent(
      *             @OA\Property(property="status", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Please fill/fix the required fields!"),
      *             @OA\Property(property="invalid_fields", type="array", @OA\Items(type="string"), example={"email", "phone"}),
      *             @OA\Property(property="tag", type="array", @OA\Items(type="string"), example={"account:authentication.errors.email", "account:authentication.errors.phone_invalid"})
      *         )

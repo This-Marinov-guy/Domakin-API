@@ -2,26 +2,26 @@
     "openapi": "3.0.0",
     "info": {
         "title": "Domakin API",
-        "description": "API documentation for Domakin platform",
+        "description": "API documentation for Domakin platform - Version 1",
         "contact": {
             "email": "support@domakin.nl"
         },
-        "version": "2.0.0"
+        "version": "1.0.0"
     },
     "servers": [
         {
-            "url": "https://orange.domakin.nl",
+            "url": "http://localhost:8000",
             "description": "API Server"
         }
     ],
     "paths": {
-        "/api/user/edit-details": {
+        "/api/v1/user/edit-details": {
             "post": {
                 "tags": [
                     "User"
                 ],
                 "summary": "Update user profile",
-                "operationId": "370355ee8ca1c277b09b5b0a0dcb413e",
+                "operationId": "dbdc418bbfcf7741f03ce41643ee067e",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -63,12 +63,100 @@
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "success": {
+                                        "status": {
                                             "type": "boolean",
                                             "example": true
                                         },
                                         "data": {
                                             "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Please fill/fix the required fields!"
+                                        },
+                                        "invalid_fields": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            },
+                                            "example": [
+                                                "email",
+                                                "phone"
+                                            ]
+                                        },
+                                        "tag": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            },
+                                            "example": [
+                                                "account:authentication.errors.email",
+                                                "account:authentication.errors.phone_invalid"
+                                            ]
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Error message"
+                                        },
+                                        "tag": {
+                                            "type": "string",
+                                            "example": "account:authentication.errors.general"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Failed to update profile"
+                                        },
+                                        "tag": {
+                                            "type": "string",
+                                            "example": "account:authentication.errors.general"
                                         }
                                     },
                                     "type": "object"
@@ -84,13 +172,13 @@
                 ]
             }
         },
-        "/api/career/apply": {
+        "/api/v1/career/apply": {
             "post": {
                 "tags": [
                     "Career"
                 ],
                 "summary": "Submit a career application",
-                "operationId": "f64e3b788b3369f147d2c76d8dea9844",
+                "operationId": "1debb96da114dbef31f9350687bdfea9",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -151,7 +239,7 @@
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "success": {
+                                        "status": {
                                             "type": "boolean",
                                             "example": true
                                         }
@@ -162,18 +250,79 @@
                         }
                     },
                     "422": {
-                        "description": "Validation error"
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Please fill/fix the required fields!"
+                                        },
+                                        "invalid_fields": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            },
+                                            "example": [
+                                                "email",
+                                                "phone"
+                                            ]
+                                        },
+                                        "tag": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            },
+                                            "example": [
+                                                "account:authentication.errors.email",
+                                                "account:authentication.errors.phone_invalid"
+                                            ]
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Failed to upload resume"
+                                        },
+                                        "tag": {
+                                            "type": "string",
+                                            "example": "account:authentication.errors.general"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     }
                 }
             }
         },
-        "/api/feedback/list": {
+        "/api/v1/feedback/list": {
             "get": {
                 "tags": [
                     "Feedback"
                 ],
                 "summary": "List approved feedbacks",
-                "operationId": "86b069d772ead07afeede97ea7aa5744",
+                "operationId": "3bf82d364d671fb16bf4f77b6f80dd2e",
                 "parameters": [
                     {
                         "name": "language",
@@ -193,7 +342,7 @@
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "success": {
+                                        "status": {
                                             "type": "boolean",
                                             "example": true
                                         },
@@ -212,13 +361,13 @@
                 }
             }
         },
-        "/api/feedback/create": {
+        "/api/v1/feedback/create": {
             "post": {
                 "tags": [
                     "Feedback"
                 ],
                 "summary": "Create a feedback",
-                "operationId": "b1e70977611c867e45febc475c68c803",
+                "operationId": "feffab6ac2469869d5a6af9aea395327",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -254,9 +403,72 @@
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "success": {
+                                        "status": {
                                             "type": "boolean",
                                             "example": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Please fill/fix the required fields!"
+                                        },
+                                        "invalid_fields": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            },
+                                            "example": [
+                                                "content",
+                                                "language"
+                                            ]
+                                        },
+                                        "tag": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            },
+                                            "example": [
+                                                "account:authentication.errors.required_fields"
+                                            ]
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Error message"
+                                        },
+                                        "tag": {
+                                            "type": "string",
+                                            "example": "account:authentication.errors.general"
                                         }
                                     },
                                     "type": "object"
@@ -267,13 +479,13 @@
                 }
             }
         },
-        "/api/blog/posts": {
+        "/api/v1/blog/posts": {
             "get": {
                 "tags": [
                     "Blog"
                 ],
                 "summary": "Get all blog posts",
-                "operationId": "229d62e63be55e6740e25a73d5c19bf4",
+                "operationId": "bdfb2e758bb6d7682b3fae922790e0b3",
                 "responses": {
                     "200": {
                         "description": "Success",
@@ -281,7 +493,7 @@
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "success": {
+                                        "status": {
                                             "type": "boolean",
                                             "example": true
                                         },
@@ -296,17 +508,41 @@
                                 }
                             }
                         }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Failed to load posts"
+                                        },
+                                        "tag": {
+                                            "type": "string",
+                                            "example": "account:authentication.errors.general"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     }
                 }
             }
         },
-        "/api/blog/post/{id}": {
+        "/api/v1/blog/post/{id}": {
             "get": {
                 "tags": [
                     "Blog"
                 ],
                 "summary": "Get blog post by ID",
-                "operationId": "d479843571a3a75ffc0bf93f5fb581a5",
+                "operationId": "124e0f7cb0eaefd7682a0082b2789bf3",
                 "parameters": [
                     {
                         "name": "id",
@@ -326,7 +562,7 @@
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "success": {
+                                        "status": {
                                             "type": "boolean",
                                             "example": true
                                         },
@@ -342,13 +578,13 @@
                 }
             }
         },
-        "/api/blog/post-by-slug/{slug}": {
+        "/api/v1/blog/post-by-slug/{slug}": {
             "get": {
                 "tags": [
                     "Blog"
                 ],
                 "summary": "Get blog post by slug",
-                "operationId": "246b734ae419cf1e86d05d1f3b281379",
+                "operationId": "22356718a7e12b3b826e6a672b0fc3fb",
                 "parameters": [
                     {
                         "name": "slug",
@@ -368,7 +604,7 @@
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "success": {
+                                        "status": {
                                             "type": "boolean",
                                             "example": true
                                         },
@@ -384,13 +620,13 @@
                 }
             }
         },
-        "/api/common/newsletter/subscribe": {
+        "/api/v1/common/newsletter/subscribe": {
             "post": {
                 "tags": [
                     "Newsletter"
                 ],
                 "summary": "Subscribe to newsletter",
-                "operationId": "290a98b724d01de2bb513370b687ecf4",
+                "operationId": "6e08d761954c42d0cefe1b581aac365c",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -418,9 +654,71 @@
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "success": {
+                                        "stawwwtus": {
                                             "type": "boolean",
                                             "example": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Please fill/fix the required fields!"
+                                        },
+                                        "invalid_fields": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            },
+                                            "example": [
+                                                "email"
+                                            ]
+                                        },
+                                        "tag": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            },
+                                            "example": [
+                                                "account:authentication.errors.email"
+                                            ]
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Error message"
+                                        },
+                                        "tag": {
+                                            "type": "string",
+                                            "example": "account:authentication.errors.general"
                                         }
                                     },
                                     "type": "object"
@@ -431,13 +729,13 @@
                 }
             }
         },
-        "/api/common/newsletter/unsubscribe": {
+        "/api/v1/common/newsletter/unsubscribe": {
             "delete": {
                 "tags": [
                     "Newsletter"
                 ],
                 "summary": "Unsubscribe from newsletter",
-                "operationId": "653d88b658f083dc4a347b3c891ee159",
+                "operationId": "c35e051420533f4e3602c4d89b04affd",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -470,9 +768,64 @@
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "success": {
+                                        "status": {
                                             "type": "boolean",
                                             "example": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Please fill/fix the required fields!"
+                                        },
+                                        "invalid_fields": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "tag": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "No mail found!"
+                                        },
+                                        "tag": {
+                                            "type": "string"
                                         }
                                     },
                                     "type": "object"
@@ -483,13 +836,13 @@
                 }
             }
         },
-        "/api/property/list": {
+        "/api/v1/property/list": {
             "get": {
                 "tags": [
                     "Properties"
                 ],
                 "summary": "Get user's properties",
-                "operationId": "4870ee9a4f007c6bff7c95c526880365",
+                "operationId": "d7f1aabd33143e28f2c8b7b9a0e37ea1",
                 "parameters": [
                     {
                         "name": "page",
@@ -519,7 +872,7 @@
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "success": {
+                                        "status": {
                                             "type": "boolean",
                                             "example": true
                                         },
@@ -540,13 +893,13 @@
                 ]
             }
         },
-        "/api/property/list-extended": {
+        "/api/v1/property/list-extended": {
             "get": {
                 "tags": [
                     "Properties"
                 ],
                 "summary": "Get all properties (Admin only)",
-                "operationId": "ef4fcd8d4196aee1953072b248f1dc55",
+                "operationId": "15cfcefe2ee8aa784c28ae438962535a",
                 "parameters": [
                     {
                         "name": "page",
@@ -576,7 +929,7 @@
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "success": {
+                                        "status": {
                                             "type": "boolean",
                                             "example": true
                                         },
@@ -597,13 +950,13 @@
                 ]
             }
         },
-        "/api/property/listing": {
+        "/api/v1/property/listing": {
             "get": {
                 "tags": [
                     "Properties"
                 ],
                 "summary": "List all active properties",
-                "operationId": "7e3777d2e3a46c7d78c0cdc30b707c28",
+                "operationId": "b71a68f063826695dce200168ab7c75c",
                 "responses": {
                     "200": {
                         "description": "Success",
@@ -611,7 +964,7 @@
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "success": {
+                                        "status": {
                                             "type": "boolean",
                                             "example": true
                                         },
@@ -630,13 +983,13 @@
                 }
             }
         },
-        "/api/property/details/{id}": {
+        "/api/v1/property/details/{id}": {
             "get": {
                 "tags": [
                     "Properties"
                 ],
                 "summary": "Get property details",
-                "operationId": "747e797d3b1bfae28bbfd60960f476e9",
+                "operationId": "d8a9afc00841084140c8ed342f13f9c3",
                 "parameters": [
                     {
                         "name": "id",
@@ -656,7 +1009,7 @@
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "success": {
+                                        "status": {
                                             "type": "boolean",
                                             "example": true
                                         },
@@ -672,13 +1025,13 @@
                 }
             }
         },
-        "/api/property/create": {
+        "/api/v1/property/create": {
             "post": {
                 "tags": [
                     "Properties"
                 ],
                 "summary": "Create a new property",
-                "operationId": "731650a375b818372c1c399d42fbbef4",
+                "operationId": "5289165385eb5284069ba8aad6416f62",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -721,7 +1074,7 @@
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "success": {
+                                        "status": {
                                             "type": "boolean",
                                             "example": true
                                         }
@@ -732,7 +1085,68 @@
                         }
                     },
                     "422": {
-                        "description": "Validation error"
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Please fill/fix the required fields!"
+                                        },
+                                        "invalid_fields": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            },
+                                            "example": [
+                                                "personalData.email",
+                                                "propertyData.city"
+                                            ]
+                                        },
+                                        "tag": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            },
+                                            "example": [
+                                                "account:authentication.errors.email",
+                                                "account:authentication.errors.required_fields"
+                                            ]
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Error message"
+                                        },
+                                        "tag": {
+                                            "type": "string",
+                                            "example": "account:authentication.errors.general"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     }
                 },
                 "security": [
@@ -742,13 +1156,13 @@
                 ]
             }
         },
-        "/api/property/edit": {
+        "/api/v1/property/edit": {
             "post": {
                 "tags": [
                     "Properties"
                 ],
                 "summary": "Edit a property (Admin only)",
-                "operationId": "b3cb8a897022ad2f390c603be83262b2",
+                "operationId": "34bcfd34f6c165d3648e130532462a57",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -811,12 +1225,68 @@
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "success": {
+                                        "status": {
                                             "type": "boolean",
                                             "example": true
                                         },
                                         "data": {
                                             "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Property not found"
+                                        },
+                                        "tag": {
+                                            "type": "string",
+                                            "example": "account:authentication.errors.general"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Please fill/fix the required fields!"
+                                        },
+                                        "invalid_fields": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "tag": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
                                         }
                                     },
                                     "type": "object"
@@ -832,13 +1302,13 @@
                 ]
             }
         },
-        "/api/property/delete": {
+        "/api/v1/property/delete": {
             "delete": {
                 "tags": [
                     "Properties"
                 ],
                 "summary": "Delete a property",
-                "operationId": "81d9fb23f11def967632f4d199bc967a",
+                "operationId": "336e88d1634573b14e2058d80c5fe260",
                 "parameters": [
                     {
                         "name": "id",
@@ -858,7 +1328,7 @@
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "success": {
+                                        "status": {
                                             "type": "boolean",
                                             "example": true
                                         },
@@ -879,13 +1349,13 @@
                 ]
             }
         },
-        "/api/property/payment/create-link": {
+        "/api/v1/property/payment/create-link": {
             "post": {
                 "tags": [
                     "Properties"
                 ],
                 "summary": "Create payment link for a property (Admin only)",
-                "operationId": "46962059ce49a7b22576b3b010accde5",
+                "operationId": "c4109e350c4511b151dfa4ce6ca793df",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -918,7 +1388,7 @@
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "success": {
+                                        "status": {
                                             "type": "boolean",
                                             "example": true
                                         },
@@ -936,6 +1406,30 @@
                                 }
                             }
                         }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Property not found"
+                                        },
+                                        "tag": {
+                                            "type": "string",
+                                            "example": "account:authentication.errors.general"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     }
                 },
                 "security": [
@@ -945,13 +1439,13 @@
                 ]
             }
         },
-        "/api/authentication/validate-credentials": {
+        "/api/v1/authentication/validate-credentials": {
             "post": {
                 "tags": [
                     "Authentication"
                 ],
                 "summary": "Validate user credentials before registration",
-                "operationId": "95e6ed054e587c5efa496f61a5c268e0",
+                "operationId": "c7989a7fd4c17a29f2face2e6e966173",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -984,7 +1478,7 @@
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "success": {
+                                        "status": {
                                             "type": "boolean",
                                             "example": true
                                         }
@@ -995,18 +1489,47 @@
                         }
                     },
                     "422": {
-                        "description": "Validation error"
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Please fill/fix the required fields!"
+                                        },
+                                        "invalid_fields": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "tag": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     }
                 }
             }
         },
-        "/api/authentication/register": {
+        "/api/v1/authentication/register": {
             "post": {
                 "tags": [
                     "Authentication"
                 ],
                 "summary": "Register a new user",
-                "operationId": "c68883dd6ef26fa3e9afb53542b99cad",
+                "operationId": "0dc6daa8d3a031c1989e81553a64c8e8",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -1052,7 +1575,7 @@
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "success": {
+                                        "status": {
                                             "type": "boolean",
                                             "example": true
                                         },
@@ -1066,18 +1589,79 @@
                         }
                     },
                     "422": {
-                        "description": "Validation error"
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Please fill/fix the required fields!"
+                                        },
+                                        "invalid_fields": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            },
+                                            "example": [
+                                                "email",
+                                                "password"
+                                            ]
+                                        },
+                                        "tag": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            },
+                                            "example": [
+                                                "account:authentication.errors.email",
+                                                "account:authentication.errors.password"
+                                            ]
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Error message"
+                                        },
+                                        "tag": {
+                                            "type": "string",
+                                            "example": "account:authentication.errors.general"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     }
                 }
             }
         },
-        "/api/renting/create": {
+        "/api/v1/renting/create": {
             "post": {
                 "tags": [
                     "Renting"
                 ],
                 "summary": "Submit a renting application",
-                "operationId": "6fb94e8a8a2a23c236b67d1b429ab4a5",
+                "operationId": "5e407962480e594a8795d5eddb5ad3e2",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -1145,9 +1729,52 @@
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "success": {
+                                        "status": {
                                             "type": "boolean",
                                             "example": true
+                                        }
+                                    },
+                                    "type": "object"
+                                },
+                                "example": {
+                                    "status": true
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Please fill/fix the required fields!"
+                                        },
+                                        "invalid_fields": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            },
+                                            "example": [
+                                                "email",
+                                                "phone"
+                                            ]
+                                        },
+                                        "tag": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            },
+                                            "example": [
+                                                "account:authentication.errors.email",
+                                                "account:authentication.errors.phone_invalid"
+                                            ]
                                         }
                                     },
                                     "type": "object"
@@ -1155,19 +1782,40 @@
                             }
                         }
                     },
-                    "422": {
-                        "description": "Validation error"
+                    "400": {
+                        "description": "Bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Error message"
+                                        },
+                                        "tag": {
+                                            "type": "string",
+                                            "example": "account:authentication.errors.general"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     }
                 }
             }
         },
-        "/api/renting/searching/create": {
+        "/api/v1/renting/searching/create": {
             "post": {
                 "tags": [
                     "Renting"
                 ],
                 "summary": "Submit a property search request",
-                "operationId": "58683eeb9312d7c47d63c0e2f24deae7",
+                "operationId": "a636ca14bd8f81e056ca6c49108ca4f2",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -1262,9 +1910,73 @@
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "success": {
+                                        "status": {
                                             "type": "boolean",
                                             "example": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Please fill/fix the required fields!"
+                                        },
+                                        "invalid_fields": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            },
+                                            "example": [
+                                                "email",
+                                                "phone"
+                                            ]
+                                        },
+                                        "tag": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            },
+                                            "example": [
+                                                "account:authentication.errors.email",
+                                                "account:authentication.errors.phone_invalid"
+                                            ]
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Error message"
+                                        },
+                                        "tag": {
+                                            "type": "string",
+                                            "example": "account:authentication.errors.general"
                                         }
                                     },
                                     "type": "object"
@@ -1275,13 +1987,13 @@
                 }
             }
         },
-        "/api/viewing/list": {
+        "/api/v1/viewing/list": {
             "get": {
                 "tags": [
                     "Viewing"
                 ],
                 "summary": "List all viewings",
-                "operationId": "686209020f789925b5a31f2b7ee6a8c5",
+                "operationId": "605794d391417e1e0169efac04126231",
                 "responses": {
                     "200": {
                         "description": "Success",
@@ -1289,7 +2001,7 @@
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "success": {
+                                        "status": {
                                             "type": "boolean",
                                             "example": true
                                         },
@@ -1308,13 +2020,13 @@
                 }
             }
         },
-        "/api/viewing/details/{id}": {
+        "/api/v1/viewing/details/{id}": {
             "get": {
                 "tags": [
                     "Viewing"
                 ],
                 "summary": "Get viewing details",
-                "operationId": "84814bb61e42dc90c91a8067c6cd9ee1",
+                "operationId": "e8eb589e23b0b8bcfe3ef2d3c0b560f1",
                 "parameters": [
                     {
                         "name": "id",
@@ -1334,7 +2046,7 @@
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "success": {
+                                        "status": {
                                             "type": "boolean",
                                             "example": true
                                         },
@@ -1346,17 +2058,41 @@
                                 }
                             }
                         }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Viewing not found"
+                                        },
+                                        "tag": {
+                                            "type": "string",
+                                            "example": "account:authentication.errors.general"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     }
                 }
             }
         },
-        "/api/viewing/create": {
+        "/api/v1/viewing/create": {
             "post": {
                 "tags": [
                     "Viewing"
                 ],
                 "summary": "Create a viewing appointment",
-                "operationId": "d61ebda8e31388e0f5f3dd3f5ba543c2",
+                "operationId": "9f8bb282006468f0eaf1f745cfe36a2c",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -1410,9 +2146,73 @@
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "success": {
+                                        "status": {
                                             "type": "boolean",
                                             "example": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Please fill/fix the required fields!"
+                                        },
+                                        "invalid_fields": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            },
+                                            "example": [
+                                                "email",
+                                                "phone"
+                                            ]
+                                        },
+                                        "tag": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            },
+                                            "example": [
+                                                "account:authentication.errors.email",
+                                                "account:authentication.errors.phone_invalid"
+                                            ]
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Error message"
+                                        },
+                                        "tag": {
+                                            "type": "string",
+                                            "example": "account:authentication.errors.general"
                                         }
                                     },
                                     "type": "object"

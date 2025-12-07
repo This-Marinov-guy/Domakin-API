@@ -65,6 +65,7 @@ class ApiResponseClass
         if ($hasRequiredError) {
             return response()->json([
                 'status' => false,
+                'message' => ErrorMessages::REQUIRED_FIELDS['message'],
                 'invalid_fields' => $missingFields,
                 'tag' => [$messageTag], 
             ], $code);
@@ -72,6 +73,7 @@ class ApiResponseClass
 
         return response()->json([
             'status' => false,
+            'message' => ErrorMessages::REQUIRED_FIELDS['message'],
             'invalid_fields' => array_keys($invalidFields), 
             'tag' => array_unique($errorTags),
         ], $code, [], $encoding);

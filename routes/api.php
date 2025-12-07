@@ -15,73 +15,100 @@ use App\Http\Controllers\Integration\WordPressController;
 use App\Http\Controllers\Webhook\StripeWebhookController;
 use App\Http\Controllers\Test;
 
-// Note: common routes with basic functionality
-Route::prefix('common')->group(function () {
-    Route::post('/newsletter/subscribe', [NewsletterController::class, 'create']);
-    Route::delete('/newsletter/unsubscribe', [NewsletterController::class, 'destroy']);
+/*
+|--------------------------------------------------------------------------
+| API Routes - Versioned
+|--------------------------------------------------------------------------
+|
+| All API routes are versioned. Current version: v1
+| To add a new version (e.g., v2), create a new route group below.
+|
+*/
+
+// API Version 1
+Route::prefix('v1')->group(function () {
+    // Note: common routes with basic functionality
+    Route::prefix('common')->group(function () {
+        Route::post('/newsletter/subscribe', [NewsletterController::class, 'create']);
+        Route::delete('/newsletter/unsubscribe', [NewsletterController::class, 'destroy']);
+    });
+
+    Route::prefix('blog')->group(function () {
+        Route::get('/posts', [WordPressController::class, 'getPosts']);
+        Route::get('/post-by-slug/{slug}', [WordPressController::class, 'getPostBySlug']);
+        Route::get('/post/{id}', [WordPressController::class, 'getPostDetails']);
+    });
+
+    Route::prefix('feedback')->group(function () {
+        Route::get('/list', [FeedbackController::class, 'list']);
+        Route::post('/create', [FeedbackController::class, 'create']);
+        Route::put('/approve', [FeedbackController::class, 'approve']);
+    });
+
+    // Service
+    Route::prefix('viewing')->group(function () {
+        Route::get('/list', [ViewingController::class, 'list']);
+        Route::get('/details/{id}', [ViewingController::class, 'details']);
+        Route::post('/create', [ViewingController::class, 'create']);
+    });
+
+    Route::prefix('renting')->group(function () {
+        Route::post('/searching/create', [SearchRentingController::class, 'create']);
+        Route::post('/create', [RentingController::class, 'create'])->middleware('domain.whitelist');
+    });
+
+    Route::prefix('career')->group(function () {
+        Route::post('/apply', [CareerController::class, 'apply']);
+    });
+
+    Route::prefix('property')->group(function () {
+        Route::get('/list-extended', [PropertyController::class, 'fetchAllProperties'])
+            ->middleware('auth.role:admin');
+
+        Route::get('/list', [PropertyController::class, 'fetchUserProperties'])
+            ->middleware('auth.role');
+
+        Route::get('/details/{id}', [PropertyController::class, 'details']);
+
+        Route::get('/listing', [PropertyController::class, 'show']);
+
+        Route::post('/create', [PropertyController::class, 'create']);
+        Route::post('/edit', [PropertyController::class, 'edit'])->middleware('auth.role:admin');
+        Route::delete('/delete', [PropertyController::class, 'delete']);
+        Route::post('/payment/create-link', [PropertyController::class, 'createPaymentLink'])->middleware('auth.role:admin');
+    });
+
+    Route::prefix('authentication')->group(function () {
+        Route::post('/register', [RegisteredUserController::class, 'store'])
+            ->middleware('guest')
+            ->name('register');
+
+        Route::post('/validate-credentials', [RegisteredUserController::class, 'validate'])
+            ->middleware('guest')
+            ->name('validate-credentials');
+    });
+
+    // Authentication
+    Route::prefix('user')->group(function () {
+        Route::post('/edit-details', [ProfileController::class, 'edit'])
+            ->middleware('auth.role')
+            ->name('edit-user-details');
+    });
 });
 
-Route::prefix('blog')->group(function () {
-    Route::get('/posts', [WordPressController::class, 'getPosts']);
-    Route::get('/post-by-slug/{slug}', [WordPressController::class, 'getPostBySlug']);
-    Route::get('/post/{id}', [WordPressController::class, 'getPostDetails']);
-});
-
-Route::prefix('feedback')->group(function () {
-    Route::get('/list', [FeedbackController::class, 'list']);
-    Route::post('/create', [FeedbackController::class, 'create']);
-    Route::put('/approve', [FeedbackController::class, 'approve']);
-});
-
-// Service
-Route::prefix('viewing')->group(function () {
-    Route::get('/list', [ViewingController::class, 'list']);
-    Route::get('/details/{id}', [ViewingController::class, 'details']);
-    Route::post('/create', [ViewingController::class, 'create']);
-});
-
-Route::prefix('renting')->group(function () {
-    Route::post('/searching/create', [SearchRentingController::class, 'create']);
-    Route::post('/create', [RentingController::class, 'create'])->middleware('domain.whitelist');
-});
-
-Route::prefix('career')->group(function () {
-    Route::post('/apply', [CareerController::class, 'apply']);
-});
-
-Route::prefix('property')->group(function () {
-    Route::get('/list-extended', [PropertyController::class, 'fetchAllProperties'])
-        ->middleware('auth.role:admin');
-
-    Route::get('/list', [PropertyController::class, 'fetchUserProperties'])
-        ->middleware('auth.role');
-
-    Route::get('/details/{id}', [PropertyController::class, 'details']);
-
-    Route::get('/listing', [PropertyController::class, 'show']);
-
-    Route::post('/create', [PropertyController::class, 'create']);
-    Route::post('/edit', [PropertyController::class, 'edit'])->middleware('auth.role:admin');
-    Route::delete('/delete', [PropertyController::class, 'delete']);
-    Route::post('/payment/create-link', [PropertyController::class, 'createPaymentLink'])->middleware('auth.role:admin');
-});
-
-Route::prefix('authentication')->group(function () {
-    Route::post('/register', [RegisteredUserController::class, 'store'])
-        ->middleware('guest')
-        ->name('register');
-
-    Route::post('/validate-credentials', [RegisteredUserController::class, 'validate'])
-        ->middleware('guest')
-        ->name('validate-credentials');
-});
-
-// Authentication
-Route::prefix('user')->group(function () {
-    Route::post('/edit-details', [ProfileController::class, 'edit'])
-        ->middleware('auth.role')
-        ->name('edit-user-details');
-});
-
-// Stripe webhook (no auth)
+// Stripe webhook (no versioning, legacy support)
 Route::post('/webhooks/stripe/checkout', [StripeWebhookController::class, 'handle']);
+
+/*
+|--------------------------------------------------------------------------
+| Future API Versions
+|--------------------------------------------------------------------------
+|
+| To add a new API version (e.g., v2), uncomment and modify the section below:
+|
+| Route::prefix('v2')->group(function () {
+|     // Add v2 specific routes here
+|     // You can reuse controllers or create new versioned controllers
+| });
+|
+*/

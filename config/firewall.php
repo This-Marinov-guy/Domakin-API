@@ -15,10 +15,10 @@ return [
 
     'public_patterns' => [
         'api/webhooks/stripe/*',
-        'api/blog/*',
-        'api/property/*',
-        'api/feedback/list',
-        'api/renting/create', // Excluded from firewall, uses DomainWhitelistMiddleware instead
+        'api/v*/blog/*', // Versioned blog routes
+        'api/v*/property/*', // Versioned property routes
+        'api/v*/feedback/list', // Versioned feedback list
+        'api/v*/renting/create', // Excluded from firewall, uses DomainWhitelistMiddleware instead
         'api/documentation', // Swagger UI
         'api/oauth2-callback', // Swagger OAuth callback
         'docs', // Swagger JSON docs
@@ -37,9 +37,10 @@ return [
 
     'csrf_excluded' => [
         'api/webhooks/stripe/*',
-        // 'api/property/*',
-        // 'api/feedback/list',
-        'api/renting/create',
+        'api/v*/blog/*', // Versioned blog routes
+        'api/v*/property/*', // Versioned property routes
+        'api/v*/feedback/list', // Versioned feedback list
+        'api/v*/renting/create', // Versioned renting create
         'api/documentation', // Swagger UI
         'api/oauth2-callback', // Swagger OAuth callback
         'docs', // Swagger JSON docs
