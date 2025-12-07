@@ -47,12 +47,26 @@ class RentingController extends Controller
      *         response=200,
      *         description="Application submitted successfully",
      *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true)
+     *             @OA\Property(property="status", type="boolean", example=true)
      *         )
      *     ),
      *     @OA\Response(
      *         response=422,
-     *         description="Validation error"
+     *         description="Validation error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="boolean", example=false),
+     *             @OA\Property(property="invalid_fields", type="array", @OA\Items(type="string")),
+     *             @OA\Property(property="tag", type="array", @OA\Items(type="string"))
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Bad request",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Error message"),
+     *             @OA\Property(property="tag", type="string")
+     *         )
      *     )
      * )
      */

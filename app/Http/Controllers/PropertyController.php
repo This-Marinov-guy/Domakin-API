@@ -53,7 +53,7 @@ class PropertyController extends Controller
      *         response=200,
      *         description="Success",
      *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="status", type="boolean", example=true),
      *             @OA\Property(property="data", type="object")
      *         )
      *     )
@@ -91,7 +91,7 @@ class PropertyController extends Controller
      *         response=200,
      *         description="Success",
      *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="status", type="boolean", example=true),
      *             @OA\Property(property="data", type="object")
      *         )
      *     )
@@ -113,7 +113,7 @@ class PropertyController extends Controller
      *         response=200,
      *         description="Success",
      *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="status", type="boolean", example=true),
      *             @OA\Property(property="data", type="array", @OA\Items(type="object"))
      *         )
      *     )
@@ -153,7 +153,7 @@ class PropertyController extends Controller
      *         response=200,
      *         description="Success",
      *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="status", type="boolean", example=true),
      *             @OA\Property(property="data", type="object")
      *         )
      *     )
@@ -198,12 +198,26 @@ class PropertyController extends Controller
      *         response=200,
      *         description="Property created successfully",
      *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true)
+     *             @OA\Property(property="status", type="boolean", example=true)
      *         )
      *     ),
      *     @OA\Response(
      *         response=422,
-     *         description="Validation error"
+     *         description="Validation error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="boolean", example=false),
+     *             @OA\Property(property="invalid_fields", type="array", @OA\Items(type="string")),
+     *             @OA\Property(property="tag", type="array", @OA\Items(type="string"))
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Bad request",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Error message"),
+     *             @OA\Property(property="tag", type="string")
+     *         )
      *     )
      * )
      */
@@ -316,8 +330,26 @@ class PropertyController extends Controller
      *         response=200,
      *         description="Property updated successfully",
      *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="status", type="boolean", example=true),
      *             @OA\Property(property="data", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Bad request",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Property not found"),
+     *             @OA\Property(property="tag", type="string")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="boolean", example=false),
+     *             @OA\Property(property="invalid_fields", type="array", @OA\Items(type="string")),
+     *             @OA\Property(property="tag", type="array", @OA\Items(type="string"))
      *         )
      *     )
      * )
@@ -448,7 +480,7 @@ class PropertyController extends Controller
      *         response=200,
      *         description="Property deleted successfully",
      *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="status", type="boolean", example=true),
      *             @OA\Property(property="data", type="object")
      *         )
      *     )
@@ -480,10 +512,19 @@ class PropertyController extends Controller
      *         response=200,
      *         description="Payment link created successfully",
      *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="status", type="boolean", example=true),
      *             @OA\Property(property="data", type="object",
      *                 @OA\Property(property="payment_link", type="string", example="https://checkout.stripe.com/...")
      *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Bad request",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Property not found"),
+     *             @OA\Property(property="tag", type="string")
      *         )
      *     )
      * )
