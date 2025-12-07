@@ -137,7 +137,7 @@ class RegisteredUserController extends Controller
 
         // Get user ID from Supabase auth.users table by email, or use the one from request if not found
         $email = $request->get('email');
-        $userId = $request->get('id');
+        $userId = null;
         
         try {
             $existingUser = DB::connection('pgsql')
