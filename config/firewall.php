@@ -19,6 +19,10 @@ return [
         'api/property/*',
         'api/feedback/list',
         'api/renting/create', // Excluded from firewall, uses DomainWhitelistMiddleware instead
+        'api/documentation', // Swagger UI
+        'api/oauth2-callback', // Swagger OAuth callback
+        'docs', // Swagger JSON docs
+        'docs/*', // Swagger assets
     ],
 
     /*
@@ -36,6 +40,10 @@ return [
         // 'api/property/*',
         // 'api/feedback/list',
         'api/renting/create',
+        'api/documentation', // Swagger UI
+        'api/oauth2-callback', // Swagger OAuth callback
+        'docs', // Swagger JSON docs
+        'docs/*', // Swagger assets
     ],
 ];
 

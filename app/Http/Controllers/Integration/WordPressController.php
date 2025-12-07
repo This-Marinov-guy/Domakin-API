@@ -8,6 +8,9 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Exception;
 
+/**
+ * @OA\Tag(name="Blog")
+ */
 class WordPressController extends Controller
 {
     private const API_ENDPOINT = 'public-api.wordpress.com/wp/v2/sites/';
@@ -24,6 +27,19 @@ class WordPressController extends Controller
     }
 
     /**
+     * @OA\Get(
+     *     path="/api/blog/posts",
+     *     summary="Get all blog posts",
+     *     tags={"Blog"},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="array", @OA\Items(type="object"))
+     *         )
+     *     )
+     * )
      * Get all WordPress posts
      *
      * @return \Illuminate\Http\JsonResponse
@@ -87,6 +103,26 @@ class WordPressController extends Controller
     }
 
     /**
+     * @OA\Get(
+     *     path="/api/blog/post/{id}",
+     *     summary="Get blog post by ID",
+     *     tags={"Blog"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="Post ID",
+     *         required=true,
+     *         @OA\Schema(type="integer", example=1)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object")
+     *         )
+     *     )
+     * )
      * Get specific WordPress post details by ID
      *
      * @param int $postId
@@ -115,6 +151,26 @@ class WordPressController extends Controller
     }
     
     /**
+     * @OA\Get(
+     *     path="/api/blog/post-by-slug/{slug}",
+     *     summary="Get blog post by slug",
+     *     tags={"Blog"},
+     *     @OA\Parameter(
+     *         name="slug",
+     *         in="path",
+     *         description="Post slug",
+     *         required=true,
+     *         @OA\Schema(type="string", example="my-blog-post")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object")
+     *         )
+     *     )
+     * )
      * Get specific WordPress post details by slug
      *
      * @param string $slug

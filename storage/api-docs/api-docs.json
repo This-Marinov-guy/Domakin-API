@@ -1,0 +1,1499 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Domakin API",
+        "description": "API documentation for Domakin platform",
+        "contact": {
+            "email": "support@domakin.nl"
+        },
+        "version": "2.0.0"
+    },
+    "servers": [
+        {
+            "url": "https://orange.domakin.nl",
+            "description": "API Server"
+        }
+    ],
+    "paths": {
+        "/api/user/edit-details": {
+            "post": {
+                "tags": [
+                    "User"
+                ],
+                "summary": "Update user profile",
+                "operationId": "370355ee8ca1c277b09b5b0a0dcb413e",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "John Doe"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "user@example.com"
+                                    },
+                                    "phone": {
+                                        "type": "string",
+                                        "example": "+31 6 12345678"
+                                    },
+                                    "password": {
+                                        "description": "New password (optional)",
+                                        "type": "string"
+                                    },
+                                    "profileImage": {
+                                        "description": "Profile image (optional)",
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Profile updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/career/apply": {
+            "post": {
+                "tags": [
+                    "Career"
+                ],
+                "summary": "Submit a career application",
+                "operationId": "f64e3b788b3369f147d2c76d8dea9844",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "email",
+                                    "phone",
+                                    "position",
+                                    "location"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "John Doe"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "john.doe@example.com"
+                                    },
+                                    "phone": {
+                                        "type": "string",
+                                        "example": "+31 6 12345678"
+                                    },
+                                    "position": {
+                                        "type": "string",
+                                        "example": "viewing_agent"
+                                    },
+                                    "location": {
+                                        "type": "string",
+                                        "example": "Amsterdam, Netherlands"
+                                    },
+                                    "experience": {
+                                        "description": "Optional",
+                                        "type": "string"
+                                    },
+                                    "message": {
+                                        "description": "Optional",
+                                        "type": "string"
+                                    },
+                                    "resume": {
+                                        "description": "Optional resume file (PDF/DOC/DOCX)",
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Application submitted successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/api/feedback/list": {
+            "get": {
+                "tags": [
+                    "Feedback"
+                ],
+                "summary": "List approved feedbacks",
+                "operationId": "86b069d772ead07afeede97ea7aa5744",
+                "parameters": [
+                    {
+                        "name": "language",
+                        "in": "query",
+                        "description": "Language code (optional)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "en"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/feedback/create": {
+            "post": {
+                "tags": [
+                    "Feedback"
+                ],
+                "summary": "Create a feedback",
+                "operationId": "b1e70977611c867e45febc475c68c803",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "content",
+                                    "language"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "John Doe"
+                                    },
+                                    "content": {
+                                        "type": "string",
+                                        "example": "Great service!"
+                                    },
+                                    "language": {
+                                        "type": "string",
+                                        "example": "en"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Feedback created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/blog/posts": {
+            "get": {
+                "tags": [
+                    "Blog"
+                ],
+                "summary": "Get all blog posts",
+                "operationId": "229d62e63be55e6740e25a73d5c19bf4",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/blog/post/{id}": {
+            "get": {
+                "tags": [
+                    "Blog"
+                ],
+                "summary": "Get blog post by ID",
+                "operationId": "d479843571a3a75ffc0bf93f5fb581a5",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Post ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/blog/post-by-slug/{slug}": {
+            "get": {
+                "tags": [
+                    "Blog"
+                ],
+                "summary": "Get blog post by slug",
+                "operationId": "246b734ae419cf1e86d05d1f3b281379",
+                "parameters": [
+                    {
+                        "name": "slug",
+                        "in": "path",
+                        "description": "Post slug",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "my-blog-post"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/common/newsletter/subscribe": {
+            "post": {
+                "tags": [
+                    "Newsletter"
+                ],
+                "summary": "Subscribe to newsletter",
+                "operationId": "290a98b724d01de2bb513370b687ecf4",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "user@example.com"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Subscribed successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/common/newsletter/unsubscribe": {
+            "delete": {
+                "tags": [
+                    "Newsletter"
+                ],
+                "summary": "Unsubscribe from newsletter",
+                "operationId": "653d88b658f083dc4a347b3c891ee159",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "id"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "user@example.com"
+                                    },
+                                    "id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Unsubscribed successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/property/list": {
+            "get": {
+                "tags": [
+                    "Properties"
+                ],
+                "summary": "Get user's properties",
+                "operationId": "4870ee9a4f007c6bff7c95c526880365",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Items per page",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 15
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/property/list-extended": {
+            "get": {
+                "tags": [
+                    "Properties"
+                ],
+                "summary": "Get all properties (Admin only)",
+                "operationId": "ef4fcd8d4196aee1953072b248f1dc55",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Items per page",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 15
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/property/listing": {
+            "get": {
+                "tags": [
+                    "Properties"
+                ],
+                "summary": "List all active properties",
+                "operationId": "7e3777d2e3a46c7d78c0cdc30b707c28",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/property/details/{id}": {
+            "get": {
+                "tags": [
+                    "Properties"
+                ],
+                "summary": "Get property details",
+                "operationId": "747e797d3b1bfae28bbfd60960f476e9",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Property ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/property/create": {
+            "post": {
+                "tags": [
+                    "Properties"
+                ],
+                "summary": "Create a new property",
+                "operationId": "731650a375b818372c1c399d42fbbef4",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "properties": {
+                                    "personalData": {
+                                        "description": "JSON string of personal data",
+                                        "type": "string"
+                                    },
+                                    "propertyData": {
+                                        "description": "JSON string of property data",
+                                        "type": "string"
+                                    },
+                                    "referralCode": {
+                                        "type": "string"
+                                    },
+                                    "terms": {
+                                        "description": "JSON string of terms",
+                                        "type": "string"
+                                    },
+                                    "images": {
+                                        "description": "Property images",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "format": "binary"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Property created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/property/edit": {
+            "post": {
+                "tags": [
+                    "Properties"
+                ],
+                "summary": "Edit a property (Admin only)",
+                "operationId": "b3cb8a897022ad2f390c603be83262b2",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "id",
+                                    "propertyData"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "propertyData": {
+                                        "description": "JSON string of property data",
+                                        "type": "string"
+                                    },
+                                    "referralCode": {
+                                        "type": "string"
+                                    },
+                                    "status": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "approved": {
+                                        "type": "boolean",
+                                        "example": true
+                                    },
+                                    "releaseTimestamp": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                    },
+                                    "terms": {
+                                        "description": "JSON string of terms",
+                                        "type": "string"
+                                    },
+                                    "images": {
+                                        "description": "Comma-separated image URLs",
+                                        "type": "string"
+                                    },
+                                    "newImages": {
+                                        "description": "New images to upload",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "format": "binary"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Property updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/property/delete": {
+            "delete": {
+                "tags": [
+                    "Properties"
+                ],
+                "summary": "Delete a property",
+                "operationId": "81d9fb23f11def967632f4d199bc967a",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "query",
+                        "description": "Property ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Property deleted successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/property/payment/create-link": {
+            "post": {
+                "tags": [
+                    "Properties"
+                ],
+                "summary": "Create payment link for a property (Admin only)",
+                "operationId": "46962059ce49a7b22576b3b010accde5",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "id"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "description": "Property ID",
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "name": {
+                                        "description": "Optional name for payment link",
+                                        "type": "string",
+                                        "example": "John Doe"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Payment link created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "payment_link": {
+                                                    "type": "string",
+                                                    "example": "https://checkout.stripe.com/..."
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/authentication/validate-credentials": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Validate user credentials before registration",
+                "operationId": "95e6ed054e587c5efa496f61a5c268e0",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "user@example.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "example": "password123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Credentials are valid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/api/authentication/register": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Register a new user",
+                "operationId": "c68883dd6ef26fa3e9afb53542b99cad",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "password",
+                                    "name"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "user@example.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "example": "password123"
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "example": "John Doe"
+                                    },
+                                    "phone": {
+                                        "type": "string",
+                                        "example": "+31 6 12345678"
+                                    },
+                                    "isSSO": {
+                                        "type": "boolean",
+                                        "example": false
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "User registered successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/api/renting/create": {
+            "post": {
+                "tags": [
+                    "Renting"
+                ],
+                "summary": "Submit a renting application",
+                "operationId": "6fb94e8a8a2a23c236b67d1b429ab4a5",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "property",
+                                    "name",
+                                    "surname",
+                                    "phone",
+                                    "email",
+                                    "letter",
+                                    "terms"
+                                ],
+                                "properties": {
+                                    "property": {
+                                        "description": "Property ID",
+                                        "type": "string"
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "example": "John"
+                                    },
+                                    "surname": {
+                                        "type": "string",
+                                        "example": "Doe"
+                                    },
+                                    "phone": {
+                                        "type": "string",
+                                        "example": "+31 6 12345678"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "john@example.com"
+                                    },
+                                    "address": {
+                                        "type": "string"
+                                    },
+                                    "letter": {
+                                        "description": "Motivational letter (PDF/DOC/DOCX)",
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "note": {
+                                        "type": "string"
+                                    },
+                                    "referralCode": {
+                                        "type": "string"
+                                    },
+                                    "terms": {
+                                        "description": "JSON string with terms.contact and terms.legals",
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Application submitted successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/api/renting/searching/create": {
+            "post": {
+                "tags": [
+                    "Renting"
+                ],
+                "summary": "Submit a property search request",
+                "operationId": "58683eeb9312d7c47d63c0e2f24deae7",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "surname",
+                                    "phone",
+                                    "email",
+                                    "people",
+                                    "type",
+                                    "moveIn",
+                                    "period",
+                                    "registration",
+                                    "budget",
+                                    "city",
+                                    "terms"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "John"
+                                    },
+                                    "surname": {
+                                        "type": "string",
+                                        "example": "Doe"
+                                    },
+                                    "phone": {
+                                        "type": "string",
+                                        "example": "+31 6 12345678"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "john@example.com"
+                                    },
+                                    "people": {
+                                        "type": "integer",
+                                        "example": 2
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "example": "room"
+                                    },
+                                    "moveIn": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2025-12-01"
+                                    },
+                                    "period": {
+                                        "type": "string",
+                                        "example": "12 months"
+                                    },
+                                    "registration": {
+                                        "type": "boolean",
+                                        "example": true
+                                    },
+                                    "budget": {
+                                        "type": "number",
+                                        "example": 1200
+                                    },
+                                    "city": {
+                                        "type": "string",
+                                        "example": "Amsterdam"
+                                    },
+                                    "note": {
+                                        "type": "string"
+                                    },
+                                    "referralCode": {
+                                        "type": "string"
+                                    },
+                                    "letter": {
+                                        "description": "Optional motivational letter",
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "terms": {
+                                        "description": "JSON string with terms",
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Search request submitted successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/viewing/list": {
+            "get": {
+                "tags": [
+                    "Viewing"
+                ],
+                "summary": "List all viewings",
+                "operationId": "686209020f789925b5a31f2b7ee6a8c5",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/viewing/details/{id}": {
+            "get": {
+                "tags": [
+                    "Viewing"
+                ],
+                "summary": "Get viewing details",
+                "operationId": "84814bb61e42dc90c91a8067c6cd9ee1",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Viewing ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/viewing/create": {
+            "post": {
+                "tags": [
+                    "Viewing"
+                ],
+                "summary": "Create a viewing appointment",
+                "operationId": "d61ebda8e31388e0f5f3dd3f5ba543c2",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "property_id",
+                                    "name",
+                                    "email",
+                                    "phone",
+                                    "date",
+                                    "time"
+                                ],
+                                "properties": {
+                                    "property_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "example": "John Doe"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "john@example.com"
+                                    },
+                                    "phone": {
+                                        "type": "string",
+                                        "example": "+31 6 12345678"
+                                    },
+                                    "date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2025-12-10"
+                                    },
+                                    "time": {
+                                        "type": "string",
+                                        "example": "14:00"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Viewing created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/webhooks/stripe/checkout": {
+            "post": {
+                "tags": [
+                    "Webhooks"
+                ],
+                "summary": "Stripe webhook endpoint",
+                "operationId": "9c6f84daccc036fb6adc494409d724d5",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Webhook processed successfully"
+                    },
+                    "400": {
+                        "description": "Invalid webhook signature"
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "description": "Enter your JWT token",
+                "bearerFormat": "JWT",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "User",
+            "description": "User profile endpoints"
+        },
+        {
+            "name": "Career",
+            "description": "Career application endpoints"
+        },
+        {
+            "name": "Feedback",
+            "description": "Feedback management endpoints"
+        },
+        {
+            "name": "Authentication"
+        },
+        {
+            "name": "Properties"
+        },
+        {
+            "name": "Renting"
+        },
+        {
+            "name": "Viewing"
+        },
+        {
+            "name": "Newsletter"
+        },
+        {
+            "name": "Blog"
+        },
+        {
+            "name": "Webhooks"
+        }
+    ]
+}

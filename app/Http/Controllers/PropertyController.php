@@ -24,8 +24,41 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 
+/**
+ * @OA\Tag(name="Properties")
+ */
 class PropertyController extends Controller
 {
+    /**
+     * @OA\Get(
+     *     path="/api/property/list",
+     *     summary="Get user's properties",
+     *     tags={"Properties"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="page",
+     *         in="query",
+     *         description="Page number",
+     *         required=false,
+     *         @OA\Schema(type="integer", example=1)
+     *     ),
+     *     @OA\Parameter(
+     *         name="per_page",
+     *         in="query",
+     *         description="Items per page",
+     *         required=false,
+     *         @OA\Schema(type="integer", example=15)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object")
+     *         )
+     *     )
+     * )
+     */
     public function fetchUserProperties(Request $request, UserService $user, PropertyService $propertyService): JsonResponse
     {
         $userId = $user->extractIdFromRequest($request);
@@ -34,6 +67,36 @@ class PropertyController extends Controller
         return ApiResponseClass::sendSuccess($paginated);
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/property/list-extended",
+     *     summary="Get all properties (Admin only)",
+     *     tags={"Properties"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="page",
+     *         in="query",
+     *         description="Page number",
+     *         required=false,
+     *         @OA\Schema(type="integer", example=1)
+     *     ),
+     *     @OA\Parameter(
+     *         name="per_page",
+     *         in="query",
+     *         description="Items per page",
+     *         required=false,
+     *         @OA\Schema(type="integer", example=15)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object")
+     *         )
+     *     )
+     * )
+     */
     public function fetchAllProperties(Request $request, PropertyService $propertyService): JsonResponse
     {
         $query = Property::query();
@@ -42,6 +105,19 @@ class PropertyController extends Controller
     }
 
     /**
+     * @OA\Get(
+     *     path="/api/property/listing",
+     *     summary="List all active properties",
+     *     tags={"Properties"},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="array", @OA\Items(type="object"))
+     *         )
+     *     )
+     * )
      * Lists all active properties
      * 
      * @return JsonResponse
@@ -62,6 +138,26 @@ class PropertyController extends Controller
     }
 
     /**
+     * @OA\Get(
+     *     path="/api/property/details/{id}",
+     *     summary="Get property details",
+     *     tags={"Properties"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="Property ID",
+     *         required=true,
+     *         @OA\Schema(type="integer", example=1)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object")
+     *         )
+     *     )
+     * )
      * Fetches a single property
      * 
      * @param Property $property
@@ -79,6 +175,38 @@ class PropertyController extends Controller
         return ApiResponseClass::sendSuccess($propertyData[0]);
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/property/create",
+     *     summary="Create a new property",
+     *     tags={"Properties"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 @OA\Property(property="personalData", type="string", description="JSON string of personal data"),
+     *                 @OA\Property(property="propertyData", type="string", description="JSON string of property data"),
+     *                 @OA\Property(property="referralCode", type="string"),
+     *                 @OA\Property(property="terms", type="string", description="JSON string of terms"),
+     *                 @OA\Property(property="images", type="array", @OA\Items(type="string", format="binary"), description="Property images")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Property created successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error"
+     *     )
+     * )
+     */
     public function create(Request $request, CloudinaryService $cloudinary, GoogleSheetsService $sheetsService, PropertyService $propertyService, UserService $user, PaymentLinkService $paymentLinks, SignalIntegrationService $signalIntegrationService): JsonResponse
     {
         $data = [
@@ -161,6 +289,38 @@ class PropertyController extends Controller
     }
 
     /**
+     * @OA\Post(
+     *     path="/api/property/edit",
+     *     summary="Edit a property (Admin only)",
+     *     tags={"Properties"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 required={"id", "propertyData"},
+     *                 @OA\Property(property="id", type="integer", example=1),
+     *                 @OA\Property(property="propertyData", type="string", description="JSON string of property data"),
+     *                 @OA\Property(property="referralCode", type="string"),
+     *                 @OA\Property(property="status", type="integer", example=1),
+     *                 @OA\Property(property="approved", type="boolean", example=true),
+     *                 @OA\Property(property="releaseTimestamp", type="string", format="date-time"),
+     *                 @OA\Property(property="terms", type="string", description="JSON string of terms"),
+     *                 @OA\Property(property="images", type="string", description="Comma-separated image URLs"),
+     *                 @OA\Property(property="newImages", type="array", @OA\Items(type="string", format="binary"), description="New images to upload")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Property updated successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object")
+     *         )
+     *     )
+     * )
      * Edits a property
      */
     public function edit(Request $request, PropertyService $propertyService, UserService $user, PaymentLinkService $paymentLinks, CloudinaryService $cloudinary): JsonResponse
@@ -271,6 +431,29 @@ class PropertyController extends Controller
     //     return ApiResponseClass::sendSuccess(['message' => 'Property updated successfully']);
     // }
 
+    /**
+     * @OA\Delete(
+     *     path="/api/property/delete",
+     *     summary="Delete a property",
+     *     tags={"Properties"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="query",
+     *         description="Property ID",
+     *         required=true,
+     *         @OA\Schema(type="integer", example=1)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Property deleted successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object")
+     *         )
+     *     )
+     * )
+     */
     public function destroy(Property $property): JsonResponse
     {
         //TODO: perhaps something needs to be done to delete images? Not sure if this deletes images, needs testing
@@ -280,6 +463,30 @@ class PropertyController extends Controller
     }
 
     /**
+     * @OA\Post(
+     *     path="/api/property/payment/create-link",
+     *     summary="Create payment link for a property (Admin only)",
+     *     tags={"Properties"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"id"},
+     *             @OA\Property(property="id", type="integer", example=1, description="Property ID"),
+     *             @OA\Property(property="name", type="string", example="John Doe", description="Optional name for payment link")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Payment link created successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="payment_link", type="string", example="https://checkout.stripe.com/...")
+     *             )
+     *         )
+     *     )
+     * )
      * Creates a payment link for a property
      */
     public function createPaymentLink(Request $request, PaymentLinkService $paymentLinks): JsonResponse

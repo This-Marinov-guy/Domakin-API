@@ -14,8 +14,48 @@ use Exception;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
+/**
+ * @OA\Tag(name="Renting")
+ */
 class RentingController extends Controller
 {
+    /**
+     * @OA\Post(
+     *     path="/api/renting/create",
+     *     summary="Submit a renting application",
+     *     tags={"Renting"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 required={"property", "name", "surname", "phone", "email", "letter", "terms"},
+     *                 @OA\Property(property="property", type="string", description="Property ID"),
+     *                 @OA\Property(property="name", type="string", example="John"),
+     *                 @OA\Property(property="surname", type="string", example="Doe"),
+     *                 @OA\Property(property="phone", type="string", example="+31 6 12345678"),
+     *                 @OA\Property(property="email", type="string", format="email", example="john@example.com"),
+     *                 @OA\Property(property="address", type="string"),
+     *                 @OA\Property(property="letter", type="string", format="binary", description="Motivational letter (PDF/DOC/DOCX)"),
+     *                 @OA\Property(property="note", type="string"),
+     *                 @OA\Property(property="referralCode", type="string"),
+     *                 @OA\Property(property="terms", type="string", description="JSON string with terms.contact and terms.legals")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Application submitted successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error"
+     *     )
+     * )
+     */
     public function create(Request $request, CloudinaryService $cloudinary, GoogleSheetsService $sheetsService): JsonResponse
     {
         $data = [

@@ -17,13 +17,17 @@ class ProdFirewallMiddleware
             $allowedDomains = array_merge($allowedDomains, config('domains.dev_domains', []));
         }
 
+        // Allow public endpoints (like Swagger docs) without origin check
+        if ($this->isPublicEndpoint($request)) {
+            return $next($request);
+        }
+
         // Get origin - headers are case-insensitive in Laravel
         $origin = $request->header('Origin') ?? $request->header('Referer');
         $originHost = $this->extractHost($origin);
 
-
         // Block if origin/referrer is missing or not in allowed list
-        if (!$originHost && !($this->isPublicEndpoint($request) && $this->isAllowed($originHost, $allowedDomains))) {
+        if (!$originHost || !$this->isAllowed($originHost, $allowedDomains)) {
             return response()->json([
                 'message' => 'Forbidden by firewall',
             ], 403);

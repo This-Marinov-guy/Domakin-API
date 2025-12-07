@@ -15,8 +15,40 @@ use App\Services\Helpers;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
+/**
+ * @OA\Tag(name="User")
+ */
 class ProfileController extends Controller
 {
+    /**
+     * @OA\Post(
+     *     path="/api/user/edit-details",
+     *     summary="Update user profile",
+     *     tags={"User"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 @OA\Property(property="name", type="string", example="John Doe"),
+     *                 @OA\Property(property="email", type="string", format="email", example="user@example.com"),
+     *                 @OA\Property(property="phone", type="string", example="+31 6 12345678"),
+     *                 @OA\Property(property="password", type="string", description="New password (optional)"),
+     *                 @OA\Property(property="profileImage", type="string", format="binary", description="Profile image (optional)")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Profile updated successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object")
+     *         )
+     *     )
+     * )
+     */
     public function edit(Request $request, CloudinaryService $cloudinary, UserService $userService): JsonResponse
     {
         $user = $userService->getUserByRequest($request);

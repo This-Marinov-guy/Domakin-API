@@ -10,8 +10,30 @@ use Symfony\Component\HttpFoundation\Response;
 use Stripe\StripeClient;
 use Stripe\Webhook as StripeWebhook;
 
+/**
+ * @OA\Tag(name="Webhooks")
+ */
 class StripeWebhookController extends Controller
 {
+    /**
+     * @OA\Post(
+     *     path="/api/webhooks/stripe/checkout",
+     *     summary="Stripe webhook endpoint",
+     *     tags={"Webhooks"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(type="object")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Webhook processed successfully"
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Invalid webhook signature"
+     *     )
+     * )
+     */
     public function handle(Request $request, GoogleSheetsService $sheets): Response
     {
         $signatureHeader = $request->header('Stripe-Signature');

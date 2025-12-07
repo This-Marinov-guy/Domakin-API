@@ -13,9 +13,33 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
+/**
+ * @OA\Tag(name="Feedback")
+ */
 class FeedbackController extends Controller
 {
-
+    /**
+     * @OA\Get(
+     *     path="/api/feedback/list",
+     *     summary="List approved feedbacks",
+     *     tags={"Feedback"},
+     *     @OA\Parameter(
+     *         name="language",
+     *         in="query",
+     *         description="Language code (optional)",
+     *         required=false,
+     *         @OA\Schema(type="string", example="en")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="array", @OA\Items(type="object"))
+     *         )
+     *     )
+     * )
+     */
     public function list(Request $request, Common $commonService): JsonResponse
     {
         $language = $commonService->getPreferredLanguage();
@@ -35,6 +59,29 @@ class FeedbackController extends Controller
         return ApiResponseClass::sendSuccess($approvedFeedbacks);
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/feedback/create",
+     *     summary="Create a feedback",
+     *     tags={"Feedback"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"content", "language"},
+     *             @OA\Property(property="name", type="string", example="John Doe"),
+     *             @OA\Property(property="content", type="string", example="Great service!"),
+     *             @OA\Property(property="language", type="string", example="en")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Feedback created successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true)
+     *         )
+     *     )
+     * )
+     */
     public function create(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), Feedback::rules(), Feedback::messages());

@@ -19,8 +19,26 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Carbon\Carbon;
 
 
+/**
+ * @OA\Tag(name="Viewing")
+ */
 class ViewingController extends Controller
 {
+    /**
+     * @OA\Get(
+     *     path="/api/viewing/list",
+     *     summary="List all viewings",
+     *     tags={"Viewing"},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="array", @OA\Items(type="object"))
+     *         )
+     *     )
+     * )
+     */
     public function list(): JsonResponse
     {
         $viewings = Viewing::all()->toArray();
@@ -29,6 +47,28 @@ class ViewingController extends Controller
         return ApiResponseClass::sendSuccess($viewings);
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/viewing/details/{id}",
+     *     summary="Get viewing details",
+     *     tags={"Viewing"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="Viewing ID",
+     *         required=true,
+     *         @OA\Schema(type="integer", example=1)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object")
+     *         )
+     *     )
+     * )
+     */
     public function details($id)
     {
         $viewing = Viewing::find($id);
@@ -40,6 +80,32 @@ class ViewingController extends Controller
         return ApiResponseClass::sendSuccess($viewing->toArray());
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/viewing/create",
+     *     summary="Create a viewing appointment",
+     *     tags={"Viewing"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"property_id", "name", "email", "phone", "date", "time"},
+     *             @OA\Property(property="property_id", type="integer", example=1),
+     *             @OA\Property(property="name", type="string", example="John Doe"),
+     *             @OA\Property(property="email", type="string", format="email", example="john@example.com"),
+     *             @OA\Property(property="phone", type="string", example="+31 6 12345678"),
+     *             @OA\Property(property="date", type="string", format="date", example="2025-12-10"),
+     *             @OA\Property(property="time", type="string", example="14:00")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Viewing created successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true)
+     *         )
+     *     )
+     * )
+     */
     public function create(Request $request, GoogleSheetsService $sheetsService, GoogleCalendarService $calendarService): JsonResponse
     {
         $data = Helpers::camelToSnakeObject($request->all());

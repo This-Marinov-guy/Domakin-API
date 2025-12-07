@@ -13,8 +13,46 @@ use Exception;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
+/**
+ * @OA\Tag(name="Career")
+ */
 class CareerController extends Controller
 {
+    /**
+     * @OA\Post(
+     *     path="/api/career/apply",
+     *     summary="Submit a career application",
+     *     tags={"Career"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 required={"name", "email", "phone", "position", "location"},
+     *                 @OA\Property(property="name", type="string", example="John Doe"),
+     *                 @OA\Property(property="email", type="string", format="email", example="john.doe@example.com"),
+     *                 @OA\Property(property="phone", type="string", example="+31 6 12345678"),
+     *                 @OA\Property(property="position", type="string", example="viewing_agent"),
+     *                 @OA\Property(property="location", type="string", example="Amsterdam, Netherlands"),
+     *                 @OA\Property(property="experience", type="string", description="Optional"),
+     *                 @OA\Property(property="message", type="string", description="Optional"),
+     *                 @OA\Property(property="resume", type="string", format="binary", description="Optional resume file (PDF/DOC/DOCX)")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Application submitted successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error"
+     *     )
+     * )
+     */
     public function apply(Request $request, CloudinaryService $cloudinary): JsonResponse
     {
         $data = [

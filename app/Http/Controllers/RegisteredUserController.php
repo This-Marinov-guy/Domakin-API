@@ -13,9 +13,36 @@ use Illuminate\Support\Facades\Log;
 
 use Illuminate\Support\Facades\Validator;
 
+/**
+ * @OA\Tag(name="Authentication")
+ */
 class RegisteredUserController extends Controller
 {
     /**
+     * @OA\Post(
+     *     path="/api/authentication/validate-credentials",
+     *     summary="Validate user credentials before registration",
+     *     tags={"Authentication"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"email", "password"},
+     *             @OA\Property(property="email", type="string", format="email", example="user@example.com"),
+     *             @OA\Property(property="password", type="string", example="password123")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Credentials are valid",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error"
+     *     )
+     * )
      * Handle an incoming registration request.
      *
      * @throws \Illuminate\Validation\ValidationException
@@ -32,6 +59,34 @@ class RegisteredUserController extends Controller
     }
 
     /**
+     * @OA\Post(
+     *     path="/api/authentication/register",
+     *     summary="Register a new user",
+     *     tags={"Authentication"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"email", "password", "name"},
+     *             @OA\Property(property="email", type="string", format="email", example="user@example.com"),
+     *             @OA\Property(property="password", type="string", example="password123"),
+     *             @OA\Property(property="name", type="string", example="John Doe"),
+     *             @OA\Property(property="phone", type="string", example="+31 6 12345678"),
+     *             @OA\Property(property="isSSO", type="boolean", example=false)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="User registered successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error"
+     *     )
+     * )
      * Handle an incoming registration request.
      *
      * @throws \Illuminate\Validation\ValidationException

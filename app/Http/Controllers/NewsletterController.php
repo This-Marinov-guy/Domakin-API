@@ -11,8 +11,32 @@ use Illuminate\Support\Facades\Validator;
 use Exception;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
+/**
+ * @OA\Tag(name="Newsletter")
+ */
 class NewsletterController extends Controller
 {
+    /**
+     * @OA\Post(
+     *     path="/api/common/newsletter/subscribe",
+     *     summary="Subscribe to newsletter",
+     *     tags={"Newsletter"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"email"},
+     *             @OA\Property(property="email", type="string", format="email", example="user@example.com")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Subscribed successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true)
+     *         )
+     *     )
+     * )
+     */
     public function create(Request $request, GoogleSheetsService $sheetsService): JsonResponse
     {
         $validator = Validator::make($request->all(), Newsletter::rules(), Newsletter::messages());
@@ -45,6 +69,28 @@ class NewsletterController extends Controller
         return ApiResponseClass::sendSuccess();
     }
 
+    /**
+     * @OA\Delete(
+     *     path="/api/common/newsletter/unsubscribe",
+     *     summary="Unsubscribe from newsletter",
+     *     tags={"Newsletter"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"email", "id"},
+     *             @OA\Property(property="email", type="string", format="email", example="user@example.com"),
+     *             @OA\Property(property="id", type="integer", example=1)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Unsubscribed successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true)
+     *         )
+     *     )
+     * )
+     */
     public function destroy(Request $request, GoogleSheetsService $sheetsService): JsonResponse
     {
         $validator = Validator::make($request->all(), [

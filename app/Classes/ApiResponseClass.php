@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Log;
 class ApiResponseClass
 {
     // For Common Error response use (so the user does not see the request broken)
-    public static function sendError($message = ErrorMessages::GENERAL['message'], $messageTag = ErrorMessages::GENERAL['tag'], $code = 200, $encoding = JSON_UNESCAPED_UNICODE)
+    public static function sendError($message = ErrorMessages::GENERAL['message'], $messageTag = ErrorMessages::GENERAL['tag'], $code = 400, $encoding = JSON_UNESCAPED_UNICODE)
     {
         $response = [
             'status' => false,
@@ -19,7 +19,7 @@ class ApiResponseClass
         return response()->json($response, $code, [], $encoding);
     }
 
-    public static function sendInvalidFields($invalidFields = [], $errorMessages = [], $code = 200, $encoding = JSON_UNESCAPED_UNICODE)
+    public static function sendInvalidFields($invalidFields = [], $errorMessages = [], $code = 422, $encoding = JSON_UNESCAPED_UNICODE)
     {
         $errorTags = [];
         $messageTag = ErrorMessages::REQUIRED_FIELDS['tag'];
