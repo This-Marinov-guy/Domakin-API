@@ -40,7 +40,12 @@ class RegisteredUserController extends Controller
      *     ),
      *     @OA\Response(
      *         response=422,
-     *         description="Validation error"
+     *         description="Validation error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="boolean", example=false),
+     *             @OA\Property(property="invalid_fields", type="array", @OA\Items(type="string")),
+     *             @OA\Property(property="tag", type="array", @OA\Items(type="string"))
+     *         )
      *     )
      * )
      * Handle an incoming registration request.
@@ -87,8 +92,8 @@ class RegisteredUserController extends Controller
      *         description="Validation error",
      *         @OA\JsonContent(
      *             @OA\Property(property="status", type="boolean", example=false),
-     *             @OA\Property(property="invalid_fields", type="array", @OA\Items(type="string")),
-     *             @OA\Property(property="tag", type="array", @OA\Items(type="string"))
+     *             @OA\Property(property="invalid_fields", type="array", @OA\Items(type="string"), example={"email", "password"}),
+     *             @OA\Property(property="tag", type="array", @OA\Items(type="string"), example={"account:authentication.errors.email", "account:authentication.errors.password"})
      *         )
      *     ),
      *     @OA\Response(
@@ -97,7 +102,7 @@ class RegisteredUserController extends Controller
      *         @OA\JsonContent(
      *             @OA\Property(property="status", type="boolean", example=false),
      *             @OA\Property(property="message", type="string", example="Error message"),
-     *             @OA\Property(property="tag", type="string")
+     *             @OA\Property(property="tag", type="string", example="account:authentication.errors.general")
      *         )
      *     )
      * )

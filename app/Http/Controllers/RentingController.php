@@ -55,8 +55,8 @@ class RentingController extends Controller
      *         description="Validation error",
      *         @OA\JsonContent(
      *             @OA\Property(property="status", type="boolean", example=false),
-     *             @OA\Property(property="invalid_fields", type="array", @OA\Items(type="string")),
-     *             @OA\Property(property="tag", type="array", @OA\Items(type="string"))
+     *             @OA\Property(property="invalid_fields", type="array", @OA\Items(type="string"), example={"email", "phone"}),
+     *             @OA\Property(property="tag", type="array", @OA\Items(type="string"), example={"account:authentication.errors.email", "account:authentication.errors.phone_invalid"})
      *         )
      *     ),
      *     @OA\Response(
@@ -65,7 +65,7 @@ class RentingController extends Controller
      *         @OA\JsonContent(
      *             @OA\Property(property="status", type="boolean", example=false),
      *             @OA\Property(property="message", type="string", example="Error message"),
-     *             @OA\Property(property="tag", type="string")
+     *             @OA\Property(property="tag", type="string", example="account:authentication.errors.general")
      *         )
      *     )
      * )

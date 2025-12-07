@@ -82,7 +82,7 @@ class Property extends Model
             'personalData.name' => 'required|string',
             'personalData.surname' => 'required|string',
             'personalData.email' => 'required|email',
-            'personalData.phone' => 'required|string',
+            'personalData.phone' => 'required|string|min:6',
 
             'propertyData.city' => 'required|string',
             'propertyData.address' => 'required|string',
@@ -125,7 +125,16 @@ class Property extends Model
     {
         return [
             'personalData.email.email' => [
-                'tag' => 'account:authentication.errors.email',
+                'tag' => 'account:authentication.errors.email_invalid',
+            ],
+            'personalData.phone.min' => [
+                'tag' => 'account:authentication.errors.phone_invalid',
+            ],
+            'terms.contact.accepted' => [
+                'tag' => 'account:authentication.errors.terms_must_be_accepted',
+            ],
+            'terms.legals.accepted' => [
+                'tag' => 'account:authentication.errors.terms_must_be_accepted',
             ],
         ];
     }

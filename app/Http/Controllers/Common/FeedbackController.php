@@ -85,8 +85,8 @@ class FeedbackController extends Controller
      *         description="Validation error",
      *         @OA\JsonContent(
      *             @OA\Property(property="status", type="boolean", example=false),
-     *             @OA\Property(property="invalid_fields", type="array", @OA\Items(type="string")),
-     *             @OA\Property(property="tag", type="array", @OA\Items(type="string"))
+     *             @OA\Property(property="invalid_fields", type="array", @OA\Items(type="string"), example={"content", "language"}),
+     *             @OA\Property(property="tag", type="array", @OA\Items(type="string"), example={"account:authentication.errors.required_fields"})
      *         )
      *     ),
      *     @OA\Response(
@@ -95,7 +95,7 @@ class FeedbackController extends Controller
      *         @OA\JsonContent(
      *             @OA\Property(property="status", type="boolean", example=false),
      *             @OA\Property(property="message", type="string", example="Error message"),
-     *             @OA\Property(property="tag", type="string")
+     *             @OA\Property(property="tag", type="string", example="account:authentication.errors.general")
      *         )
      *     )
      * )

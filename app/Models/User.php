@@ -73,7 +73,7 @@ class User extends Authenticatable
     {
         return [
             'name' => 'required|string',
-            'phone' => 'required|string|unique:users,phone',
+            'phone' => 'required|string|min:6|unique:users,phone',
             'email' => 'required|unique:users,email|email',
             'password' => [
                 'required',
@@ -97,6 +97,7 @@ class User extends Authenticatable
                 'phone' => [
                     'required',
                     'string',
+                    'min:6',
                     Rule::unique('users', 'phone')->ignore($userId),
                 ],
                 'email' => [
@@ -109,7 +110,7 @@ class User extends Authenticatable
 
         return [
             'name' => 'required|string',
-            'phone' => 'required|string|unique:users,phone',
+            'phone' => 'required|string|min:6|unique:users,phone',
             'email' => 'required|unique:users,email|email',
         ];
     }
@@ -134,13 +135,19 @@ class User extends Authenticatable
     {
         return [
             'email.email' => [
-                'tag' => 'account:authentication.errors.email',
+                'tag' => 'account:authentication.errors.email_invalid',
             ],
             'email.unique' => [
                 'tag' => 'account:authentication.errors.email_exists',
             ],
             'phone.unique' => [
                 'tag' => 'account:authentication.errors.phone_exists',
+            ],
+            'phone.min' => [
+                'tag' => 'account:authentication.errors.phone_invalid',
+            ],
+            'terms.accepted' => [
+                'tag' => 'account:authentication.errors.terms_must_be_accepted',
             ],
             'password' => [
                 'tag' => 'account:authentication.errors.password',

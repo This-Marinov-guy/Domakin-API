@@ -35,7 +35,7 @@ class Viewing extends Model
         return [
             'name' => 'required|string',
             'surname' => 'required|string',
-            'phone' => 'required|string',
+            'phone' => 'required|string|min:6',
             'email' => 'required|string|email',
             'city' => 'required|string',
             'address' => 'required|string|max:50',
@@ -53,7 +53,16 @@ class Viewing extends Model
     {
         return [
             'email.email' => [
-                'tag' => 'account:authentication.errors.email',
+                'tag' => 'account:authentication.errors.email_invalid',
+            ],
+            'phone.min' => [
+                'tag' => 'account:authentication.errors.phone_invalid',
+            ],
+            'terms.contact.accepted' => [
+                'tag' => 'account:authentication.errors.terms_must_be_accepted',
+            ],
+            'terms.legals.accepted' => [
+                'tag' => 'account:authentication.errors.terms_must_be_accepted',
             ],
         ];
     }

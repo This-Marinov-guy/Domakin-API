@@ -25,7 +25,7 @@ class Newsletter extends Model
     {
         return [
             'email.email' => [
-                'tag' => 'account:authentication.errors.email',
+                'tag' => 'account:authentication.errors.email_invalid',
             ],
             'email.unique' => [
                 'tag' => 'account:authentication.errors.email',

@@ -45,7 +45,7 @@ class WordPressController extends Controller
      *         @OA\JsonContent(
      *             @OA\Property(property="status", type="boolean", example=false),
      *             @OA\Property(property="message", type="string", example="Failed to load posts"),
-     *             @OA\Property(property="tag", type="string")
+     *             @OA\Property(property="tag", type="string", example="account:authentication.errors.general")
      *         )
      *     )
      * )

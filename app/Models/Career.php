@@ -27,7 +27,7 @@ class Career extends Model
         return [
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255',
-            'phone' => 'required|string|max:50',
+            'phone' => 'required|string|min:6|max:50',
             'position' => 'required|string|max:255',
             'location' => 'required|string|max:255',
             'experience' => 'nullable|string',
@@ -40,7 +40,10 @@ class Career extends Model
     {
         return [
             'email.email' => [
-                'tag' => 'account:authentication.errors.email',
+                'tag' => 'account:authentication.errors.email_invalid',
+            ],
+            'phone.min' => [
+                'tag' => 'account:authentication.errors.phone_invalid',
             ],
         ];
     }
