@@ -1,14 +1,20 @@
 @php
     $forceHttps = request()->secure() || (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
+    $secureUrl = function($url) use ($forceHttps) {
+        if ($forceHttps && strpos($url, 'http://') === 0) {
+            return str_replace('http://', 'https://', $url);
+        }
+        return $url;
+    };
 @endphp
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>{{ $documentationTitle }}</title>
-    <link rel="stylesheet" type="text/css" href="{{ $forceHttps ? str_replace('http://', 'https://', l5_swagger_asset($documentation, 'swagger-ui.css')) : l5_swagger_asset($documentation, 'swagger-ui.css') }}">
-    <link rel="icon" type="image/png" href="{{ $forceHttps ? str_replace('http://', 'https://', l5_swagger_asset($documentation, 'favicon-32x32.png')) : l5_swagger_asset($documentation, 'favicon-32x32.png') }}" sizes="32x32"/>
-    <link rel="icon" type="image/png" href="{{ $forceHttps ? str_replace('http://', 'https://', l5_swagger_asset($documentation, 'favicon-16x16.png')) : l5_swagger_asset($documentation, 'favicon-16x16.png') }}" sizes="16x16"/>
+    <link rel="stylesheet" type="text/css" href="{{ $secureUrl(l5_swagger_asset($documentation, 'swagger-ui.css')) }}">
+    <link rel="icon" type="image/png" href="{{ $secureUrl(l5_swagger_asset($documentation, 'favicon-32x32.png')) }}" sizes="32x32"/>
+    <link rel="icon" type="image/png" href="{{ $secureUrl(l5_swagger_asset($documentation, 'favicon-16x16.png')) }}" sizes="16x16"/>
     <style>
     html
     {
@@ -122,14 +128,14 @@
 <body @if(config('l5-swagger.defaults.ui.display.dark_mode')) id="dark-mode" @endif>
 <div id="swagger-ui"></div>
 
-<script src="{{ $forceHttps ? str_replace('http://', 'https://', l5_swagger_asset($documentation, 'swagger-ui-bundle.js')) : l5_swagger_asset($documentation, 'swagger-ui-bundle.js') }}"></script>
-<script src="{{ $forceHttps ? str_replace('http://', 'https://', l5_swagger_asset($documentation, 'swagger-ui-standalone-preset.js')) : l5_swagger_asset($documentation, 'swagger-ui-standalone-preset.js') }}"></script>
+<script src="{{ $secureUrl(l5_swagger_asset($documentation, 'swagger-ui-bundle.js')) }}"></script>
+<script src="{{ $secureUrl(l5_swagger_asset($documentation, 'swagger-ui-standalone-preset.js')) }}"></script>
 <script>
     window.onload = function() {
         const urls = [];
 
         @foreach($urlsToDocs as $title => $url)
-            urls.push({name: "{{ $title }}", url: "{{ $forceHttps ? str_replace('http://', 'https://', $url) : $url }}"});
+            urls.push({name: "{{ $title }}", url: "{{ $secureUrl($url) }}"});
         @endforeach
 
         // Build a system
@@ -140,7 +146,7 @@
             operationsSorter: {!! isset($operationsSorter) ? '"' . $operationsSorter . '"' : 'null' !!},
             configUrl: {!! isset($configUrl) ? '"' . $configUrl . '"' : 'null' !!},
             validatorUrl: {!! isset($validatorUrl) ? '"' . $validatorUrl . '"' : 'null' !!},
-            oauth2RedirectUrl: "{{ $forceHttps ? str_replace('http://', 'https://', route('l5-swagger.'.$documentation.'.oauth2_callback', [], $useAbsolutePath)) : route('l5-swagger.'.$documentation.'.oauth2_callback', [], $useAbsolutePath) }}",
+            oauth2RedirectUrl: "{{ $secureUrl(route('l5-swagger.'.$documentation.'.oauth2_callback', [], $useAbsolutePath)) }}",
 
             requestInterceptor: function(request) {
                 request.headers['X-CSRF-TOKEN'] = '{{ csrf_token() }}';
