@@ -139,7 +139,7 @@ class ViewingController extends Controller
     {
         $data = Helpers::camelToSnakeObject($request->all());
 
-        $validator = Validator::make($data, Viewing::rules(), Viewing::messages());
+        $validator = Validator::make($data, Viewing::rules($request), Viewing::messages());
 
         if ($validator->fails()) {
             return ApiResponseClass::sendInvalidFields($validator->errors()->toArray(), Viewing::messages());

@@ -32,5 +32,22 @@ return [
         'localhost',
         '127.0.0.1',
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Domains That Require Terms Acceptance
+    |--------------------------------------------------------------------------
+    |
+    | List of domains that require terms.contact and terms.legals to be accepted.
+    | If a domain is not in this list, terms validation will be optional.
+    |
+    */
+
+    'terms_required_domains' => [
+        'domakin.nl',
+        'www.domakin.nl',
+        'demo.domakin.nl',
+        // Add domains that require terms acceptance
+    ],
 ];
 

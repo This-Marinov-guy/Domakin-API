@@ -3,11 +3,13 @@
 // app/Models/Property.php
 namespace App\Models;
 
+use App\Models\Concerns\HasDomainBasedTermsValidation;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Property extends Model
 {
+    use HasDomainBasedTermsValidation;
     protected $fillable = [
         'personal_data',
         'property_data',
@@ -77,9 +79,9 @@ class Property extends Model
         ];
     }
 
-    public static function rules(): array
+    public static function rules($request = null): array
     {
-        return [
+        $rules = [
             'personalData.name' => 'required|string',
             'personalData.surname' => 'required|string',
             'personalData.email' => 'required|email',
@@ -99,12 +101,12 @@ class Property extends Model
             'propertyData.description' => 'required|string',
             'images' => 'required|array',
             'interface' => 'required|string|in:web,mobile,signal',
-
-            'terms' => 'required|array',
-            'terms.contact' => 'required|accepted',
-            'terms.legals' => 'required|accepted',
-
         ];
+
+        // Add terms validation rules based on domain
+        $rules = array_merge($rules, static::getTermsValidationRules($request));
+
+        return $rules;
     }
 
     public static function editRules(): array

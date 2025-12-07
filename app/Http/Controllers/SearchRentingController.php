@@ -95,7 +95,7 @@ class SearchRentingController extends Controller
             'terms' => json_decode($request->get('terms'), true),
         ];
 
-        $validator = Validator::make($data, SearchRenting::rules());
+        $validator = Validator::make($data, SearchRenting::rules($request));
 
         if ($validator->fails()) {
             return ApiResponseClass::sendInvalidFields($validator->errors()->toArray(), SearchRenting::messages()); 

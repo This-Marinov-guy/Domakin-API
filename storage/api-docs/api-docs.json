@@ -1690,7 +1690,8 @@
                                 "properties": {
                                     "property": {
                                         "description": "Property ID",
-                                        "type": "string"
+                                        "type": "string",
+                                        "example": "123"
                                     },
                                     "name": {
                                         "type": "string",
@@ -1709,19 +1710,17 @@
                                         "format": "email",
                                         "example": "john@example.com"
                                     },
-                                    "address": {
-                                        "type": "string"
-                                    },
                                     "letter": {
                                         "description": "Motivational letter (PDF/DOC/DOCX)",
-                                        "type": "string",
-                                        "format": "binary"
+                                        "type": "file"
                                     },
                                     "note": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "example": "Additional notes about the application"
                                     },
                                     "referralCode": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "example": "REF123"
                                     },
                                     "interface": {
                                         "description": "Interface source",
@@ -1731,7 +1730,7 @@
                                             "mobile",
                                             "signal"
                                         ],
-                                        "example": "web"
+                                        "example": "signal"
                                     },
                                     "terms": {
                                         "description": "JSON string with terms.contact and terms.legals",
@@ -1739,6 +1738,53 @@
                                     }
                                 },
                                 "type": "object"
+                            },
+                            "examples": {
+                                "signal_interface": {
+                                    "summary": "Signal Interface Example",
+                                    "value": {
+                                        "property": "123",
+                                        "name": "John",
+                                        "surname": "Doe",
+                                        "phone": "+31 6 12345678",
+                                        "email": "john@example.com",
+                                        "letter": "<file>",
+                                        "note": "Additional notes about the application",
+                                        "referralCode": "REF123",
+                                        "interface": "signal",
+                                        "terms": "{contact:true,legals:true}"
+                                    }
+                                },
+                                "web_interface": {
+                                    "summary": "Web Interface Example",
+                                    "value": {
+                                        "property": "123",
+                                        "name": "Jane",
+                                        "surname": "Smith",
+                                        "phone": "+31 6 98765432",
+                                        "email": "jane@example.com",
+                                        "letter": "<file>",
+                                        "note": "Web application notes",
+                                        "referralCode": "WEB123",
+                                        "interface": "web",
+                                        "terms": "{contact:true,legals:true}"
+                                    }
+                                },
+                                "mobile_interface": {
+                                    "summary": "Mobile Interface Example",
+                                    "value": {
+                                        "property": "123",
+                                        "name": "Bob",
+                                        "surname": "Johnson",
+                                        "phone": "+31 6 55555555",
+                                        "email": "bob@example.com",
+                                        "letter": "<file>",
+                                        "note": "Mobile application notes",
+                                        "referralCode": "MOB123",
+                                        "interface": "mobile",
+                                        "terms": "{contact:true,legals:true}"
+                                    }
+                                }
                             }
                         }
                     }

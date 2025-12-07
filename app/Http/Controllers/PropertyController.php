@@ -236,7 +236,7 @@ class PropertyController extends Controller
             'last_updated_by' => $user->extractIdFromRequest($request),
         ];
 
-        $validator = Validator::make($data, Property::rules());
+        $validator = Validator::make($data, Property::rules($request));
 
         if ($validator->fails()) {
             return ApiResponseClass::sendInvalidFields($validator->errors()->toArray(), Property::messages());

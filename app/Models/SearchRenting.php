@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasDomainBasedTermsValidation;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class SearchRenting extends Model
 {
-    use HasFactory;
+    use HasFactory, HasDomainBasedTermsValidation;
 
     protected $table = 'search_rentings';
 
@@ -29,9 +30,9 @@ class SearchRenting extends Model
         'interface',
     ];
 
-    public static function rules(): array
+    public static function rules($request = null): array
     {
-        return [
+        $rules = [
             'name' => 'required|string',
             'surname' => 'required|string',
             'phone' => 'required|string|min:6',
@@ -46,11 +47,12 @@ class SearchRenting extends Model
             'city' => 'required|string',
             'note' => 'nullable|string',
             'interface' => 'required|string|in:web,mobile,signal',
-
-            'terms' => 'required|array', 
-            'terms.contact' => 'required|accepted',
-            'terms.legals' => 'required|accepted',
         ];
+
+        // Add terms validation rules based on domain
+        $rules = array_merge($rules, static::getTermsValidationRules($request));
+
+        return $rules;
     }
 
     public static function messages()

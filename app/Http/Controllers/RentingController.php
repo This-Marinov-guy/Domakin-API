@@ -30,17 +30,64 @@ class RentingController extends Controller
      *             mediaType="multipart/form-data",
      *             @OA\Schema(
      *                 required={"property", "name", "surname", "phone", "email", "letter", "interface", "terms"},
-     *                 @OA\Property(property="property", type="string", description="Property ID"),
+     *                 @OA\Property(property="property", type="string", description="Property ID", example="123"),
      *                 @OA\Property(property="name", type="string", example="John"),
      *                 @OA\Property(property="surname", type="string", example="Doe"),
      *                 @OA\Property(property="phone", type="string", example="+31 6 12345678"),
      *                 @OA\Property(property="email", type="string", format="email", example="john@example.com"),
-     *                 @OA\Property(property="address", type="string"),
-     *                 @OA\Property(property="letter", type="string", format="binary", description="Motivational letter (PDF/DOC/DOCX)"),
-     *                 @OA\Property(property="note", type="string"),
-     *                 @OA\Property(property="referralCode", type="string"),
-     *                 @OA\Property(property="interface", type="string", enum={"web", "mobile", "signal"}, example="web", description="Interface source"),
+     *                 @OA\Property(property="letter", type="file", description="Motivational letter (PDF/DOC/DOCX)"),
+     *                 @OA\Property(property="note", type="string", example="Additional notes about the application"),
+     *                 @OA\Property(property="referralCode", type="string", example="REF123"),
+     *                 @OA\Property(property="interface", type="string", enum={"web", "mobile", "signal"}, example="signal", description="Interface source"),
      *                 @OA\Property(property="terms", type="string", description="JSON string with terms.contact and terms.legals")
+     *             ),
+     *             @OA\Examples(
+     *                 example="signal_interface",
+     *                 summary="Signal Interface Example",
+     *                 value={
+     *                     "property": "123",
+     *                     "name": "John",
+     *                     "surname": "Doe",
+     *                     "phone": "+31 6 12345678",
+     *                     "email": "john@example.com",
+     *                     "letter": "<file>",
+     *                     "note": "Additional notes about the application",
+     *                     "referralCode": "REF123",
+     *                     "interface": "signal",
+     *                     "terms": "{contact:true,legals:true}"
+     *                 }
+     *             ),
+     *             @OA\Examples(
+     *                 example="web_interface",
+     *                 summary="Web Interface Example",
+     *                 value={
+     *                     "property": "123",
+     *                     "name": "Jane",
+     *                     "surname": "Smith",
+     *                     "phone": "+31 6 98765432",
+     *                     "email": "jane@example.com",
+     *                     "letter": "<file>",
+     *                     "note": "Web application notes",
+     *                     "referralCode": "WEB123",
+     *                     "interface": "web",
+     *                     "terms": "{contact:true,legals:true}"
+     *                 }
+     *             ),
+     *             @OA\Examples(
+     *                 example="mobile_interface",
+     *                 summary="Mobile Interface Example",
+     *                 value={
+     *                     "property": "123",
+     *                     "name": "Bob",
+     *                     "surname": "Johnson",
+     *                     "phone": "+31 6 55555555",
+     *                     "email": "bob@example.com",
+     *                     "letter": "<file>",
+     *                     "note": "Mobile application notes",
+     *                     "referralCode": "MOB123",
+     *                     "interface": "mobile",
+     *                     "terms": "{contact:true,legals:true}"
+     *                 }
      *             )
      *         )
      *     ),
@@ -92,7 +139,7 @@ class RentingController extends Controller
             'terms' => json_decode($request->get('terms'), true),
         ];
 
-        $validator = Validator::make($data, Renting::rules());
+        $validator = Validator::make($data, Renting::rules($request));
 
         if ($validator->fails()) {
             return ApiResponseClass::sendInvalidFields($validator->errors()->toArray(), Renting::messages());

@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasDomainBasedTermsValidation;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Viewing extends Model
 {
-    use HasFactory;
+    use HasFactory, HasDomainBasedTermsValidation;
 
     protected $table = 'viewings';
 
@@ -31,9 +32,9 @@ class Viewing extends Model
         'status' => 1
     ];
 
-    public static function rules(): array
+    public static function rules($request = null): array
     {
-        return [
+        $rules = [
             'name' => 'required|string',
             'surname' => 'required|string',
             'phone' => 'required|string|min:6',
@@ -43,11 +44,12 @@ class Viewing extends Model
             'date' => 'required|string',
             'time' => 'required|string',
             'interface' => 'required|string|in:web,mobile,signal',
-
-            'terms' => 'required|array',
-            'terms.contact' => 'required|accepted',
-            'terms.legals' => 'required|accepted',
         ];
+
+        // Add terms validation rules based on domain
+        $rules = array_merge($rules, static::getTermsValidationRules($request));
+
+        return $rules;
     }
 
     // TODO: add messages
