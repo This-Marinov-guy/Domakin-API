@@ -34,7 +34,7 @@ class SignalIntegrationService
                 throw new Exception('Signal API token is not configured');
             }
 
-            $property->load(['propertyData', 'personalData']);
+            $property->load(['propertyData']);
             
             $payload = $this->transformPropertyToSignalFormat($property);
             
@@ -74,7 +74,6 @@ class SignalIntegrationService
     private function transformPropertyToSignalFormat(Property $property): array
     {
         $propertyData = $property->propertyData;
-        $personalData = $property->personalData;
 
         // Parse images from comma-separated string to array
         $images = [];
@@ -94,7 +93,7 @@ class SignalIntegrationService
 
         // Build property URL (you may need to adjust this based on your frontend URL structure)
         $frontendUrl = env('FRONTEND_URL', 'https://domakin.nl');
-        $url = rtrim($frontendUrl, '/') . '/property/' . $property->id;
+        $url = rtrim($frontendUrl, '/') . '/services/renting/property/' . $property->id;
 
         // Parse size to get living area
         $livingArea = $this->extractLivingArea($propertyData->size ?? '');
@@ -136,8 +135,8 @@ class SignalIntegrationService
             'offerType' => 'rent',
             'availabilityStatus' => $this->formatAvailabilityStatus($propertyData->period ?? null),
             'rentalAgreement' => $this->formatRentalAgreement($propertyData->period ?? null),
-            'agentName' => $personalData ? (($personalData->name ?? '') . ' ' . ($personalData->surname ?? '')) : null,
-            'contactPhoneNumber' => $personalData->phone ?? null,
+            'agentName' => 'Domakin NL',
+            'contactPhoneNumber' => '',
         ];
 
         return [
