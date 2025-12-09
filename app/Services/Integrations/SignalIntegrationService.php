@@ -28,16 +28,16 @@ class SignalIntegrationService
 
         try {
             $token = env('SIGNAL_AUTH_TOKEN');
-            
+
             if (empty($token)) {
                 Log::error('Signal API: SIGNAL_AUTH_TOKEN is not configured');
                 throw new Exception('Signal API token is not configured');
             }
 
             $property->load(['propertyData']);
-            
+
             $payload = $this->transformPropertyToSignalFormat($property);
-            
+
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . $token,
                 'Content-Type' => 'application/json',
@@ -80,24 +80,17 @@ class SignalIntegrationService
 
         try {
             $token = env('SIGNAL_AUTH_TOKEN');
-            
+
             if (empty($token)) {
                 Log::error('Signal API: SIGNAL_AUTH_TOKEN is not configured');
                 throw new Exception('Signal API token is not configured');
             }
 
-            $property->load(['propertyData']);
-            
             $payload = [
                 'type' => 'property.deleted',
-                'data' => [
-                    [
-                        'id' => (string)$property->id,
-                        'url' => rtrim(env('FRONTEND_URL', 'https://domakin.nl'), '/') . '/services/renting/property/' . $property->id,
-                    ]
-                ],
+                'data' => [(string)$property->id],
             ];
-            
+
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . $token,
                 'Content-Type' => 'application/json',
@@ -162,6 +155,7 @@ class SignalIntegrationService
         // Only include required fields and optional fields we have data for
         $data = [
             // Required fields
+            'id' => (string)$property->id,
             'title' => $title,
             'images' => $images,
             'description' => $description,
@@ -189,7 +183,7 @@ class SignalIntegrationService
             // 'longitude' => '0', // Required but not collected - using default
             // 'latitude' => '0', // Required but not collected - using default
             'offeredSince' => $property->created_at->toIso8601String(),
-            
+
             // Optional fields we have data for
             'country' => 'netherlands',
             'offerType' => 'rent',
@@ -235,7 +229,7 @@ class SignalIntegrationService
     private function determineDwellingType(?string $title, ?string $description): string
     {
         $text = strtolower(($title ?? '') . ' ' . ($description ?? ''));
-        
+
         if (stripos($text, 'studio') !== false) {
             return 'studio';
         }
@@ -248,7 +242,7 @@ class SignalIntegrationService
         if (stripos($text, 'house') !== false) {
             return 'house';
         }
-        
+
         return 'room'; // Default
     }
 
@@ -262,7 +256,7 @@ class SignalIntegrationService
     private function determinePropertyType(?string $title, ?string $description): string
     {
         $text = strtolower(($title ?? '') . ' ' . ($description ?? ''));
-        
+
         if (stripos($text, 'studio') !== false) {
             return 'Studio';
         }
@@ -275,7 +269,7 @@ class SignalIntegrationService
         if (stripos($text, 'house') !== false) {
             return 'Family home';
         }
-        
+
         return 'Room'; // Default
     }
 
@@ -291,12 +285,12 @@ class SignalIntegrationService
         if (preg_match('/(\d+(?:\.\d+)?)\s*m[²2]/i', $size, $matches)) {
             return $matches[1];
         }
-        
+
         // Try to extract just numbers
         if (preg_match('/(\d+(?:\.\d+)?)/', $size, $matches)) {
             return $matches[1];
         }
-        
+
         return '0';
     }
 
@@ -312,7 +306,7 @@ class SignalIntegrationService
         if (preg_match('/(\d+)\s*room/i', $size, $matches)) {
             return (int)$matches[1];
         }
-        
+
         return 1; // Default
     }
 
@@ -328,7 +322,7 @@ class SignalIntegrationService
         if (preg_match('/(\d+)\s*bedroom/i', $size, $matches)) {
             return (int)$matches[1];
         }
-        
+
         // Fallback to room count
         return $this->extractNumberOfRooms($size);
     }
@@ -416,4 +410,3 @@ class SignalIntegrationService
         return $defaultCoordinates;
     }
 }
-
