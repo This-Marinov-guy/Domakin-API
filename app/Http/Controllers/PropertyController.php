@@ -222,7 +222,7 @@ class PropertyController extends Controller
      *     )
      * )
      */
-    public function create(Request $request, CloudinaryService $cloudinary, GoogleSheetsService $sheetsService, PropertyService $propertyService, UserService $user, PaymentLinkService $paymentLinks, SignalIntegrationService $signalIntegrationService): JsonResponse
+    public function create(Request $request, CloudinaryService $cloudinary, GoogleSheetsService $sheetsService, PropertyService $propertyService, UserService $user, PaymentLinkService $paymentLinks): JsonResponse
     {
         $data = [
             'personalData' => json_decode($request->get('personalData'), true),
@@ -296,12 +296,6 @@ class PropertyController extends Controller
             Log::error($error->getMessage());
         }
 
-        try {
-            $signalIntegrationService->submitProperty($property);
-        } catch (Exception $error) {
-            Log::error($error->getMessage());
-        }
-
         return ApiResponseClass::sendSuccess();
     }
 
@@ -358,7 +352,7 @@ class PropertyController extends Controller
      * )
      * Edits a property
      */
-    public function edit(Request $request, PropertyService $propertyService, UserService $user, PaymentLinkService $paymentLinks, CloudinaryService $cloudinary): JsonResponse
+    public function edit(Request $request, PropertyService $propertyService, UserService $user, PaymentLinkService $paymentLinks, CloudinaryService $cloudinary, SignalIntegrationService $signalIntegrationService): JsonResponse
     {
         $data = [
             'propertyData' => json_decode($request->get('propertyData'), true),
@@ -449,6 +443,19 @@ class PropertyController extends Controller
             return ApiResponseClass::sendError($error->getMessage());
         }
 
+        $signalFlag = $request->get('is_signal', null);
+
+        if ($signalFlag !== null && $property->is_signal !== $signalFlag) {
+            try {
+                $signalFlag ?
+                 $signalIntegrationService->submitProperty($property) :
+                 $signalIntegrationService->deleteProperty($property);
+            } catch (Exception $error) {
+                Log::error($error->getMessage());
+            }
+        }
+
+
         return ApiResponseClass::sendSuccess(['message' => 'Property updated successfully']);
     }
 
@@ -489,8 +496,22 @@ class PropertyController extends Controller
      *     )
      * )
      */
-    public function destroy(Property $property): JsonResponse
+    public function delete(Request $request, SignalIntegrationService $signalIntegrationService): JsonResponse
     {
+        $propertyId = $request->get('id');
+        $property = Property::find($propertyId);
+
+        if (!$property) {
+            return ApiResponseClass::sendError('Property not found');
+        }
+
+        // Delete from Signal API if property exists
+        try {
+            $signalIntegrationService->deleteProperty($property);
+        } catch (Exception $error) {
+            Log::error($error->getMessage());
+        }
+
         //TODO: perhaps something needs to be done to delete images? Not sure if this deletes images, needs testing
         $property->delete();
 

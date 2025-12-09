@@ -20,6 +20,7 @@ class Property extends Model
         'release_timestamp',
         'referral_code',
         'interface',
+        'is_signal'
     ];
 
     protected $casts = [

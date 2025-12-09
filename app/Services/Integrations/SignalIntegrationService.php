@@ -66,6 +66,66 @@ class SignalIntegrationService
     }
 
     /**
+     * Delete property from Signal API
+     *
+     * @param Property $property
+     * @return array|null Returns response data on success, null on failure
+     * @throws Exception
+     */
+    public function deleteProperty(Property $property): ?array
+    {
+        if (env('APP_ENV') !== 'prod') {
+            return null;
+        }
+
+        try {
+            $token = env('SIGNAL_AUTH_TOKEN');
+            
+            if (empty($token)) {
+                Log::error('Signal API: SIGNAL_AUTH_TOKEN is not configured');
+                throw new Exception('Signal API token is not configured');
+            }
+
+            $property->load(['propertyData']);
+            
+            $payload = [
+                'type' => 'property.deleted',
+                'data' => [
+                    [
+                        'id' => (string)$property->id,
+                        'url' => rtrim(env('FRONTEND_URL', 'https://domakin.nl'), '/') . '/services/renting/property/' . $property->id,
+                    ]
+                ],
+            ];
+            
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . $token,
+                'Content-Type' => 'application/json',
+            ])->post(self::API_ENDPOINT, $payload);
+
+            if (!$response->successful()) {
+                Log::error('Signal API delete request failed', [
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                    'property_id' => $property->id,
+                ]);
+                throw new Exception('Signal API delete request failed: ' . $response->body());
+            }
+
+            Log::info('Property deleted from Signal API successfully', [
+                'property_id' => $property->id,
+            ]);
+
+            return $response->json();
+        } catch (Exception $e) {
+            Log::error('Error deleting property from Signal API: ' . $e->getMessage(), [
+                'property_id' => $property->id ?? null,
+            ]);
+            throw $e;
+        }
+    }
+
+    /**
      * Transform Property model to Signal API format
      *
      * @param Property $property
