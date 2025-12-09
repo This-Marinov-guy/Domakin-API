@@ -46,8 +46,8 @@ trait HasDomainBasedTermsValidation
         $originHost = static::extractHost($origin);
 
         if (!$originHost) {
-            // If no origin, default to requiring terms
-            return true;
+            // If no origin, default to not requiring terms
+            return false;
         }
 
         $termsRequiredDomains = config('domains.terms_required_domains', []);

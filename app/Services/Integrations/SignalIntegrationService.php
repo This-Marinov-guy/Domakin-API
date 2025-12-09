@@ -2,6 +2,7 @@
 
 namespace App\Services\Integrations;
 
+use App\Constants\Emails;
 use App\Models\Property;
 use App\Services\Helpers;
 use Illuminate\Support\Facades\Http;
@@ -190,7 +191,7 @@ class SignalIntegrationService
             'availabilityStatus' => $this->formatAvailabilityStatus($propertyData->period ?? null),
             'rentalAgreement' => $this->formatRentalAgreement($propertyData->period ?? null),
             'agentName' => 'Domakin NL',
-            'contactPhoneNumber' => '',
+            'contactPhoneNumber' => Emails::PHONE_NUMBERS['domakin_call_center'],
         ];
 
         return [
