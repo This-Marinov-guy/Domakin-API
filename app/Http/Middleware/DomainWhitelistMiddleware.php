@@ -20,7 +20,7 @@ class DomainWhitelistMiddleware
         $origin = $request->header('Origin') ?? $request->header('Referer');
         $originHost = $this->extractHost($origin);
 
-        
+
         if (!$originHost) {
             return response()->json([
                 'message' => 'Access denied',
@@ -29,7 +29,7 @@ class DomainWhitelistMiddleware
 
         // First, check config-based domain whitelist
         $allowedDomains = config('domains.allowed_domains', []);
-        
+
         // Add dev domains if in development environment
         if (env('APP_ENV') === 'dev') {
             $allowedDomains = array_merge($allowedDomains, config('domains.dev_domains', []));
@@ -41,11 +41,11 @@ class DomainWhitelistMiddleware
 
         // If not in config, check database for domain + auth token match
         $authToken = $this->extractAuthToken($request);
-        
+
         if ($authToken) {
             try {
-                $appCredential = AppCredential::findByDomainAndPassword($originHost, $authToken);
-                
+                $appCredential = AppCredential::findByAuthorization($authToken);
+
                 if ($appCredential) {
                     return $next($request);
                 }
@@ -98,13 +98,13 @@ class DomainWhitelistMiddleware
             if ($host === $allowed) {
                 return true;
             }
-            
+
             // Subdomain match (e.g., www.domakin.nl matches domakin.nl)
             if (str_ends_with($host, '.' . $allowed)) {
                 return true;
             }
         }
-        
+
         return false;
     }
 
@@ -117,7 +117,7 @@ class DomainWhitelistMiddleware
     private function extractAuthToken(Request $request): ?string
     {
         $authorization = $request->header('Authorization');
-        
+
         if (!$authorization) {
             return null;
         }

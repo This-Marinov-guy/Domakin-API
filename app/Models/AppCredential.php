@@ -26,4 +26,16 @@ class AppCredential extends Model
             ->where('password', $password)
             ->first();
     }
+
+    /**
+     * Find app credential by domain and password
+     *
+     * @param string $domain
+     * @return AppCredential|null
+     */
+    public static function findByAuthorization(string $password): ?self
+    {
+        return self::where('password', $password)
+            ->first();
+    }
 }
