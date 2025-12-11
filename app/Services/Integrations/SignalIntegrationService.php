@@ -49,6 +49,8 @@ class SignalIntegrationService
                     'status' => $response->status(),
                     'body' => $response->body(),
                     'property_id' => $property->id,
+                    'payload' => $payload,
+                    'headers' => $response->headers(),
                 ]);
                 throw new Exception('Signal API request failed: ' . $response->body());
             }
@@ -61,6 +63,7 @@ class SignalIntegrationService
         } catch (Exception $e) {
             Log::error('Error submitting property to Signal API: ' . $e->getMessage(), [
                 'property_id' => $property->id ?? null,
+                'payload' => $payload ?? null,
             ]);
             throw $e;
         }
@@ -102,6 +105,8 @@ class SignalIntegrationService
                     'status' => $response->status(),
                     'body' => $response->body(),
                     'property_id' => $property->id,
+                    'payload' => $payload,
+                    'headers' => $response->headers(),
                 ]);
                 throw new Exception('Signal API delete request failed: ' . $response->body());
             }
@@ -114,6 +119,7 @@ class SignalIntegrationService
         } catch (Exception $e) {
             Log::error('Error deleting property from Signal API: ' . $e->getMessage(), [
                 'property_id' => $property->id ?? null,
+                'payload' => $payload ?? null,
             ]);
             throw $e;
         }
@@ -135,19 +141,32 @@ class SignalIntegrationService
             $images = array_map('trim', explode(',', $propertyData->images));
         }
 
-        // Get translated values
-        $title = Helpers::getTranslatedValue($propertyData->title ?? null, 'en', false, 'Available room');
-        $description = Helpers::getTranslatedValue($propertyData->description ?? null, 'en', false, '');
+        // Decode stored JSON strings (if any) and get translated values
+        $rawTitle = $this->decodeJsonIfNeeded($propertyData->title ?? null);
+        $rawDescription = $this->decodeJsonIfNeeded($propertyData->description ?? null);
 
-        // Format location (postcode + city area if available)
-        $location = $this->formatLocation($propertyData->postcode ?? '', $propertyData->city ?? '');
+        $title = Helpers::getTranslatedValue($rawTitle, 'en', false, 'Available room');
+        $description = Helpers::getTranslatedValue($rawDescription, 'en', false, '');
+
+        // dd($title, $description);
 
         // Format city (lowercase)
         $city = strtolower($propertyData->city ?? '');
 
+        // Format location (postcode + city area if available); ensure non-empty to satisfy schema
+        $location = $this->formatLocation($propertyData->postcode ?? '', $propertyData->city ?? '');
+        if (empty($location)) {
+            $location = $city ?: 'unknown';
+        }
+
         // Build property URL (you may need to adjust this based on your frontend URL structure)
         $frontendUrl = env('FRONTEND_URL', 'https://domakin.nl');
         $url = rtrim($frontendUrl, '/') . '/services/renting/property/' . $property->id;
+
+        // Coordinates (schema requires longitude/latitude; provide defaults if unknown)
+        $coords = $this->getCoordinates($propertyData->address ?? '', $propertyData->city ?? '');
+        $longitude = (string)($coords['longitude'] ?? '5.2913');
+        $latitude = (string)($coords['latitude'] ?? '52.1326');
 
         // Parse size to get living area
         $livingArea = $this->extractLivingArea($propertyData->size ?? '');
@@ -164,7 +183,7 @@ class SignalIntegrationService
             'city' => $city,
             'url' => $url,
             'dwellingType' => 'room',
-            'propertyType' => 'Room',
+            'propertyType' => 'room',
             'price' => (string)($propertyData->rent ?? '0'),
             'numberOfRooms' => 1,
             'numberOfBedrooms' => 1,
@@ -180,16 +199,16 @@ class SignalIntegrationService
             'livingArea' => $livingArea,
             'plotArea' => '0', // Required but not collected - using default
             'volume' => '0', // Required but not collected - using default
-            'postcode' => $propertyData->postcode ?? null,
-            // 'longitude' => '0', // Required but not collected - using default
-            // 'latitude' => '0', // Required but not collected - using default
+            'postcode' => $propertyData->postcode ?? '',
+            // 'longitude' => $longitude,
+            // 'latitude' => $latitude,
             'offeredSince' => $property->created_at->toIso8601String(),
 
             // Optional fields we have data for
             'country' => 'netherlands',
             'offerType' => 'rent',
-            'availabilityStatus' => $this->formatAvailabilityStatus($propertyData->period ?? null),
-            'rentalAgreement' => $this->formatRentalAgreement($propertyData->period ?? null),
+            'availabilityStatus' => $this->formatAvailabilityStatus($propertyData->period ?? null) ?? '',
+            'rentalAgreement' => $this->formatRentalAgreement($propertyData->period ?? null) ?? '',
             'agentName' => 'Domakin NL',
             'contactPhoneNumber' => Emails::PHONE_NUMBERS['domakin_call_center'],
         ];
@@ -409,5 +428,23 @@ class SignalIntegrationService
         // For now, return default coordinates
         // TODO: Implement geocoding service integration
         return $defaultCoordinates;
+    }
+
+    /**
+     * Decode JSON strings to arrays when applicable
+     *
+     * @param mixed $value
+     * @return mixed
+     */
+    private function decodeJsonIfNeeded($value)
+    {
+        if (is_string($value)) {
+            $decoded = json_decode($value, true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                return $decoded;
+            }
+        }
+
+        return $value;
     }
 }
