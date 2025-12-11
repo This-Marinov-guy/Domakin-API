@@ -39,6 +39,7 @@ return [
         'api/webhooks/stripe/*',
         'api/v*/blog/*', // Versioned blog routes
         'api/v*/property/*', // Versioned property routes
+        'api/v1/property/signal-test', // Explicitly exclude Signal test endpoint
         'api/v*/feedback/list', // Versioned feedback list
         'api/v*/renting/create', // Versioned renting create
         'api/documentation', // Swagger UI

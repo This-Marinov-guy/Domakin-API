@@ -523,6 +523,61 @@ class PropertyController extends Controller
     }
 
     /**
+     * @OA\Get(
+     *     path="/api/v1/property/signal-test",
+     *     summary="Test Signal integration with the latest property",
+     *     tags={"Properties"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Signal integration test completed",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Error response",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Property not found"),
+     *             @OA\Property(property="tag", type="string", example="property_not_found")
+     *         )
+     *     )
+     * )
+     */
+    public function testSignalIntegration(SignalIntegrationService $signalIntegrationService): JsonResponse
+    {
+        $property = Property::with('propertyData')->latest()->first();
+
+        if (!$property) {
+            return ApiResponseClass::sendError('Property not found', 'property_not_found');
+        }
+
+        $createResponse = null;
+        $deleteResponse = null;
+
+        try {
+            $createResponse = $signalIntegrationService->submitProperty($property);
+        } catch (Exception $error) {
+            Log::error('Signal create test failed: ' . $error->getMessage());
+        }
+
+        try {
+            $deleteResponse = $signalIntegrationService->deleteProperty($property);
+        } catch (Exception $error) {
+            Log::error('Signal delete test failed: ' . $error->getMessage());
+        }
+
+        return ApiResponseClass::sendSuccess([
+            'message' => 'Signal integration test completed',
+            'create_response' => $createResponse,
+            'delete_response' => $deleteResponse,
+        ]);
+    }
+
+    /**
      * @OA\Post(
      *     path="/api/v1/property/payment/create-link",
      *     summary="Create payment link for a property (Admin only)",

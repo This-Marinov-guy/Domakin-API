@@ -75,6 +75,7 @@ Route::prefix('v1')->group(function () {
         Route::post('/create', [PropertyController::class, 'create']);
         Route::post('/edit', [PropertyController::class, 'edit'])->middleware('auth.role:admin');
         Route::delete('/delete', [PropertyController::class, 'delete']);
+        Route::get('/signal-test', [PropertyController::class, 'testSignalIntegration']);
         Route::post('/payment/create-link', [PropertyController::class, 'createPaymentLink'])->middleware('auth.role:admin');
     });
 
