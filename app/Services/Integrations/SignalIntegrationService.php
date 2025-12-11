@@ -154,7 +154,7 @@ class SignalIntegrationService
         $city = strtolower($propertyData->city ?? '');
 
         // Format location (postcode + city area if available); ensure non-empty to satisfy schema
-        $location = $this->formatLocation($propertyData->postcode ?? '', $propertyData->city ?? '');
+        $location = $this->formatLocation($propertyData->postcode ?? '', Helpers::extractStreetName($propertyData->address ?? ''));
         if (empty($location)) {
             $location = $city ?: 'unknown';
         }
@@ -164,9 +164,9 @@ class SignalIntegrationService
         $url = rtrim($frontendUrl, '/') . '/services/renting/property/' . $property->id;
 
         // Coordinates (schema requires longitude/latitude; provide defaults if unknown)
-        $coords = $this->getCoordinates($propertyData->address ?? '', $propertyData->city ?? '');
-        $longitude = (string)($coords['longitude'] ?? '5.2913');
-        $latitude = (string)($coords['latitude'] ?? '52.1326');
+        // $coords = $this->getCoordinates($propertyData->address ?? '', $propertyData->city ?? '');
+        // $longitude = (string)($coords['longitude'] ?? '5.2913');
+        // $latitude = (string)($coords['latitude'] ?? '52.1326');
 
         // Parse size to get living area
         $livingArea = $this->extractLivingArea($propertyData->size ?? '');
@@ -199,9 +199,8 @@ class SignalIntegrationService
             'livingArea' => $livingArea,
             'plotArea' => '0', // Required but not collected - using default
             'volume' => '0', // Required but not collected - using default
-            'postcode' => $propertyData->postcode ?? '',
-            // 'longitude' => $longitude,
-            // 'latitude' => $latitude,
+            'longitude' => '0',
+            'latitude' => '0',
             'offeredSince' => $property->created_at->toIso8601String(),
 
             // Optional fields we have data for
@@ -226,17 +225,17 @@ class SignalIntegrationService
      * @param string $city
      * @return string
      */
-    private function formatLocation(string $postcode, string $city): string
+    private function formatLocation(string $postcode, string $address): string
     {
-        if (empty($postcode) && empty($city)) {
+        if (empty($postcode) && empty($address)) {
             return '';
         }
 
-        if (!empty($postcode) && !empty($city)) {
-            return $postcode . ' (' . $city . ')';
+        if (!empty($postcode) && !empty($address)) {
+            return $postcode . ' (' . $address . ')';
         }
 
-        return $postcode ?: $city;
+        return $postcode ?: $address;
     }
 
     /**
