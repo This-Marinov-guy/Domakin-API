@@ -4,6 +4,7 @@ namespace App\Services\Integrations;
 
 use App\Constants\Emails;
 use App\Models\Property;
+use App\Services\ExternalRequestLogger;
 use App\Services\Helpers;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -13,6 +14,13 @@ class SignalIntegrationService
 {
     private const API_ENDPOINT = 'https://api.signaal.app/webhooks/domakin';
     private const EVENT_TYPE = 'property.created';
+
+    private ExternalRequestLogger $externalRequestLogger;
+
+    public function __construct(ExternalRequestLogger $externalRequestLogger)
+    {
+        $this->externalRequestLogger = $externalRequestLogger;
+    }
 
     /**
      * Submit property to Signal API
@@ -39,10 +47,23 @@ class SignalIntegrationService
 
             $payload = $this->transformPropertyToSignalFormat($property);
 
-            $response = Http::withHeaders([
+            $requestHeaders = [
                 'Authorization' => 'Bearer ' . $token,
                 'Content-Type' => 'application/json',
-            ])->post(self::API_ENDPOINT, $payload);
+            ];
+
+            $response = Http::withHeaders($requestHeaders)->post(self::API_ENDPOINT, $payload);
+
+            // Log external request to Axiom
+            $this->externalRequestLogger->log(
+                'POST',
+                self::API_ENDPOINT,
+                $requestHeaders,
+                $payload,
+                $response,
+                'SignalIntegrationService',
+                ['property_id' => $property->id]
+            );
 
             if (!$response->successful()) {
                 Log::error('Signal API request failed', [
@@ -95,10 +116,23 @@ class SignalIntegrationService
                 'data' => [(string)$property->id],
             ];
 
-            $response = Http::withHeaders([
+            $requestHeaders = [
                 'Authorization' => 'Bearer ' . $token,
                 'Content-Type' => 'application/json',
-            ])->post(self::API_ENDPOINT, $payload);
+            ];
+
+            $response = Http::withHeaders($requestHeaders)->post(self::API_ENDPOINT, $payload);
+
+            // Log external request to Axiom
+            $this->externalRequestLogger->log(
+                'POST',
+                self::API_ENDPOINT,
+                $requestHeaders,
+                $payload,
+                $response,
+                'SignalIntegrationService',
+                ['property_id' => $property->id]
+            );
 
             if (!$response->successful()) {
                 Log::error('Signal API delete request failed', [
