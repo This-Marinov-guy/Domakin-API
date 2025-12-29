@@ -431,7 +431,7 @@ class PropertyController extends Controller
             $data['propertyData']['payment_link'] = $paymentLinks->createPropertyFeeLink($rent);
         }
 
-        $signalFlag = $request->get('is_signal', null);
+        $signalFlag = $request->boolean('is_signal', default: false);
 
         if ($signalFlag !== null && $property->is_signal !== $signalFlag) {
             try {
@@ -451,6 +451,10 @@ class PropertyController extends Controller
             $property->release_timestamp = $data['release_timestamp'];
             $property->referral_code = $data['referral_code'];
             $property->propertyData->update($data['propertyData']);
+
+            if ($data['release_timestamp'] !== null) {
+                $property->release_timestamp = $data['release_timestamp'];
+            }
 
             $property->save();
         } catch (Exception $error) {
