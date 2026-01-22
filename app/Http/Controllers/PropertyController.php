@@ -397,14 +397,21 @@ class PropertyController extends Controller
     {
         // Normalize releaseTimestamp - convert string "null" to actual null
         $releaseTimestamp = $request->get('releaseTimestamp');
+
         if ($releaseTimestamp === 'null' || $releaseTimestamp === null || $releaseTimestamp === '') {
             $releaseTimestamp = null;
+        }
+
+        $referralCode = $request->get('referralCode');
+
+        if ($referralCode === 'null' || $referralCode === null || $referralCode === '') {
+            $referralCode = null;
         }
 
         $data = [
             'propertyData' => json_decode($request->get('propertyData'), true),
             'id' => $request->get('id'),
-            'referral_code' => $request->get('referralCode'),
+            'referral_code' => $referralCode,
             'status' => $request->get('status'),
             'approved' => $request->get('approved'),
             'release_timestamp' => $releaseTimestamp,
