@@ -2,9 +2,15 @@
 
 namespace App\Providers;
 
+use App\Listeners\TrackJobStatus;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Queue\Events\JobProcessing;
+use Illuminate\Queue\Events\JobProcessed;
+use Illuminate\Queue\Events\JobFailed;
+use Illuminate\Queue\Events\JobExceptionOccurred;
 use Illuminate\Http\Request;
 
 class AppServiceProvider extends ServiceProvider
@@ -37,5 +43,11 @@ class AppServiceProvider extends ServiceProvider
             return \Illuminate\Cache\RateLimiting\Limit::perMinute(config('rate_limits.login_per_minute'))
                 ->by($email.$request->ip());
         });
+
+        // Register job tracking event listeners
+        Event::listen(JobProcessing::class, [TrackJobStatus::class, 'handleJobProcessing']);
+        Event::listen(JobProcessed::class, [TrackJobStatus::class, 'handleJobProcessed']);
+        Event::listen(JobFailed::class, [TrackJobStatus::class, 'handleJobFailed']);
+        Event::listen(JobExceptionOccurred::class, [TrackJobStatus::class, 'handleJobExceptionOccurred']);
     }
 }

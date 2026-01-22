@@ -45,6 +45,7 @@ return [
 
     'terms_required_domains' => [
         'localhost',
+        'http://localhost:3000',
         '127.0.0.1',
         'domakin.nl',
         'www.domakin.nl',

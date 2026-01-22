@@ -8,13 +8,13 @@ class Helpers
 {
     public static function getDefaultLocalesJSON()
     {
-        $languages = Translations::SUPPORTED_LOCALES;
+        $languages = Translations::WEB_SUPPORTED_LOCALES;
         return json_encode(array_combine($languages, array_fill(0, count($languages), "")), JSON_PRETTY_PRINT);
     }
 
     public static function getDefaultLocalesObject()
     {
-        $languages = Translations::SUPPORTED_LOCALES;
+        $languages = Translations::WEB_SUPPORTED_LOCALES;
         return array_combine($languages, array_fill(0, count($languages), ""));
     }
 
@@ -151,5 +151,43 @@ class Helpers
         }
 
         return $translated ?? $value['en'] ?? $fallback;
+    }
+
+    /**
+     * Sanitize and format slug
+     *
+     * @param string $text
+     * @return string
+     */
+    public static function sanitizeSlug(string $text): string
+    {
+        // Convert to lowercase
+        $slug = strtolower($text);
+
+        // Replace spaces and underscores with hyphens
+        $slug = preg_replace('/[\s_]+/', '-', $slug);
+
+        // Remove all characters that are not alphanumeric or hyphens
+        $slug = preg_replace('/[^a-z0-9\-]/', '', $slug);
+
+        // Remove multiple consecutive hyphens
+        $slug = preg_replace('/-+/', '-', $slug);
+
+        // Remove leading and trailing hyphens
+        $slug = trim($slug, '-');
+
+        // Truncate to 90 characters
+        if (strlen($slug) > 90) {
+            $slug = substr($slug, 0, 90);
+            // Remove trailing hyphen if truncation created one
+            $slug = rtrim($slug, '-');
+        }
+
+        // Ensure slug is not empty
+        if (empty($slug)) {
+            $slug = 'property';
+        }
+
+        return $slug;
     }
 }

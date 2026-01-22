@@ -52,15 +52,27 @@ trait HasDomainBasedTermsValidation
 
         $termsRequiredDomains = config('domains.terms_required_domains', []);
 
+        // Strip port from origin host for comparison (e.g., localhost:3000 -> localhost)
+        $originHostWithoutPort = $originHost;
+        if (strpos($originHost, ':') !== false) {
+            $originHostWithoutPort = explode(':', $originHost)[0];
+        }
+
         // Check if the origin domain requires terms
         foreach ($termsRequiredDomains as $domain) {
-            // Exact match
-            if ($originHost === $domain) {
+            // Strip port from config domain if present
+            $domainWithoutPort = $domain;
+            if (strpos($domain, ':') !== false) {
+                $domainWithoutPort = explode(':', $domain)[0];
+            }
+
+            // Exact match (with or without port)
+            if ($originHost === $domain || $originHostWithoutPort === $domainWithoutPort) {
                 return true;
             }
             
             // Subdomain match (e.g., www.domakin.nl matches domakin.nl)
-            if (str_ends_with($originHost, '.' . $domain)) {
+            if (str_ends_with($originHostWithoutPort, '.' . $domainWithoutPort)) {
                 return true;
             }
         }
@@ -84,8 +96,13 @@ trait HasDomainBasedTermsValidation
         // If URL doesn't have a protocol, parse_url won't work correctly
         // Check if it's already just a hostname
         if (!preg_match('/^https?:\/\//', $url)) {
-            // It's likely just a hostname, return as-is
-            return trim($url);
+            // It's likely just a hostname, return as-is (strip port if present)
+            $host = trim($url);
+            // Remove port if present (e.g., localhost:3000 -> localhost)
+            if (strpos($host, ':') !== false) {
+                $host = explode(':', $host)[0];
+            }
+            return $host;
         }
 
         $parts = parse_url($url);

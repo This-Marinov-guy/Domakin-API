@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Classes\ApiResponseClass;
+use App\Constants\Translations;
 use App\Files\CloudinaryService;
 use App\Http\Controllers\Controller;
 use App\Mail\Notification;
@@ -15,6 +16,7 @@ use App\Http\Requests\PropertyRequest;
 use App\Models\PersonalData;
 use App\Models\PropertyData;
 use App\Services\Helpers;
+use App\Jobs\ReformatPropertyDescriptionJob;
 use App\Services\Integrations\SignalIntegrationService;
 use App\Services\PropertyService;
 use App\Services\Payment\PaymentLinkService;
@@ -122,7 +124,7 @@ class PropertyController extends Controller
      * 
      * @return JsonResponse
      */
-    public function show(PropertyService $propertyService): JsonResponse
+    public function show(Request $request, PropertyService $propertyService): JsonResponse
     {
         $properties = Property::with(['personalData', 'propertyData'])
             ->whereNotNull('release_timestamp')
@@ -132,9 +134,41 @@ class PropertyController extends Controller
             ->get()
             ->toArray();
 
-        $properties = $propertyService->parsePropertiesForListing($properties);
+        // Extract language from Accept-Language header
+        $language = $this->extractLanguageFromRequest($request);
+
+        $properties = $propertyService->parsePropertiesForListing(properties: $properties, language: $language);
 
         return ApiResponseClass::sendSuccess($properties);
+    }
+
+    /**
+     * Extract language from Accept-Language header
+     *
+     * @param Request $request
+     * @return string
+     */
+    private function extractLanguageFromRequest(Request $request): string
+    {
+        $acceptLanguage = $request->header('Accept-Language', '');
+        
+        if (empty($acceptLanguage)) {
+            return 'en'; // Default to English
+        }
+
+        // Parse Accept-Language header (e.g., "en-US,en;q=0.9,nl;q=0.8")
+        // Extract the first language code
+        if (preg_match('/^([a-z]{2})(?:-[a-z]{2})?(?:;q=[\d.]+)?/i', $acceptLanguage, $matches)) {
+            $language = strtolower($matches[1]);
+            
+            // Validate against supported locales
+            $supportedLocales = Translations::WEB_SUPPORTED_LOCALES;
+            if (in_array($language, $supportedLocales)) {
+                return $language;
+            }
+        }
+
+        return 'en'; // Default fallback
     }
 
     /**
@@ -283,6 +317,13 @@ class PropertyController extends Controller
             ]);
         } catch (Exception $error) {
             return ApiResponseClass::sendError($error->getMessage());
+        }
+
+        try {
+            // Dispatch background job to reformat and translate description using OpenAI
+            ReformatPropertyDescriptionJob::dispatch($property->id);
+        } catch (Exception $error) {
+            Log::error($error->getMessage());
         }
 
         try {

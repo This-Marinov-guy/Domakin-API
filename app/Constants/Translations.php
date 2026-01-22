@@ -4,7 +4,7 @@ namespace App\Constants;
 
 class Translations
 {
-    public const SUPPORTED_LOCALES = [
+    public const WEB_SUPPORTED_LOCALES = [
         'en',
         'bg',
         'gr'
