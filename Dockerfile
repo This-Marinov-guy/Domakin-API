@@ -23,8 +23,8 @@ COPY . .
 # Install PHP dependencies using Composer
 RUN composer install --no-dev --optimize-autoloader
 
-# Make startup scripts executable
-RUN chmod +x /var/www/start-queue-worker.sh /var/www/start-app.sh
+# Make startup script executable
+RUN chmod +x /var/www/start-app.sh
 
 # Set proper permissions for the application
 RUN chown -R www-data:www-data /var/www
