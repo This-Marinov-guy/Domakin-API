@@ -38,15 +38,6 @@ class OpenAIService
      */
     public function reformatAndTranslateDescription(string $description, array $languages): array
     {
-        if (env('APP_ENV') === 'dev') {
-            Log::info('[OpenAI Service] Starting reformatAndTranslateDescription', [
-                'description_length' => strlen($description),
-                'description_preview' => substr($description, 0, 100) . '...',
-                'languages' => $languages,
-                'model' => $this->model->value,
-            ]);
-        }
-
         if (empty($this->apiKey)) {
             throw new Exception('OpenAI API key is not configured');
         }
@@ -62,20 +53,10 @@ class OpenAIService
         // Ensure 'en' is in the languages array
         if (!in_array('en', $languages)) {
             $languages[] = 'en';
-            if (env('APP_ENV') === 'dev') {
-                Log::info('[OpenAI Service] Added "en" to languages array', ['languages' => $languages]);
-            }
         }
 
         // Create the prompt
         $prompt = $this->buildPrompt($description, $languages);
-
-        if (env('APP_ENV') === 'dev') {
-            Log::info('[OpenAI Service] Prompt created', [
-                'prompt_length' => strlen($prompt),
-                'prompt_preview' => substr($prompt, 0, 200) . '...',
-            ]);
-        }
 
         try {
             $requestHeaders = [
@@ -100,24 +81,20 @@ class OpenAIService
             ];
 
             if (env('APP_ENV') === 'dev') {
-                Log::info('[OpenAI Service] Making API request', [
-                    'endpoint' => self::API_ENDPOINT,
-                    'model' => $this->model->value,
-                    'has_api_key' => !empty($this->apiKey),
-                    'request_body_size' => strlen(json_encode($requestBody)),
-                ]);
+                return [
+                    'description' => [
+                        'en' => 'This is a test description',
+                    ],
+                    'title' => [
+                        'en' => 'This is a test title',
+                    ],
+                    'slug' => 'this-is-a-test-slug',
+                ];
             }
 
             $response = Http::withHeaders($requestHeaders)
                 ->timeout(60)
                 ->post(self::API_ENDPOINT, $requestBody);
-
-            if (env('APP_ENV') === 'dev') {
-                Log::info('[OpenAI Service] API response received', [
-                    'status' => $response->status(),
-                    'response_size' => strlen($response->body()),
-                ]);
-            }
 
             // Log external request
             $this->externalRequestLogger->log(
@@ -147,57 +124,22 @@ class OpenAIService
             $content = $responseData['choices'][0]['message']['content'] ?? null;
 
             if (empty($content)) {
-                if (env('APP_ENV') === 'dev') {
-                    Log::warning('[OpenAI Service] Empty content in response', [
-                        'response_data' => $responseData,
-                    ]);
-                }
                 throw new Exception('OpenAI API returned empty response');
             }
 
-            if (env('APP_ENV') === 'dev') {
-                Log::info('[OpenAI Service] Raw content received', [
-                    'content_length' => strlen($content),
-                    'content_preview' => substr($content, 0, 300) . '...',
-                ]);
-            }
+
 
             // Parse JSON response
             $result = json_decode($content, true);
 
             if (json_last_error() !== JSON_ERROR_NONE) {
-                if (env('APP_ENV') === 'dev') {
-                    Log::error('[OpenAI Service] Failed to parse JSON', [
-                        'content' => $content,
-                        'json_error' => json_last_error_msg(),
-                    ]);
-                }
                 throw new Exception('Failed to parse OpenAI response: ' . json_last_error_msg());
-            }
-
-            if (env('APP_ENV') === 'dev') {
-                Log::info('[OpenAI Service] JSON parsed successfully', [
-                    'has_description' => isset($result['description']),
-                    'has_title' => isset($result['title']),
-                    'has_slug' => isset($result['slug']),
-                    'description_keys' => isset($result['description']) ? array_keys($result['description']) : [],
-                    'title_keys' => isset($result['title']) ? array_keys($result['title']) : [],
-                ]);
             }
 
             // Validate and structure the response
             $structured = $this->validateAndStructureResponse($result, $languages);
 
-            if (env('APP_ENV') === 'dev') {
-                Log::info('[OpenAI Service] Response structured and validated', [
-                    'final_languages' => array_keys($structured['description']),
-                    'slug' => $structured['slug'],
-                    'slug_length' => strlen($structured['slug']),
-                ]);
-            }
-
             return $structured;
-
         } catch (Exception $e) {
             Log::error('Error in OpenAI service: ' . $e->getMessage(), [
                 'description_length' => strlen($description),
@@ -307,13 +249,6 @@ PROMPT;
                 'missing' => $missingLanguages,
                 'received' => array_keys($result['description']),
             ]);
-            if (env('APP_ENV') === 'dev') {
-                Log::warning('[OpenAI Service] Missing translations detected', [
-                    'missing' => $missingLanguages,
-                    'expected_languages' => $languages,
-                    'received_languages' => array_keys($result['description']),
-                ]);
-            }
         }
 
         // Structure the response
@@ -346,25 +281,7 @@ PROMPT;
     {
         // If slug is provided and valid, use it
         if (isset($result['slug']) && is_string($result['slug'])) {
-            if (env('APP_ENV') === 'dev') {
-                Log::info('[OpenAI Service] Slug provided in response', [
-                    'original_slug' => $result['slug'],
-                    'original_length' => strlen($result['slug']),
-                ]);
-            }
             $slug = $result['slug'];
-            if (strlen($slug) <= 90 && !empty($slug)) {
-                if (env('APP_ENV') === 'dev') {
-                    Log::info('[OpenAI Service] Using provided slug', ['slug' => $slug]);
-                }
-                return $slug;
-            }
-            if (env('APP_ENV') === 'dev') {
-                Log::warning('[OpenAI Service] Provided slug invalid, generating from title', [
-                    'sanitized_slug' => $slug,
-                    'length' => strlen($slug),
-                ]);
-            }
         }
 
         // Generate slug from English title as fallback
@@ -372,25 +289,10 @@ PROMPT;
         if (empty($englishTitle)) {
             // If no English title, use a default
             $englishTitle = 'available-room';
-            if (env('APP_ENV') === 'dev') {
-                Log::warning('[OpenAI Service] No English title found, using default', ['default' => $englishTitle]);
-            }
-        } else {
-            if (env('APP_ENV') === 'dev') {
-                Log::info('[OpenAI Service] Generating slug from English title', [
-                    'title' => $englishTitle,
-                ]);
-            }
         }
 
         $slug = Helpers::sanitizeSlug($englishTitle);
-        if (env('APP_ENV') === 'dev') {
-            Log::info('[OpenAI Service] Generated slug', [
-                'slug' => $slug,
-                'length' => strlen($slug),
-            ]);
-        }
-
+    
         return $slug;
     }
 }
