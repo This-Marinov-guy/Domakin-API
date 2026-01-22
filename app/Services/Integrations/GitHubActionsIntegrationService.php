@@ -56,6 +56,10 @@ class GitHubActionsIntegrationService
      */
     public function triggerUpdateSitemap(?string $owner = null, ?string $repo = null, ?string $eventType = null): array
     {
+        if (env('APP_ENV') !== 'prod') {
+            return [];
+        }
+        
         $owner = $owner ?: self::DEFAULT_OWNER;
         $repo = $repo ?: self::DEFAULT_REPO;
         $eventType = $eventType ?: self::DEFAULT_EVENT_TYPE;
