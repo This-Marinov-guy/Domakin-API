@@ -7,6 +7,7 @@ use App\Constants\Translations;
 use App\Models\JobTracking;
 use App\Models\Property;
 use App\Services\Helpers;
+use App\Services\Integrations\GitHubActionsIntegrationService;
 use App\Services\Integrations\OpenAIService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -73,9 +74,10 @@ class ReformatPropertyDescriptionJob implements ShouldQueue
      * Execute the job.
      *
      * @param OpenAIService $openAIService
+     * @param GitHubActionsIntegrationService $githubActionsIntegrationService
      * @return void
      */
-    public function handle(OpenAIService $openAIService): void
+    public function handle(OpenAIService $openAIService, GitHubActionsIntegrationService $githubActionsIntegrationService): void
     {
         try {
             $property = Property::with('propertyData')->find($this->propertyId);
@@ -103,7 +105,7 @@ class ReformatPropertyDescriptionJob implements ShouldQueue
             $result = $openAIService->reformatAndTranslateDescription($englishDescription, $languages);
 
             // Update property data with new translations and slug
-            $this->updatePropertyData($property, $result);
+            $this->updatePropertyData($property, $result, $githubActionsIntegrationService);
 
             Log::info("Successfully reformatted property description for property ID: {$this->propertyId}");
         } catch (Exception $e) {
@@ -146,7 +148,7 @@ class ReformatPropertyDescriptionJob implements ShouldQueue
      * @param array $result
      * @return void
      */
-    private function updatePropertyData($property, array $result): void
+    private function updatePropertyData($property, array $result, GitHubActionsIntegrationService $githubActionsIntegrationService): void
     {
         // Update description - convert array to JSON string
         if (isset($result['description']) && is_array($result['description'])) {
@@ -169,6 +171,16 @@ class ReformatPropertyDescriptionJob implements ShouldQueue
             $property->save();
         } catch (Exception $e) {
             Log::error("Failed to save property data for property ID: {$this->propertyId}", [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+        }
+
+        try {
+            // Trigger GitHub Actions to update sitemap
+            $githubActionsIntegrationService->triggerUpdateSitemap();
+        } catch (Exception $e) {
+            Log::error("Failed to trigger GitHub Actions to update sitemap for property ID: {$this->propertyId}", [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
