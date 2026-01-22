@@ -480,6 +480,8 @@ class PropertyController extends Controller
 
         $signalFlag = $request->boolean('is_signal', default: false);
 
+        $signalRequestSuccess = true;
+
         if ($signalFlag !== null && $property->is_signal !== $signalFlag) {
             try {
                 $signalFlag ?
@@ -489,6 +491,7 @@ class PropertyController extends Controller
                 $property->is_signal = $signalFlag;
             } catch (Exception $error) {
                 Log::error($error->getMessage());
+                $signalRequestSuccess = false;
             }
         }
 
@@ -511,10 +514,7 @@ class PropertyController extends Controller
             return ApiResponseClass::sendError($error->getMessage());
         }
 
-
-
-
-        return ApiResponseClass::sendSuccess(['message' => 'Property updated successfully']);
+        return ApiResponseClass::sendSuccess(['message' => 'Property updated successfully', 'warning' => $signalRequestSuccess ? null : 'Signal request failed']);
     }
 
     // /**
