@@ -64,7 +64,7 @@ class PropertyService
                 'status' => PropertyStatus::from($property['status'])->label(),
                 'statusCode' => $property['status'],
                 'price' => $property['property_data']['rent'],
-                'title' => Helpers::getTranslatedValue($property['property_data']['title'], $language, false, 'Available room'),
+                'title' => Helpers::getTranslatedValue($property['property_data']['title'], $language) || 'Available room',
                 'city' => $property['property_data']['city'],
                 'location' => Helpers::extractStreetName($property['property_data']['address']) . ', ' . $property['property_data']['city'],
                 'description' => [
