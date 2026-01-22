@@ -63,6 +63,7 @@ class PropertyService
                 'id' =>  $property['id'] + 1000, // to avoid collision with the id of the property,
                 'status' => PropertyStatus::from($property['status'])->label(),
                 'statusCode' => $property['status'],
+                'slug' => $property['slug'],
                 'price' => $property['property_data']['rent'],
                 'title' => Helpers::getTranslatedValue($property['property_data']['title'], $language) ?? 'Available room',
                 'city' => $property['property_data']['city'],
