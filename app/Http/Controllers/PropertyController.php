@@ -395,13 +395,19 @@ class PropertyController extends Controller
      */
     public function edit(Request $request, PropertyService $propertyService, UserService $user, PaymentLinkService $paymentLinks, CloudinaryService $cloudinary, SignalIntegrationService $signalIntegrationService): JsonResponse
     {
+        // Normalize releaseTimestamp - convert string "null" to actual null
+        $releaseTimestamp = $request->get('releaseTimestamp');
+        if ($releaseTimestamp === 'null' || $releaseTimestamp === null || $releaseTimestamp === '') {
+            $releaseTimestamp = null;
+        }
+
         $data = [
             'propertyData' => json_decode($request->get('propertyData'), true),
             'id' => $request->get('id'),
             'referral_code' => $request->get('referralCode'),
             'status' => $request->get('status'),
             'approved' => $request->get('approved'),
-            'release_timestamp' => $request->get('releaseTimestamp'),
+            'release_timestamp' => $releaseTimestamp,
             'terms' => json_decode($request->get('terms'), true),
             'newImages' => $request->file('newImages'),
             'last_updated_by' => $user->extractIdFromRequest($request),
@@ -489,13 +495,16 @@ class PropertyController extends Controller
         try {
             $property->status = $data['status'];
             $property->last_updated_by = $user->extractIdFromRequest($request);
-            $property->release_timestamp = $data['release_timestamp'];
             $property->referral_code = $data['referral_code'];
-            $property->propertyData->update($data['propertyData']);
-
-            if ($data['release_timestamp'] !== null) {
+            
+            // Handle release_timestamp - set to null if explicitly null, otherwise set the value
+            if ($data['release_timestamp'] === null) {
+                $property->release_timestamp = null;
+            } else {
                 $property->release_timestamp = $data['release_timestamp'];
             }
+            
+            $property->propertyData->update($data['propertyData']);
 
             $property->save();
         } catch (Exception $error) {
