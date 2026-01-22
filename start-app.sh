@@ -5,7 +5,17 @@ echo "🚀 Starting Laravel Application with Queue Worker..."
 
 # Wait for database to be ready
 echo "⏳ Waiting for database connection..."
-until php artisan db:show &>/dev/null; do
+until php -r "
+    require __DIR__ . '/vendor/autoload.php';
+    \$app = require_once __DIR__ . '/bootstrap/app.php';
+    \$app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+    try {
+        Illuminate\Support\Facades\DB::connection()->getPdo();
+        exit(0);
+    } catch (Exception \$e) {
+        exit(1);
+    }
+" 2>/dev/null; do
     echo "   Database not ready, waiting 2 seconds..."
     sleep 2
 done
