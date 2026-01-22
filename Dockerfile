@@ -23,6 +23,9 @@ COPY . .
 # Install PHP dependencies using Composer
 RUN composer install --no-dev --optimize-autoloader
 
+# Make startup scripts executable
+RUN chmod +x /var/www/start-queue-worker.sh /var/www/start-app.sh
+
 # Set proper permissions for the application
 RUN chown -R www-data:www-data /var/www
 
@@ -32,5 +35,5 @@ USER www-data
 # Expose port 8000 for Laravel development server
 EXPOSE 8000
 
-# Start Laravel's development server
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
+# Start both web server and queue worker
+CMD ["/bin/bash", "/var/www/start-app.sh"]
