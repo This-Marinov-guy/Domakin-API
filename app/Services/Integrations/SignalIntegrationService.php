@@ -179,7 +179,7 @@ class SignalIntegrationService
         $rawTitle = $this->decodeJsonIfNeeded($propertyData->title ?? null);
         $rawDescription = $this->decodeJsonIfNeeded($propertyData->description ?? null);
 
-        $title = Helpers::getTranslatedValue($rawTitle, 'en') || 'Available room';
+        $title = Helpers::getTranslatedValue($rawTitle, 'en') ?? 'Available room';
         $description = Helpers::getTranslatedValue($rawDescription, 'en', false, '');
 
         // dd($title, $description);
