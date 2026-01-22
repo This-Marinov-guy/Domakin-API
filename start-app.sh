@@ -26,7 +26,7 @@ fi
 # Start queue worker in background
 echo "▶️  Starting queue worker in background..."
 php artisan queue:work database \
-    --sleep=0.1 \
+    --sleep=5 \
     --tries=3 \
     --max-time=3600 \
     --timeout=60 \
