@@ -6,25 +6,35 @@ echo "🚀 Starting Laravel Application..."
 # Retry all failed jobs on startup
 echo "🔄 Checking for failed jobs..."
 
-# Query the database directly to count failed jobs
-FAILED_COUNT=$(php -r "
-require __DIR__ . '/vendor/autoload.php';
-\$app = require_once __DIR__ . '/bootstrap/app.php';
-\$app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
-try {
-    \$count = Illuminate\Support\Facades\DB::table('failed_jobs')->count();
-    echo \$count;
-} catch (Exception \$e) {
-    echo '0';
-}
-" 2>/dev/null || echo "0")
+# Check for failed jobs using artisan
+FAILED_OUTPUT=$(php artisan queue:failed 2>&1)
 
-if [ "$FAILED_COUNT" -gt 0 ]; then
-    echo "   Found $FAILED_COUNT failed job(s) in failed_jobs table, retrying..."
-    php artisan queue:retry all
-    echo "✅ Failed jobs have been requeued"
-else
+# Check if there are no failed jobs
+if echo "$FAILED_OUTPUT" | grep -qi "No failed jobs"; then
     echo "✅ No failed jobs to retry"
+else
+    # Extract UUIDs from the output (Laravel shows them in the table)
+    UUIDs=$(echo "$FAILED_OUTPUT" | grep -oE "[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}" | sort -u)
+    
+    if [ -z "$UUIDs" ]; then
+        # Fallback: use 'retry all' if we can't extract UUIDs
+        echo "   Found failed jobs, retrying all..."
+        php artisan queue:retry all 2>&1
+        echo "✅ Failed jobs have been requeued"
+    else
+        # Count UUIDs
+        FAILED_COUNT=$(echo "$UUIDs" | wc -l | tr -d ' ')
+        echo "   Found $FAILED_COUNT failed job(s), retrying..."
+        
+        # Retry each job
+        while IFS= read -r uuid; do
+            if [ -n "$uuid" ]; then
+                php artisan queue:retry "$uuid" >/dev/null 2>&1 || true
+            fi
+        done <<< "$UUIDs"
+        
+        echo "✅ Failed jobs have been requeued"
+    fi
 fi
 
 # Start Laravel web server
