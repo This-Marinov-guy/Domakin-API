@@ -62,6 +62,9 @@ class AxiomLoggerMiddleware
             'environment' => config('app.env'),
         ];
 
+        // Truncate all string values to 250 characters to avoid Axiom column limit
+        $logData = $this->truncateStringsForAxiom($logData);
+
         // Send to Axiom
         $this->sendToAxiom($logData);
 
@@ -163,6 +166,29 @@ class AxiomLoggerMiddleware
         } catch (\Exception $e) {
             return 'Failed to parse response body: ' . $e->getMessage();
         }
+    }
+
+    /**
+     * Recursively truncate all string values to 250 characters to avoid Axiom column limit.
+     *
+     * @param mixed $data
+     * @return mixed
+     */
+    protected function truncateStringsForAxiom($data)
+    {
+        if (is_string($data)) {
+            return strlen($data) > 250 ? substr($data, 0, 250) . '... [truncated]' : $data;
+        }
+
+        if (is_array($data)) {
+            $truncated = [];
+            foreach ($data as $key => $value) {
+                $truncated[$key] = $this->truncateStringsForAxiom($value);
+            }
+            return $truncated;
+        }
+
+        return $data;
     }
 
     /**
