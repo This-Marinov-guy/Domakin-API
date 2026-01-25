@@ -98,11 +98,22 @@ class ReformatPropertyDescriptionJob implements ShouldQueue
                 throw new Exception("No English description found for property ID: {$this->propertyId}");
             }
 
+            // Extract English values for flatmates, bills, and period
+            $englishFlatmates = $this->extractEnglishValue($propertyData->flatmates);
+            $englishBills = $this->extractEnglishValue($propertyData->bills);
+            $englishPeriod = $this->extractEnglishValue($propertyData->period);
+
             // Get supported locales
             $languages = Translations::WEB_SUPPORTED_LOCALES;
 
             // Call OpenAI service to reformat and translate
-            $result = $openAIService->reformatAndTranslateDescription($englishDescription, $languages);
+            $result = $openAIService->reformatAndTranslateDescription(
+                $englishDescription, 
+                $languages,
+                $englishFlatmates,
+                $englishBills,
+                $englishPeriod
+            );
 
             // Update property data with new translations and slug
             $this->updatePropertyData($property, $result, $githubActionsIntegrationService);
@@ -142,6 +153,29 @@ class ReformatPropertyDescriptionJob implements ShouldQueue
     }
 
     /**
+     * Extract English value from stored JSON or string
+     *
+     * @param string|null $value
+     * @return string|null
+     */
+    private function extractEnglishValue(?string $value): ?string
+    {
+        if (empty($value)) {
+            return null;
+        }
+
+        // Try to decode as JSON first
+        $decoded = json_decode($value, true);
+        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+            // If it's JSON, get the English version
+            return $decoded['en'] ?? $decoded[''] ?? null;
+        }
+
+        // If it's not JSON, assume it's already in English
+        return $value;
+    }
+
+    /**
      * Update property data with OpenAI results
      *
      * @param \App\Models\PropertyData $propertyData
@@ -163,6 +197,21 @@ class ReformatPropertyDescriptionJob implements ShouldQueue
         // Update slug on property
         if (isset($result['slug'])) {
             $property->slug = Helpers::sanitizeSlug($this->propertyId + Properties::FRONTEND_PROPERTY_ID_INDEXING . '-' . $result['slug'] . '-' . $property->propertyData->city);
+        }
+
+        // Update flatmates - convert array to JSON string
+        if (isset($result['flatmates']) && is_array($result['flatmates'])) {
+            $property->propertyData->flatmates = json_encode($result['flatmates'], JSON_UNESCAPED_UNICODE);
+        }
+
+        // Update bills - convert array to JSON string
+        if (isset($result['bills']) && is_array($result['bills'])) {
+            $property->propertyData->bills = json_encode($result['bills'], JSON_UNESCAPED_UNICODE);
+        }
+
+        // Update period - convert array to JSON string
+        if (isset($result['period']) && is_array($result['period'])) {
+            $property->propertyData->period = json_encode($result['period'], JSON_UNESCAPED_UNICODE);
         }
 
         try {

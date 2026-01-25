@@ -29,14 +29,23 @@ class OpenAIService
     }
 
     /**
-     * Reformats and translates property description using OpenAI
+     * Reformats and translates property description, flatmates, bills, and period using OpenAI
      *
      * @param string $description The original description in English
      * @param array $languages Array of language codes (e.g., ['en', 'nl', 'de', 'fr'])
-     * @return array Returns array with 'description' and 'title' keys, each containing translations
+     * @param string|null $flatmates The flatmates value (usually a number)
+     * @param string|null $bills The bills value (in euro)
+     * @param string|null $period The period value
+     * @return array Returns array with 'description', 'title', 'flatmates', 'bills', 'period', and 'slug' keys
      * @throws Exception
      */
-    public function reformatAndTranslateDescription(string $description, array $languages): array
+    public function reformatAndTranslateDescription(
+        string $description, 
+        array $languages, 
+        ?string $flatmates = null, 
+        ?string $bills = null, 
+        ?string $period = null
+    ): array
     {
         if (empty($this->apiKey)) {
             throw new Exception('OpenAI API key is not configured');
@@ -56,7 +65,7 @@ class OpenAIService
         }
 
         // Create the prompt
-        $prompt = $this->buildPrompt($description, $languages);
+        $prompt = $this->buildPrompt($description, $languages, $flatmates, $bills, $period);
 
         try {
             $requestHeaders = [
@@ -81,7 +90,7 @@ class OpenAIService
             ];
 
             if (env('APP_ENV') === 'dev') {
-                return [
+                $testResult = [
                     'description' => [
                         'en' => 'This is a test description',
                     ],
@@ -90,6 +99,15 @@ class OpenAIService
                     ],
                     'slug' => 'this-is-a-test-slug',
                 ];
+                
+                // Add test translations for additional fields
+                foreach ($languages as $lang) {
+                    $testResult['flatmates'][$lang] = $flatmates ?? '2';
+                    $testResult['bills'][$lang] = $bills ?? '€150';
+                    $testResult['period'][$lang] = $period ?? '12 months';
+                }
+                
+                return $testResult;
             }
 
             $response = Http::withHeaders($requestHeaders)
@@ -154,18 +172,36 @@ class OpenAIService
      *
      * @param string $description
      * @param array $languages
+     * @param string|null $flatmates
+     * @param string|null $bills
+     * @param string|null $period
      * @return string
      */
-    private function buildPrompt(string $description, array $languages): string
+    private function buildPrompt(string $description, array $languages, ?string $flatmates = null, ?string $bills = null, ?string $period = null): string
     {
         $languagesList = implode(', ', $languages);
         $languageCodes = implode('", "', $languages);
+        
+        // Build additional fields section
+        $additionalFields = '';
+        if ($flatmates !== null || $bills !== null || $period !== null) {
+            $additionalFields = "\n\nAdditional property information:\n";
+            if ($flatmates !== null) {
+                $additionalFields .= "- Flatmates: {$flatmates} (usually a number, e.g., '2', '3-4', 'mixed')\n";
+            }
+            if ($bills !== null) {
+                $additionalFields .= "- Bills: {$bills} (in euros, e.g., '€150', '€200-250', 'included')\n";
+            }
+            if ($period !== null) {
+                $additionalFields .= "- Period: {$period} (rental period, e.g., '12 months', '6-12 months', 'indefinite')\n";
+            }
+        }
 
         return <<<PROMPT
-You are a professional real estate content writer. Please reformat and translate the following property description.
+You are a professional real estate content writer. Please reformat and translate the following property description and additional information.
 
 Original description (in English):
-{$description}
+{$description}{$additionalFields}
 
 Requirements:
 1. Reformulate the description to be:
@@ -184,7 +220,12 @@ Requirements:
    - Professional
    - Translated to all requested languages
 
-4. Generate a URL-friendly slug (English only) based on the English title. The slug should be:
+4. Translate the additional fields (flatmates, bills, period) to all requested languages:
+   - Flatmates: Keep numbers as-is, but translate any descriptive text (e.g., "mixed" → appropriate translation)
+   - Bills: Keep the euro amount format, but ensure currency symbol and format are appropriate for each language
+   - Period: Translate time periods appropriately (e.g., "12 months" → "12 maanden" in Dutch, "12 μήνες" in Greek)
+
+5. Generate a URL-friendly slug (English only) based on the English title. The slug should be:
    - Under 70 characters
    - Lowercase
    - Spaces replaced with hyphens (-)
@@ -202,9 +243,18 @@ Please return a JSON object with the following structure:
     "{$languageCodes}": "translated description for each language"
   },
   "title": {
-    "{$languageCodes}": "translated title for each language (max 5 words each)"
+    "{$languageCodes}": "translated title for each language (max 6 words each)"
   },
-  "slug": "url-friendly-slug-in-english-under-90-chars"
+  "flatmates": {
+    "{$languageCodes}": "translated flatmates value for each language"
+  },
+  "bills": {
+    "{$languageCodes}": "translated bills value for each language (keep euro format)"
+  },
+  "period": {
+    "{$languageCodes}": "translated period value for each language"
+  },
+  "slug": "url-friendly-slug-in-english-under-70-chars"
 }
 
 Ensure all translations are accurate, culturally appropriate, and maintain the professional tone. The English version should be the reformatted, improved version of the original description.
@@ -242,6 +292,16 @@ PROMPT;
             if (!isset($result['title'][$lang])) {
                 $missingLanguages[] = "title.{$lang}";
             }
+            // Check optional fields
+            if (isset($result['flatmates']) && !isset($result['flatmates'][$lang])) {
+                $missingLanguages[] = "flatmates.{$lang}";
+            }
+            if (isset($result['bills']) && !isset($result['bills'][$lang])) {
+                $missingLanguages[] = "bills.{$lang}";
+            }
+            if (isset($result['period']) && !isset($result['period'][$lang])) {
+                $missingLanguages[] = "period.{$lang}";
+            }
         }
 
         if (!empty($missingLanguages)) {
@@ -266,6 +326,30 @@ PROMPT;
         // Fill in titles
         foreach ($languages as $lang) {
             $structured['title'][$lang] = $result['title'][$lang] ?? '';
+        }
+
+        // Fill in flatmates if provided
+        if (isset($result['flatmates']) && is_array($result['flatmates'])) {
+            $structured['flatmates'] = [];
+            foreach ($languages as $lang) {
+                $structured['flatmates'][$lang] = $result['flatmates'][$lang] ?? '';
+            }
+        }
+
+        // Fill in bills if provided
+        if (isset($result['bills']) && is_array($result['bills'])) {
+            $structured['bills'] = [];
+            foreach ($languages as $lang) {
+                $structured['bills'][$lang] = $result['bills'][$lang] ?? '';
+            }
+        }
+
+        // Fill in period if provided
+        if (isset($result['period']) && is_array($result['period'])) {
+            $structured['period'] = [];
+            foreach ($languages as $lang) {
+                $structured['period'][$lang] = $result['period'][$lang] ?? '';
+            }
         }
 
         return $structured;
