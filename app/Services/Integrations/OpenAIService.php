@@ -187,13 +187,13 @@ class OpenAIService
         if ($flatmates !== null || $bills !== null || $period !== null) {
             $additionalFields = "\n\nAdditional property information:\n";
             if ($flatmates !== null) {
-                $additionalFields .= "- Flatmates: {$flatmates} (usually a number, e.g., '2', '3-4', 'mixed')\n";
+                $additionalFields .= "- Flatmates: {$flatmates} (usually a number, e.g., '2', '3-4', and genders if provided)\n";
             }
             if ($bills !== null) {
                 $additionalFields .= "- Bills: {$bills} (in euros, e.g., '€150', '€200-250', 'included')\n";
             }
             if ($period !== null) {
-                $additionalFields .= "- Period: {$period} (rental period, e.g., '12 months', '6-12 months', 'indefinite')\n";
+                $additionalFields .= "- Period: {$period} (rental period, e.g., '12 months', '6-12 months', 'indefinite' and dates if provided)\n";
             }
         }
 
