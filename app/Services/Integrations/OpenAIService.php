@@ -185,15 +185,15 @@ class OpenAIService
         // Build additional fields section
         $additionalFields = '';
         if ($flatmates !== null || $bills !== null || $period !== null) {
-            $additionalFields = "\n\nAdditional property information:\n";
+            $additionalFields = "\n\nAdditional property information (extract also from description if provided):\n";
             if ($flatmates !== null) {
-                $additionalFields .= "- Flatmates: {$flatmates} (usually a number, e.g., '2', '3-4', and genders if provided)\n";
+                $additionalFields .= "- Flatmates: {$flatmates} (usually a number, e.g., '2', '3-4', and genders if provided. Format: '2' or '2 male' or '2 female' or '2 mixed' or '2 male and 1 female' or '2 female and 1 male' etc.)\n";
             }
             if ($bills !== null) {
-                $additionalFields .= "- Bills: {$bills} (in euros, e.g., '€150', '€200-250', 'included')\n";
+                $additionalFields .= "- Bills: {$bills} (in euros, e.g., '€150', '€200-250', 'included. Include also any additional information about the bills if provided. Format: 'included' or '€150 per month' or '€150 per month + €50 for internet' or '€150 per month + €50 for internet + €100 for utilities' etc. and add deposit if provided.)\n";
             }
             if ($period !== null) {
-                $additionalFields .= "- Period: {$period} (rental period, e.g., '12 months', '6-12 months', 'indefinite' and dates if provided)\n";
+                $additionalFields .= "- Period: {$period} (rental period, e.g., '12 months', '6-12 months', 'indefinite' and dates if provided. Format: '12 months' or '12 months from [date]' or 'indefinite' or '12 months to [date]')\n";
             }
         }
 

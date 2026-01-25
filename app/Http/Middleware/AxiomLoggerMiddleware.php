@@ -64,6 +64,9 @@ class AxiomLoggerMiddleware
 
         // Truncate all string values to 250 characters to avoid Axiom column limit
         $logData = $this->truncateStringsForAxiom($logData);
+        
+        // Limit and simplify structure to avoid exceeding Axiom's 257 column limit
+        $logData = $this->limitFieldsForAxiom($logData);
 
         // Send to Axiom
         $this->sendToAxiom($logData);
@@ -189,6 +192,74 @@ class AxiomLoggerMiddleware
         }
 
         return $data;
+    }
+
+    /**
+     * Limit and simplify data structure to avoid exceeding Axiom's 257 column limit.
+     * Limits array sizes, reduces nesting depth, and combines fields where possible.
+     *
+     * @param array $data
+     * @param int $maxDepth Maximum nesting depth (default: 3)
+     * @param int $maxArraySize Maximum items in arrays (default: 10)
+     * @param int $currentDepth Current depth (internal use)
+     * @return array
+     */
+    protected function limitFieldsForAxiom(array $data, int $maxDepth = 3, int $maxArraySize = 10, int $currentDepth = 0): array
+    {
+        if ($currentDepth >= $maxDepth) {
+            return ['[truncated: max depth reached]'];
+        }
+
+        $limited = [];
+        $fieldCount = 0;
+        $maxFields = 200; // Leave room for Axiom's 257 limit
+
+        foreach ($data as $key => $value) {
+            if ($fieldCount >= $maxFields) {
+                $limited['_truncated_fields'] = count($data) - $fieldCount . ' more fields were truncated';
+                break;
+            }
+
+            if (is_array($value)) {
+                // For headers arrays, limit to most important ones
+                if ($key === 'headers' && is_array($value)) {
+                    $importantHeaders = ['content-type', 'user-agent', 'accept', 'authorization', 'x-requested-with'];
+                    $limitedHeaders = [];
+                    $headerCount = 0;
+                    
+                    foreach ($value as $headerKey => $headerValue) {
+                        $lowerKey = strtolower($headerKey);
+                        // Always include important headers
+                        if (in_array($lowerKey, $importantHeaders) || $headerCount < $maxArraySize) {
+                            $limitedHeaders[$headerKey] = is_array($headerValue) 
+                                ? (count($headerValue) > 1 ? implode(', ', array_slice($headerValue, 0, 3)) : ($headerValue[0] ?? ''))
+                                : $headerValue;
+                            $headerCount++;
+                        }
+                    }
+                    
+                    if (count($value) > $headerCount) {
+                        $limitedHeaders['_other_headers_count'] = count($value) - $headerCount;
+                    }
+                    
+                    $limited[$key] = $limitedHeaders;
+                } else {
+                    // Limit array size
+                    if (count($value) > $maxArraySize) {
+                        $limited[$key] = array_slice($value, 0, $maxArraySize);
+                        $limited[$key]['_truncated_items'] = count($value) - $maxArraySize;
+                    } else {
+                        $limited[$key] = $this->limitFieldsForAxiom($value, $maxDepth, $maxArraySize, $currentDepth + 1);
+                    }
+                }
+            } else {
+                $limited[$key] = $value;
+            }
+
+            $fieldCount++;
+        }
+
+        return $limited;
     }
 
     /**

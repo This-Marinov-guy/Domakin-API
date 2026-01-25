@@ -80,21 +80,37 @@ class ReformatPropertyDescriptionJob implements ShouldQueue
     public function handle(OpenAIService $openAIService, GitHubActionsIntegrationService $githubActionsIntegrationService): void
     {
         try {
+            Log::info("[ReformatPropertyDescriptionJob] Starting job execution", [
+                'property_id' => $this->propertyId,
+            ]);
+
             $property = Property::with('propertyData')->find($this->propertyId);
 
             if (!$property || !$property->propertyData) {
-                Log::warning("Property or PropertyData not found for ID: {$this->propertyId}");
+                Log::warning("[ReformatPropertyDescriptionJob] Property or PropertyData not found", [
+                    'property_id' => $this->propertyId,
+                ]);
                 throw new Exception("Property or PropertyData not found for ID: {$this->propertyId}");
             }
 
             $propertyData = $property->propertyData;
             $description = $propertyData->description;
 
+            Log::info("[ReformatPropertyDescriptionJob] Extracting English values", [
+                'property_id' => $this->propertyId,
+                'has_description' => !empty($description),
+                'has_flatmates' => !empty($propertyData->flatmates),
+                'has_bills' => !empty($propertyData->bills),
+                'has_period' => !empty($propertyData->period),
+            ]);
+
             // Extract English description if it's stored as JSON
             $englishDescription = $this->extractEnglishDescription($description);
 
             if (empty($englishDescription)) {
-                Log::warning("No English description found for property ID: {$this->propertyId}");
+                Log::warning("[ReformatPropertyDescriptionJob] No English description found", [
+                    'property_id' => $this->propertyId,
+                ]);
                 throw new Exception("No English description found for property ID: {$this->propertyId}");
             }
 
@@ -103,8 +119,22 @@ class ReformatPropertyDescriptionJob implements ShouldQueue
             $englishBills = $this->extractEnglishValue($propertyData->bills);
             $englishPeriod = $this->extractEnglishValue($propertyData->period);
 
+            Log::info("[ReformatPropertyDescriptionJob] Extracted English values", [
+                'property_id' => $this->propertyId,
+                'description_length' => strlen($englishDescription),
+                'description_preview' => substr($englishDescription, 0, 100) . '...',
+                'flatmates' => $englishFlatmates,
+                'bills' => $englishBills,
+                'period' => $englishPeriod,
+            ]);
+
             // Get supported locales
             $languages = Translations::WEB_SUPPORTED_LOCALES;
+
+            Log::info("[ReformatPropertyDescriptionJob] Calling OpenAI service", [
+                'property_id' => $this->propertyId,
+                'languages' => $languages,
+            ]);
 
             // Call OpenAI service to reformat and translate
             $result = $openAIService->reformatAndTranslateDescription(
@@ -115,10 +145,23 @@ class ReformatPropertyDescriptionJob implements ShouldQueue
                 $englishPeriod
             );
 
+            Log::info("[ReformatPropertyDescriptionJob] OpenAI service returned results", [
+                'property_id' => $this->propertyId,
+                'has_description' => isset($result['description']),
+                'has_title' => isset($result['title']),
+                'has_flatmates' => isset($result['flatmates']),
+                'has_bills' => isset($result['bills']),
+                'has_period' => isset($result['period']),
+                'has_slug' => isset($result['slug']),
+                'description_languages' => isset($result['description']) ? array_keys($result['description']) : [],
+            ]);
+
             // Update property data with new translations and slug
             $this->updatePropertyData($property, $result, $githubActionsIntegrationService);
 
-            Log::info("Successfully reformatted property description for property ID: {$this->propertyId}");
+            Log::info("[ReformatPropertyDescriptionJob] Successfully completed", [
+                'property_id' => $this->propertyId,
+            ]);
         } catch (Exception $e) {
             Log::error("Failed to reformat property description for property ID: {$this->propertyId}", [
                 'error' => $e->getMessage(),
@@ -184,19 +227,65 @@ class ReformatPropertyDescriptionJob implements ShouldQueue
      */
     private function updatePropertyData($property, array $result, GitHubActionsIntegrationService $githubActionsIntegrationService): void
     {
+        Log::info("[ReformatPropertyDescriptionJob] Updating property data", [
+            'property_id' => $this->propertyId,
+        ]);
+
         // Update description - convert array to JSON string
         if (isset($result['description']) && is_array($result['description'])) {
             $property->propertyData->description = json_encode($result['description'], JSON_UNESCAPED_UNICODE);
+            Log::info("[ReformatPropertyDescriptionJob] Updated description", [
+                'property_id' => $this->propertyId,
+                'languages' => array_keys($result['description']),
+            ]);
         }
 
         // Update title - convert array to JSON string
         if (isset($result['title']) && is_array($result['title'])) {
             $property->propertyData->title = json_encode($result['title'], JSON_UNESCAPED_UNICODE);
+            Log::info("[ReformatPropertyDescriptionJob] Updated title", [
+                'property_id' => $this->propertyId,
+                'languages' => array_keys($result['title']),
+            ]);
+        }
+
+        // Update flatmates - convert array to JSON string
+        if (isset($result['flatmates']) && is_array($result['flatmates'])) {
+            $property->propertyData->flatmates = json_encode($result['flatmates'], JSON_UNESCAPED_UNICODE);
+            Log::info("[ReformatPropertyDescriptionJob] Updated flatmates", [
+                'property_id' => $this->propertyId,
+                'languages' => array_keys($result['flatmates']),
+            ]);
+        }
+
+        // Update bills - convert array to JSON string
+        if (isset($result['bills']) && is_array($result['bills'])) {
+            $property->propertyData->bills = json_encode($result['bills'], JSON_UNESCAPED_UNICODE);
+            Log::info("[ReformatPropertyDescriptionJob] Updated bills", [
+                'property_id' => $this->propertyId,
+                'languages' => array_keys($result['bills']),
+            ]);
+        }
+
+        // Update period - convert array to JSON string
+        if (isset($result['period']) && is_array($result['period'])) {
+            $property->propertyData->period = json_encode($result['period'], JSON_UNESCAPED_UNICODE);
+            Log::info("[ReformatPropertyDescriptionJob] Updated period", [
+                'property_id' => $this->propertyId,
+                'languages' => array_keys($result['period']),
+            ]);
         }
 
         // Update slug on property
         if (isset($result['slug'])) {
+            $oldSlug = $property->slug;
             $property->slug = Helpers::sanitizeSlug($this->propertyId + Properties::FRONTEND_PROPERTY_ID_INDEXING . '-' . $result['slug'] . '-' . $property->propertyData->city);
+            Log::info("[ReformatPropertyDescriptionJob] Updated slug", [
+                'property_id' => $this->propertyId,
+                'old_slug' => $oldSlug,
+                'new_slug' => $property->slug,
+                'base_slug' => $result['slug'],
+            ]);
         }
 
         // Update flatmates - convert array to JSON string
@@ -215,11 +304,20 @@ class ReformatPropertyDescriptionJob implements ShouldQueue
         }
 
         try {
+            Log::info("[ReformatPropertyDescriptionJob] Saving property data", [
+                'property_id' => $this->propertyId,
+            ]);
+            
             // Save propertyData first
             $property->propertyData->save();
             $property->save();
+            
+            Log::info("[ReformatPropertyDescriptionJob] Successfully saved property data", [
+                'property_id' => $this->propertyId,
+            ]);
         } catch (Exception $e) {
-            Log::error("Failed to save property data for property ID: {$this->propertyId}", [
+            Log::error("[ReformatPropertyDescriptionJob] Failed to save property data", [
+                'property_id' => $this->propertyId,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
