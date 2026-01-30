@@ -16,12 +16,13 @@ class PaymentLinkService
         $this->stripe = new StripeClient($secretKey);
     }
 
-    public function createPropertyFeeLink(float $amountEur, string $productName = 'Property Fee (1 month rent)', string $description = null, array $metadata = []): ?string
+    public function createPropertyFeeLink(float $amountEur, string $productName = 'Property Fee (1 month rent)', string $description = null, string $imageSrc = '', array $metadata = []): ?string
     {
         // If description is null, use the product name as the description
         if ($description === null) {
             $description = $productName;
         }
+        
         try {
             $amountEur = ceil($amountEur);
             $unitAmount = (int)($amountEur * 100);
@@ -33,10 +34,16 @@ class PaymentLinkService
                 return $existingLink;
             }
 
-            $product = $this->stripe->products->create([
+            $productParams = [
                 'name' => $productName,
                 'description' => $description,
-            ]);
+            ];
+
+            if ($imageSrc) {
+                $productParams['images'] = [$imageSrc];
+            }
+
+            $product = $this->stripe->products->create($productParams);
 
             $price = $this->stripe->prices->create([
                 'unit_amount' => $unitAmount,

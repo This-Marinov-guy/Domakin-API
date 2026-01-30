@@ -306,8 +306,10 @@ class PropertyController extends Controller
             // Create payment link based on rent (EUR), rounded up
             $rent = (float) ($request->input('propertyData.rent') ?? ($data['propertyData']['rent'] ?? 0));
             $paymentLink = null;
-            if ($rent > 0) {
-                $paymentLink = $paymentLinks->createPropertyFeeLink($rent);
+            
+            if ($rent > 0) {string: 
+                $mainImage = explode(',', $data['propertyData']['images'])[0];
+                $paymentLink = $paymentLinks->createPropertyFeeLink($rent, imageSrc: $mainImage);
             }
 
             PropertyData::create([
@@ -482,7 +484,8 @@ class PropertyController extends Controller
         // Refresh payment link if rent is present and > 0
         $rent = (float) (($propertyData['rent'] ?? null) ?? ($property->propertyData->rent ?? 0));
         if ($rent > 0) {
-            $data['propertyData']['payment_link'] = $paymentLinks->createPropertyFeeLink($rent);
+            $mainImage = explode(',', $data['propertyData']['images'])[0];
+            $data['propertyData']['payment_link'] = $paymentLinks->createPropertyFeeLink($rent, imageSrc: $mainImage);
         }
 
         $signalFlag = $request->boolean('is_signal', default: false);
@@ -696,7 +699,8 @@ class PropertyController extends Controller
             : "One time Domakin Comission - {$address}";
 
         try {
-            $paymentLink = $paymentLinks->createPropertyFeeLink($rent, $title);
+            $mainImage = explode(',', $property->propertyData->images)[0];
+            $paymentLink = $paymentLinks->createPropertyFeeLink($rent, $title, imageSrc: $mainImage);
 
             return ApiResponseClass::sendSuccess([
                 'payment_link' => $paymentLink
