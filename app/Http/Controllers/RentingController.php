@@ -11,6 +11,7 @@ use App\Models\Renting;
 use Illuminate\Http\Request;
 use App\Services\GoogleServices\GoogleSheetsService;
 use App\Services\RentingService;
+use App\Services\UserService;
 use Illuminate\Support\Facades\Validator;
 use Exception;
 use Illuminate\Support\Facades\Log;
@@ -191,6 +192,8 @@ class RentingController extends Controller
             ->orderByDesc('created_at')
             ->get();
 
+        $rentings->each->makeHidden('property');
+
         return ApiResponseClass::sendSuccess($rentings);
     }
 
@@ -224,7 +227,7 @@ class RentingController extends Controller
 
         $paginator = Renting::query()
             ->where('property_id', $request->input('property_id'))
-            ->with(['property.propertyData', 'internalUpdatedBy'])
+            ->with(['property.propertyData'])
             ->orderByDesc('created_at')
             ->paginate($perPage, ['*'], 'page', $page);
 
@@ -259,7 +262,7 @@ class RentingController extends Controller
      *     @OA\Response(response=422, description="Validation error")
      * )
      */
-    public function edit(Request $request, RentingService $rentingService): JsonResponse
+    public function edit(Request $request, RentingService $rentingService, UserService $userService): JsonResponse
     {
         $validator = RentingService::validateEdit($request->all());
 
@@ -267,9 +270,11 @@ class RentingController extends Controller
             return ApiResponseClass::sendInvalidFields($validator->errors()->toArray());
         }
 
+        $internalUpdatedBy = $userService->extractIdFromRequest($request);
+
         $renting = $rentingService->updateRenting(
             $request->only(['id', 'status', 'internal_note']),
-            $request->user()?->id
+            $internalUpdatedBy
         );
 
         if (!$renting) {

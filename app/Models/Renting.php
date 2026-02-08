@@ -15,8 +15,7 @@ class Renting extends Model
     protected $table = 'rentings';
 
     protected $appends = [
-        'internal_updated_by_name',
-        'internal_updated_by_surname',
+        'internal_updated_by_user',
         'property_title',
     ];
 
@@ -41,6 +40,11 @@ class Renting extends Model
         'internal_updated_at' => 'datetime',
     ];
 
+    /** Hide full user relation from JSON; use internal_updated_by_user (id + name) instead */
+    protected $hidden = [
+        'internalUpdatedBy',
+    ];
+
     public function property(): BelongsTo
     {
         return $this->belongsTo(Property::class, 'property_id');
@@ -51,14 +55,47 @@ class Renting extends Model
         return $this->belongsTo(User::class, 'internal_updated_by');
     }
 
-    public function getInternalUpdatedByNameAttribute(): ?string
+    /**
+     * Get the User model from the relation (without going through the appended attribute).
+     */
+    protected function getInternalUpdatedByUser(): ?User
     {
-        return $this->internalUpdatedBy?->name;
+        if (!$this->hasValidInternalUpdatedByUuid()) {
+            return null;
+        }
+        $user = $this->getRelationValue('internalUpdatedBy');
+        if ($user === null) {
+            $user = $this->internalUpdatedBy()->first();
+        }
+        return $user instanceof User ? $user : null;
     }
 
-    public function getInternalUpdatedBySurnameAttribute(): ?string
+    /**
+     * Appended object with only id and name (for serialization). Named _user to avoid shadowing the internal_updated_by FK used by the relation.
+     */
+    public function getInternalUpdatedByUserAttribute(): ?array
     {
-        return $this->internalUpdatedBy?->surname ?? null;
+        $user = $this->getInternalUpdatedByUser();
+        if (!$user) {
+            return null;
+        }
+        return [
+            'id' => $user->id,
+            'name' => $user->name ?? null,
+        ];
+    }
+
+    /**
+     * Whether internal_updated_by is a valid UUID (so loading the relation won't cause uuid = integer).
+     */
+    protected function hasValidInternalUpdatedByUuid(): bool
+    {
+        $value = $this->attributes['internal_updated_by'] ?? null;
+        if ($value === null || $value === '' || $value === 0 || $value === '0') {
+            return false;
+        }
+        $str = (string) $value;
+        return (bool) preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $str);
     }
 
     public function getPropertyTitleAttribute(): string

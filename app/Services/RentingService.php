@@ -58,6 +58,6 @@ class RentingService
             $renting->update($updates);
         }
 
-        return $renting->fresh(['property.propertyData', 'internalUpdatedBy']);
+        return $renting->fresh(['property.propertyData']);
     }
 }
