@@ -101,7 +101,7 @@ class PropertyController extends Controller
      */
     public function fetchAllProperties(Request $request, PropertyService $propertyService): JsonResponse
     {
-        $query = Property::query();
+        $query = Property::query()->withCount('rentings');
         $paginated = $propertyService->paginateProperties($query, $request);
         return ApiResponseClass::sendSuccess($paginated);
     }

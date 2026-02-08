@@ -6,9 +6,11 @@ use App\Classes\ApiResponseClass;
 use App\Files\CloudinaryService;
 use App\Http\Controllers\Controller;
 use App\Mail\Notification;
+use App\Models\Property;
 use App\Models\Renting;
 use Illuminate\Http\Request;
 use App\Services\GoogleServices\GoogleSheetsService;
+use App\Services\RentingService;
 use Illuminate\Support\Facades\Validator;
 use Exception;
 use Illuminate\Support\Facades\Log;
@@ -165,5 +167,115 @@ class RentingController extends Controller
         }
 
         return ApiResponseClass::sendSuccess();
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/api/v1/renting/{id}",
+     *     summary="Get all rentings for a property by property_id (admin)",
+     *     tags={"Renting"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Parameter(name="id", in="path", required=true, description="Property ID", @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Success"),
+     *     @OA\Response(response=404, description="Property not found")
+     * )
+     */
+    public function show(int $id): JsonResponse
+    {
+        if (!Property::where('id', $id)->exists()) {
+            return ApiResponseClass::sendError('Property not found', 404);
+        }
+
+        $rentings = Renting::query()
+            ->where('property_id', $id)
+            ->orderByDesc('created_at')
+            ->get();
+
+        return ApiResponseClass::sendSuccess($rentings);
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/api/v1/renting/list",
+     *     summary="List all rentings by property_id (admin)",
+     *     tags={"Renting"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Parameter(name="property_id", in="query", required=true, description="Property ID", @OA\Schema(type="integer")),
+     *     @OA\Parameter(name="per_page", in="query", description="Items per page", @OA\Schema(type="integer", default=15)),
+     *     @OA\Parameter(name="page", in="query", description="Page number", @OA\Schema(type="integer", default=1)),
+     *     @OA\Response(response=200, description="Success"),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
+     */
+    public function list(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->query(), [
+            'property_id' => 'required|integer|exists:properties,id',
+            'per_page' => 'nullable|integer|min:1|max:100',
+            'page' => 'nullable|integer|min:1',
+        ]);
+
+        if ($validator->fails()) {
+            return ApiResponseClass::sendInvalidFields($validator->errors()->toArray());
+        }
+
+        $perPage = (int) $request->get('per_page', 15);
+        $page = (int) $request->get('page', 1);
+
+        $paginator = Renting::query()
+            ->where('property_id', $request->input('property_id'))
+            ->with(['property.propertyData', 'internalUpdatedBy'])
+            ->orderByDesc('created_at')
+            ->paginate($perPage, ['*'], 'page', $page);
+
+        $items = $paginator->items();
+
+        return ApiResponseClass::sendSuccess([
+            'rentings' => $items,
+            'current_page' => $paginator->currentPage(),
+            'last_page' => $paginator->lastPage(),
+            'per_page' => $paginator->perPage(),
+            'total' => $paginator->total(),
+        ]);
+    }
+
+    /**
+     * @OA\Patch(
+     *     path="/api/v1/renting/edit",
+     *     summary="Update renting status and internal note (admin)",
+     *     tags={"Renting"},
+     *     security={{"sanctum": {}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"id"},
+     *             @OA\Property(property="id", type="integer", example=1),
+     *             @OA\Property(property="status", type="string", example="reviewed"),
+     *             @OA\Property(property="internal_note", type="string", example="Internal note text")
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Updated successfully"),
+     *     @OA\Response(response=404, description="Renting not found"),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
+     */
+    public function edit(Request $request, RentingService $rentingService): JsonResponse
+    {
+        $validator = RentingService::validateEdit($request->all());
+
+        if ($validator->fails()) {
+            return ApiResponseClass::sendInvalidFields($validator->errors()->toArray());
+        }
+
+        $renting = $rentingService->updateRenting(
+            $request->only(['id', 'status', 'internal_note']),
+            $request->user()?->id
+        );
+
+        if (!$renting) {
+            return ApiResponseClass::sendError('Renting not found', 404);
+        }
+
+        return ApiResponseClass::sendSuccess($renting);
     }
 }
