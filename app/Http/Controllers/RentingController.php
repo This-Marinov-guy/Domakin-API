@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Classes\ApiResponseClass;
+use App\Constants\Properties;
 use App\Files\CloudinaryService;
 use App\Http\Controllers\Controller;
 use App\Mail\Notification;
@@ -142,6 +143,12 @@ class RentingController extends Controller
 
         if ($validator->fails()) {
             return ApiResponseClass::sendInvalidFields($validator->errors()->toArray(), Renting::messages());
+        }
+
+        if ($request->has('propertyId')) {
+            $data['property_id'] = (int)$request->get('propertyId') - Properties::FRONTEND_PROPERTY_ID_INDEXING;
+        } else {
+            $data['property_id'] = (int)substr($data['property'], 0, 4) - Properties::FRONTEND_PROPERTY_ID_INDEXING;
         }
 
         $data['letter'] = $cloudinary->singleUpload($data['letter'], [
