@@ -11,9 +11,9 @@ class ProdFirewallMiddleware
     public function handle(Request $request, Closure $next): Response
     {
         $allowedDomains = config('domains.allowed_domains', []);
-        
-        // Add dev domains if in development environment
-        if (env('APP_ENV') === 'dev') {
+
+        // Add dev domains if in development/local environment
+        if ($this->isDevelopmentEnvironment()) {
             $allowedDomains = array_merge($allowedDomains, config('domains.dev_domains', []));
         }
 
@@ -26,6 +26,11 @@ class ProdFirewallMiddleware
         $origin = $request->header('Origin') ?? $request->header('Referer');
         $originHost = $this->extractHost($origin);
 
+        // In development, allow requests with no Origin/Referer (e.g. proxied or server-side)
+        if ($this->isDevelopmentEnvironment() && !$originHost) {
+            return $next($request);
+        }
+
         // Block if origin/referrer is missing or not in allowed list
         if (!$originHost || !$this->isAllowed($originHost, $allowedDomains)) {
             return response()->json([
@@ -34,6 +39,12 @@ class ProdFirewallMiddleware
         }
 
         return $next($request);
+    }
+
+    private function isDevelopmentEnvironment(): bool
+    {
+        $env = env('APP_ENV');
+        return $env === 'dev' || $env === 'local';
     }
 
     private function extractHost(?string $url): ?string

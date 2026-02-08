@@ -30,8 +30,8 @@ class DomainWhitelistMiddleware
         // First, check config-based domain whitelist
         $allowedDomains = config('domains.allowed_domains', []);
 
-        // Add dev domains if in development environment
-        if (env('APP_ENV') === 'dev') {
+        // Add dev domains if in development/local environment
+        if ($this->isDevelopmentEnvironment()) {
             $allowedDomains = array_merge($allowedDomains, config('domains.dev_domains', []));
         }
 
@@ -129,5 +129,11 @@ class DomainWhitelistMiddleware
 
         // If not Bearer format, return the whole header value
         return trim($authorization);
+    }
+
+    private function isDevelopmentEnvironment(): bool
+    {
+        $env = env('APP_ENV');
+        return $env === 'dev' || $env === 'local';
     }
 }
