@@ -155,7 +155,7 @@ class PropertyController extends Controller
      *                     ),
      *                     @OA\Property(property="main_image", type="string", nullable=true, description="URL of the primary image", example="https://res.cloudinary.com/example/image/upload/v123/room1.jpg"),
      *                     @OA\Property(property="images", type="array", description="Additional image URLs", @OA\Items(type="string"), example={"https://res.cloudinary.com/example/image/upload/v123/room2.jpg", "https://res.cloudinary.com/example/image/upload/v123/room3.jpg"}),
-     *                     @OA\Property(property="link", type="string", description="Public property page path (locale-prefixed when not en). Use with app base URL.", example="/services/renting/property/cozy-room-amsterdam-centrum")
+     *                     @OA\Property(property="link", type="string", description="Public property page path (locale-prefixed when not en). Use with app base URL.", example="https://www.domakin.nl/en/services/renting/property/1023-cozy-room-amsterdam-centrum")
      *                 )
      *             ),
      *             example={
@@ -178,7 +178,7 @@ class PropertyController extends Controller
      *                         },
      *                         "main_image": "https://res.cloudinary.com/example/image/upload/v123/room1.jpg",
      *                         "images": {"https://res.cloudinary.com/example/image/upload/v123/room2.jpg", "https://res.cloudinary.com/example/image/upload/v123/room3.jpg"},
-     *                         "link": "/services/renting/property/cozy-room-amsterdam-centrum"
+     *                         "link": "https://www.domakin.nl/en/services/renting/property/1023-cozy-room-amsterdam-centrum"
      *                     },
      *                     {
      *                         "id": 1024,
@@ -197,7 +197,7 @@ class PropertyController extends Controller
      *                         },
      *                         "main_image": "https://res.cloudinary.com/example/image/upload/v123/studio1.jpg",
      *                         "images": {},
-     *                         "link": "/services/renting/property/bright-studio-jordaan"
+     *                         "link": "https://www.domakin.nl/bg/services/renting/property/bright-studio-jordaan"
      *                     }
      *                 }
      *             }
