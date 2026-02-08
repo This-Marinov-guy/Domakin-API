@@ -118,6 +118,7 @@ class ReformatPropertyDescriptionJob implements ShouldQueue
             $englishFlatmates = $this->extractEnglishValue($propertyData->flatmates);
             $englishBills = $this->extractEnglishValue($propertyData->bills);
             $englishPeriod = $this->extractEnglishValue($propertyData->period);
+            $sizeM2 = $propertyData->size;
 
             Log::info("[ReformatPropertyDescriptionJob] Extracted English values", [
                 'property_id' => $this->propertyId,
@@ -126,6 +127,7 @@ class ReformatPropertyDescriptionJob implements ShouldQueue
                 'flatmates' => $englishFlatmates,
                 'bills' => $englishBills,
                 'period' => $englishPeriod,
+                'size_m2' => $sizeM2,
             ]);
 
             // Get supported locales
@@ -138,11 +140,12 @@ class ReformatPropertyDescriptionJob implements ShouldQueue
 
             // Call OpenAI service to reformat and translate
             $result = $openAIService->reformatAndTranslateDescription(
-                $englishDescription, 
+                $englishDescription,
                 $languages,
                 $englishFlatmates,
                 $englishBills,
-                $englishPeriod
+                $englishPeriod,
+                $sizeM2
             );
 
             Log::info("[ReformatPropertyDescriptionJob] OpenAI service returned results", [
@@ -153,6 +156,7 @@ class ReformatPropertyDescriptionJob implements ShouldQueue
                 'has_bills' => isset($result['bills']),
                 'has_period' => isset($result['period']),
                 'has_slug' => isset($result['slug']),
+                'has_size' => isset($result['size']),
                 'description_languages' => isset($result['description']) ? array_keys($result['description']) : [],
             ]);
 
@@ -216,6 +220,33 @@ class ReformatPropertyDescriptionJob implements ShouldQueue
 
         // If it's not JSON, assume it's already in English
         return $value;
+    }
+
+    /**
+     * Parse size from stored value to a number in square meters.
+     * Accepts strings like "15", "15.5", "15 m²", "15m2", "15 sqm".
+     *
+     * @param string|int|float|null $size
+     * @return float|null
+     */
+    private function parseSizeToSquareMeters(mixed $size): ?float
+    {
+        if ($size === null || $size === '') {
+            return null;
+        }
+
+        if (is_numeric($size)) {
+            $value = (float) $size;
+            return $value > 0 ? $value : null;
+        }
+
+        $str = (string) $size;
+        if (preg_match('/^\s*([\d.]+)\s*(?:m²|m2|sq\.?\s*m|sqm)?\s*$/ui', trim($str), $m)) {
+            $value = (float) $m[1];
+            return $value > 0 ? $value : null;
+        }
+
+        return null;
     }
 
     /**

@@ -29,22 +29,24 @@ class OpenAIService
     }
 
     /**
-     * Reformats and translates property description, flatmates, bills, and period using OpenAI
+     * Reformats and translates property description, flatmates, bills, period, and size context using OpenAI
      *
      * @param string $description The original description in English
      * @param array $languages Array of language codes (e.g., ['en', 'nl', 'de', 'fr'])
      * @param string|null $flatmates The flatmates value (usually a number)
      * @param string|null $bills The bills value (in euro)
      * @param string|null $period The period value
-     * @return array Returns array with 'description', 'title', 'flatmates', 'bills', 'period', and 'slug' keys
+     * @param float|null $size Size in square meters (e.g. 15.5)
+     * @return array Returns array with 'description', 'title', 'flatmates', 'bills', 'period', 'slug', and optionally 'size'
      * @throws Exception
      */
     public function reformatAndTranslateDescription(
-        string $description, 
-        array $languages, 
-        ?string $flatmates = null, 
-        ?string $bills = null, 
-        ?string $period = null
+        string $description,
+        array $languages,
+        ?string $flatmates = null,
+        ?string $bills = null,
+        ?string $period = null,
+        ?float $size = null
     ): array
     {
         if (empty($this->apiKey)) {
@@ -65,7 +67,7 @@ class OpenAIService
         }
 
         // Create the prompt
-        $prompt = $this->buildPrompt($description, $languages, $flatmates, $bills, $period);
+        $prompt = $this->buildPrompt($description, $languages, $flatmates, $bills, $period, $size);
 
         try {
             $requestHeaders = [
@@ -106,7 +108,10 @@ class OpenAIService
                     $testResult['bills'][$lang] = $bills ?? '€150';
                     $testResult['period'][$lang] = $period ?? '12 months';
                 }
-                
+                if ($size !== null) {
+                    $testResult['size'] = $size;
+                }
+
                 return $testResult;
             }
 
@@ -155,7 +160,7 @@ class OpenAIService
             }
 
             // Validate and structure the response
-            $structured = $this->validateAndStructureResponse($result, $languages);
+            $structured = $this->validateAndStructureResponse($result, $languages, $size);
 
             return $structured;
         } catch (Exception $e) {
@@ -175,17 +180,22 @@ class OpenAIService
      * @param string|null $flatmates
      * @param string|null $bills
      * @param string|null $period
+     * @param float|null $size Size in square meters
      * @return string
      */
-    private function buildPrompt(string $description, array $languages, ?string $flatmates = null, ?string $bills = null, ?string $period = null): string
+    private function buildPrompt(string $description, array $languages, ?string $flatmates = null, ?string $bills = null, ?string $period = null, ?float $size = null): string
     {
         $languagesList = implode(', ', $languages);
         $languageCodes = implode('", "', $languages);
-        
+
         // Build additional fields section
         $additionalFields = '';
-        if ($flatmates !== null || $bills !== null || $period !== null) {
+        if ($flatmates !== null || $bills !== null || $period !== null || $size !== null) {
             $additionalFields = "\n\nAdditional property information (extract also from description if provided):\n";
+            if ($size !== null) {
+                $sizeFormatted = (float) $size === (int) $size ? (int) $size : $size;
+                $additionalFields .= "- Size: {$sizeFormatted}  as a number and m² at the end. Example: '15.5 m²' or '15 m²' or '15 m²' etc.\n";
+            }
             if ($flatmates !== null) {
                 $additionalFields .= "- Flatmates: {$flatmates} (usually a number, e.g., '2', '3-4', and genders if provided. Format: 'none', '2' or '2 male' or '2 female' or '2 (male and female)' or '2 male and 1 female' or '2 female and 1 male' etc.). If its only 1, dont mention the gender.\n";
             }
@@ -266,10 +276,11 @@ PROMPT;
      *
      * @param array $result
      * @param array $languages
+     * @param float|null $size Size in square meters (passed through when provided)
      * @return array
      * @throws Exception
      */
-    private function validateAndStructureResponse(array $result, array $languages): array
+    private function validateAndStructureResponse(array $result, array $languages, ?float $size = null): array
     {
         // Validate structure
         if (!isset($result['description']) || !isset($result['title'])) {
@@ -350,6 +361,11 @@ PROMPT;
             foreach ($languages as $lang) {
                 $structured['period'][$lang] = $result['period'][$lang] ?? '';
             }
+        }
+
+        // Pass through size in square meters when provided (number, not translated)
+        if ($size !== null) {
+            $structured['size'] = $size;
         }
 
         return $structured;

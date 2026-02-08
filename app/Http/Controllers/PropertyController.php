@@ -135,7 +135,7 @@ class PropertyController extends Controller
      *                 description="List of properties formatted for public listing",
      *                 @OA\Items(
      *                     type="object",
-     *                     required={"id", "status", "statusCode", "slug", "price", "title", "city", "location", "description", "main_image", "images"},
+     *                     required={"id", "status", "statusCode", "slug", "price", "title", "city", "location", "description", "main_image", "images", "link"},
      *                     @OA\Property(property="id", type="integer", description="Listing ID (internal property id + 1000)", example=1023),
      *                     @OA\Property(property="status", type="string", description="Human-readable status", enum={"pending", "rent", "taken"}, example="rent"),
      *                     @OA\Property(property="statusCode", type="integer", description="Numeric status (1=Pending, 2=Rent, 3=Taken)", enum={1, 2, 3}, example=2),
@@ -154,7 +154,8 @@ class PropertyController extends Controller
      *                         @OA\Property(property="flatmates", type="string", example="2 flatmates, international household")
      *                     ),
      *                     @OA\Property(property="main_image", type="string", nullable=true, description="URL of the primary image", example="https://res.cloudinary.com/example/image/upload/v123/room1.jpg"),
-     *                     @OA\Property(property="images", type="array", description="Additional image URLs", @OA\Items(type="string"), example={"https://res.cloudinary.com/example/image/upload/v123/room2.jpg", "https://res.cloudinary.com/example/image/upload/v123/room3.jpg"})
+     *                     @OA\Property(property="images", type="array", description="Additional image URLs", @OA\Items(type="string"), example={"https://res.cloudinary.com/example/image/upload/v123/room2.jpg", "https://res.cloudinary.com/example/image/upload/v123/room3.jpg"}),
+     *                     @OA\Property(property="link", type="string", description="Public property page path (locale-prefixed when not en). Use with app base URL.", example="/services/renting/property/cozy-room-amsterdam-centrum")
      *                 )
      *             ),
      *             example={
@@ -176,7 +177,8 @@ class PropertyController extends Controller
      *                             "flatmates": "2 flatmates, international household"
      *                         },
      *                         "main_image": "https://res.cloudinary.com/example/image/upload/v123/room1.jpg",
-     *                         "images": {"https://res.cloudinary.com/example/image/upload/v123/room2.jpg", "https://res.cloudinary.com/example/image/upload/v123/room3.jpg"}
+     *                         "images": {"https://res.cloudinary.com/example/image/upload/v123/room2.jpg", "https://res.cloudinary.com/example/image/upload/v123/room3.jpg"},
+     *                         "link": "/services/renting/property/cozy-room-amsterdam-centrum"
      *                     },
      *                     {
      *                         "id": 1024,
@@ -194,7 +196,8 @@ class PropertyController extends Controller
      *                             "flatmates": "No flatmates, self-contained"
      *                         },
      *                         "main_image": "https://res.cloudinary.com/example/image/upload/v123/studio1.jpg",
-     *                         "images": {}
+     *                         "images": {},
+     *                         "link": "/services/renting/property/bright-studio-jordaan"
      *                     }
      *                 }
      *             }

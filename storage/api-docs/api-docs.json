@@ -1000,7 +1000,8 @@
                                                     "location",
                                                     "description",
                                                     "main_image",
-                                                    "images"
+                                                    "images",
+                                                    "link"
                                                 ],
                                                 "properties": {
                                                     "id": {
@@ -1091,6 +1092,11 @@
                                                             "https://res.cloudinary.com/example/image/upload/v123/room2.jpg",
                                                             "https://res.cloudinary.com/example/image/upload/v123/room3.jpg"
                                                         ]
+                                                    },
+                                                    "link": {
+                                                        "description": "Public property page path (locale-prefixed when not en). Use with app base URL.",
+                                                        "type": "string",
+                                                        "example": "/services/renting/property/cozy-room-amsterdam-centrum"
                                                     }
                                                 },
                                                 "type": "object"
@@ -1121,7 +1127,8 @@
                                             "images": [
                                                 "https://res.cloudinary.com/example/image/upload/v123/room2.jpg",
                                                 "https://res.cloudinary.com/example/image/upload/v123/room3.jpg"
-                                            ]
+                                            ],
+                                            "link": "/services/renting/property/cozy-room-amsterdam-centrum"
                                         },
                                         {
                                             "id": 1024,
@@ -1139,7 +1146,8 @@
                                                 "flatmates": "No flatmates, self-contained"
                                             },
                                             "main_image": "https://res.cloudinary.com/example/image/upload/v123/studio1.jpg",
-                                            "images": []
+                                            "images": [],
+                                            "link": "/services/renting/property/bright-studio-jordaan"
                                         }
                                     ]
                                 }

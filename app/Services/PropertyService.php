@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Constants\Properties;
 use App\Constants\Translations;
 use App\Enums\PropertyStatus;
 
@@ -79,7 +80,68 @@ class PropertyService
             ];
         }
 
+        foreach ($modifiedProperties as $key => $item) {
+            $modifiedProperties[$key]['link'] = $this->getPropertyUrl($item, true, $language);
+        }
+
         return $modifiedProperties;
+    }
+
+    /**
+     * Create a URL slug from property data (id, city/location, title).
+     * Matches frontend createPropertySlug logic for consistency.
+     *
+     * @param array{id?: int|string, city?: string, location?: string, title?: string} $property
+     * @return string
+     */
+    public function createPropertySlug(array $property): string
+    {
+        $propertyId = (string) ($property['id'] ?? '');
+        $location = $property['city'] ?? $property['location'] ?? '';
+        $title = $property['title'] ?? '';
+
+        $urlParts = [$propertyId];
+
+        if ($location !== '') {
+            $slugPart = mb_strtolower($location);
+            $slugPart = preg_replace('/[^\p{L}\p{N}\s-]/u', '', $slugPart);
+            $slugPart = preg_replace('/\s+/', '-', $slugPart);
+            $urlParts[] = trim($slugPart, '-');
+        }
+
+        if ($title !== '') {
+            $slugPart = mb_strtolower($title);
+            $slugPart = preg_replace('/[^\p{L}\p{N}\s-]/u', '', $slugPart);
+            $slugPart = preg_replace('/\s+/', '-', $slugPart);
+            $urlParts[] = trim($slugPart, '-');
+        }
+
+        $slug = implode('-', $urlParts);
+
+        return (string) preg_replace('/-+/', '-', $slug);
+    }
+
+    /**
+     * Build the public property page URL (matches frontend getPropertyUrl).
+     *
+     * @param array{id?: int|string, slug?: string, city?: string, location?: string, title?: string} $property
+     * @param bool $useNewFormat Use slug-based URL (true) or id-based (false)
+     * @param string|null $lang Language code for prefix; no prefix for "en"
+     * @return string Path e.g. "/services/renting/property/cozy-room-amsterdam" or "/nl/services/renting/property/1023"
+     */
+    public function getPropertyUrl(array $property, bool $useNewFormat = true, ?string $lang = null): string
+    {
+        $slug = $property['slug'] ?? null;
+
+        if (($slug === null || $slug === '') && $useNewFormat) {
+            $slug = $this->createPropertySlug($property);
+        }
+
+        $languagePrefix = ($lang !== null && $lang !== 'en') ? '/' . $lang : '';
+
+        $id = (int)$property['id'] + Properties::FRONTEND_PROPERTY_ID_INDEXING;
+
+        return env('FRONTEND_URL') . '/' . $languagePrefix . '/services/renting/property/' . $id . '-' . $slug;
     }
 
     /**
