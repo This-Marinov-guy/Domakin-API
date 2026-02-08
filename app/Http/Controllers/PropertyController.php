@@ -107,21 +107,101 @@ class PropertyController extends Controller
     }
 
     /**
+     * List all active properties (public listing).
+     *
+     * Returns properties that are released (release_timestamp in the past) and have status
+     * 1 (Pending), 2 (Rent), or 3 (Taken). Content is localized via Accept-Language.
+     *
      * @OA\Get(
      *     path="/api/v1/property/listing",
      *     summary="List all active properties",
+     *     description="Returns a list of all publicly visible properties. Only properties with a past release_timestamp and status Pending (1), Rent (2), or Taken (3) are included. Titles and descriptions are translated according to the Accept-Language header.",
      *     tags={"Properties"},
+     *     @OA\Parameter(
+     *         name="Accept-Language",
+     *         in="header",
+     *         description="Preferred language for titles and descriptions (e.g. en, nl). Defaults to 'en' if omitted.",
+     *         required=false,
+     *         @OA\Schema(type="string", example="en")
+     *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Success",
      *         @OA\JsonContent(
      *             @OA\Property(property="status", type="boolean", example=true),
-     *             @OA\Property(property="data", type="array", @OA\Items(type="object"))
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="array",
+     *                 description="List of properties formatted for public listing",
+     *                 @OA\Items(
+     *                     type="object",
+     *                     required={"id", "status", "statusCode", "slug", "price", "title", "city", "location", "description", "main_image", "images"},
+     *                     @OA\Property(property="id", type="integer", description="Listing ID (internal property id + 1000)", example=1023),
+     *                     @OA\Property(property="status", type="string", description="Human-readable status", enum={"pending", "rent", "taken"}, example="rent"),
+     *                     @OA\Property(property="statusCode", type="integer", description="Numeric status (1=Pending, 2=Rent, 3=Taken)", enum={1, 2, 3}, example=2),
+     *                     @OA\Property(property="slug", type="string", description="URL-friendly identifier", example="cozy-room-amsterdam-centrum"),
+     *                     @OA\Property(property="price", type="string", description="Rent amount", example="850"),
+     *                     @OA\Property(property="title", type="string", description="Translated listing title", example="Cozy room in Amsterdam Centrum"),
+     *                     @OA\Property(property="city", type="string", description="City name", example="Amsterdam"),
+     *                     @OA\Property(property="location", type="string", description="Street and city", example="Herengracht 123, Amsterdam"),
+     *                     @OA\Property(
+     *                         property="description",
+     *                         type="object",
+     *                         description="Translated description blocks",
+     *                         @OA\Property(property="property", type="string", example="Spacious room with canal view, 15m². Shared kitchen and bathroom."),
+     *                         @OA\Property(property="period", type="string", example="From 1 March 2025, minimum 6 months"),
+     *                         @OA\Property(property="bills", type="string", example="Included: gas, water, electricity, internet"),
+     *                         @OA\Property(property="flatmates", type="string", example="2 flatmates, international household")
+     *                     ),
+     *                     @OA\Property(property="main_image", type="string", nullable=true, description="URL of the primary image", example="https://res.cloudinary.com/example/image/upload/v123/room1.jpg"),
+     *                     @OA\Property(property="images", type="array", description="Additional image URLs", @OA\Items(type="string"), example={"https://res.cloudinary.com/example/image/upload/v123/room2.jpg", "https://res.cloudinary.com/example/image/upload/v123/room3.jpg"})
+     *                 )
+     *             ),
+     *             example={
+     *                 "status": true,
+     *                 "data": {
+     *                     {
+     *                         "id": 1023,
+     *                         "status": "rent",
+     *                         "statusCode": 2,
+     *                         "slug": "cozy-room-amsterdam-centrum",
+     *                         "price": "850",
+     *                         "title": "Cozy room in Amsterdam Centrum",
+     *                         "city": "Amsterdam",
+     *                         "location": "Herengracht 123, Amsterdam",
+     *                         "description": {
+     *                             "property": "Spacious room with canal view, 15m². Shared kitchen and bathroom.",
+     *                             "period": "From 1 March 2025, minimum 6 months",
+     *                             "bills": "Included: gas, water, electricity, internet",
+     *                             "flatmates": "2 flatmates, international household"
+     *                         },
+     *                         "main_image": "https://res.cloudinary.com/example/image/upload/v123/room1.jpg",
+     *                         "images": {"https://res.cloudinary.com/example/image/upload/v123/room2.jpg", "https://res.cloudinary.com/example/image/upload/v123/room3.jpg"}
+     *                     },
+     *                     {
+     *                         "id": 1024,
+     *                         "status": "pending",
+     *                         "statusCode": 1,
+     *                         "slug": "bright-studio-jordaan",
+     *                         "price": "1200",
+     *                         "title": "Bright studio in the Jordaan",
+     *                         "city": "Amsterdam",
+     *                         "location": "Egelantiersgracht 45, Amsterdam",
+     *                         "description": {
+     *                             "property": "Furnished studio, 25m². Private kitchen and bathroom.",
+     *                             "period": "Available from 15 April 2025",
+     *                             "bills": "Excl. utilities, approx. €80/month",
+     *                             "flatmates": "No flatmates, self-contained"
+     *                         },
+     *                         "main_image": "https://res.cloudinary.com/example/image/upload/v123/studio1.jpg",
+     *                         "images": {}
+     *                     }
+     *                 }
+     *             }
      *         )
      *     )
      * )
-     * Lists all active properties
-     * 
+     *
      * @return JsonResponse
      */
     public function show(Request $request, PropertyService $propertyService): JsonResponse

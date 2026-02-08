@@ -960,7 +960,20 @@
                     "Properties"
                 ],
                 "summary": "List all active properties",
+                "description": "Returns a list of all publicly visible properties. Only properties with a past release_timestamp and status Pending (1), Rent (2), or Taken (3) are included. Titles and descriptions are translated according to the Accept-Language header.",
                 "operationId": "b71a68f063826695dce200168ab7c75c",
+                "parameters": [
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "description": "Preferred language for titles and descriptions (e.g. en, nl). Defaults to 'en' if omitted.",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "en"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Success",
@@ -973,13 +986,162 @@
                                             "example": true
                                         },
                                         "data": {
+                                            "description": "List of properties formatted for public listing",
                                             "type": "array",
                                             "items": {
+                                                "required": [
+                                                    "id",
+                                                    "status",
+                                                    "statusCode",
+                                                    "slug",
+                                                    "price",
+                                                    "title",
+                                                    "city",
+                                                    "location",
+                                                    "description",
+                                                    "main_image",
+                                                    "images"
+                                                ],
+                                                "properties": {
+                                                    "id": {
+                                                        "description": "Listing ID (internal property id + 1000)",
+                                                        "type": "integer",
+                                                        "example": 1023
+                                                    },
+                                                    "status": {
+                                                        "description": "Human-readable status",
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "pending",
+                                                            "rent",
+                                                            "taken"
+                                                        ],
+                                                        "example": "rent"
+                                                    },
+                                                    "statusCode": {
+                                                        "description": "Numeric status (1=Pending, 2=Rent, 3=Taken)",
+                                                        "type": "integer",
+                                                        "enum": [
+                                                            1,
+                                                            2,
+                                                            3
+                                                        ],
+                                                        "example": 2
+                                                    },
+                                                    "slug": {
+                                                        "description": "URL-friendly identifier",
+                                                        "type": "string",
+                                                        "example": "cozy-room-amsterdam-centrum"
+                                                    },
+                                                    "price": {
+                                                        "description": "Rent amount",
+                                                        "type": "string",
+                                                        "example": "850"
+                                                    },
+                                                    "title": {
+                                                        "description": "Translated listing title",
+                                                        "type": "string",
+                                                        "example": "Cozy room in Amsterdam Centrum"
+                                                    },
+                                                    "city": {
+                                                        "description": "City name",
+                                                        "type": "string",
+                                                        "example": "Amsterdam"
+                                                    },
+                                                    "location": {
+                                                        "description": "Street and city",
+                                                        "type": "string",
+                                                        "example": "Herengracht 123, Amsterdam"
+                                                    },
+                                                    "description": {
+                                                        "description": "Translated description blocks",
+                                                        "properties": {
+                                                            "property": {
+                                                                "type": "string",
+                                                                "example": "Spacious room with canal view, 15m². Shared kitchen and bathroom."
+                                                            },
+                                                            "period": {
+                                                                "type": "string",
+                                                                "example": "From 1 March 2025, minimum 6 months"
+                                                            },
+                                                            "bills": {
+                                                                "type": "string",
+                                                                "example": "Included: gas, water, electricity, internet"
+                                                            },
+                                                            "flatmates": {
+                                                                "type": "string",
+                                                                "example": "2 flatmates, international household"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    },
+                                                    "main_image": {
+                                                        "description": "URL of the primary image",
+                                                        "type": "string",
+                                                        "example": "https://res.cloudinary.com/example/image/upload/v123/room1.jpg",
+                                                        "nullable": true
+                                                    },
+                                                    "images": {
+                                                        "description": "Additional image URLs",
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "string"
+                                                        },
+                                                        "example": [
+                                                            "https://res.cloudinary.com/example/image/upload/v123/room2.jpg",
+                                                            "https://res.cloudinary.com/example/image/upload/v123/room3.jpg"
+                                                        ]
+                                                    }
+                                                },
                                                 "type": "object"
                                             }
                                         }
                                     },
                                     "type": "object"
+                                },
+                                "example": {
+                                    "status": true,
+                                    "data": [
+                                        {
+                                            "id": 1023,
+                                            "status": "rent",
+                                            "statusCode": 2,
+                                            "slug": "cozy-room-amsterdam-centrum",
+                                            "price": "850",
+                                            "title": "Cozy room in Amsterdam Centrum",
+                                            "city": "Amsterdam",
+                                            "location": "Herengracht 123, Amsterdam",
+                                            "description": {
+                                                "property": "Spacious room with canal view, 15m². Shared kitchen and bathroom.",
+                                                "period": "From 1 March 2025, minimum 6 months",
+                                                "bills": "Included: gas, water, electricity, internet",
+                                                "flatmates": "2 flatmates, international household"
+                                            },
+                                            "main_image": "https://res.cloudinary.com/example/image/upload/v123/room1.jpg",
+                                            "images": [
+                                                "https://res.cloudinary.com/example/image/upload/v123/room2.jpg",
+                                                "https://res.cloudinary.com/example/image/upload/v123/room3.jpg"
+                                            ]
+                                        },
+                                        {
+                                            "id": 1024,
+                                            "status": "pending",
+                                            "statusCode": 1,
+                                            "slug": "bright-studio-jordaan",
+                                            "price": "1200",
+                                            "title": "Bright studio in the Jordaan",
+                                            "city": "Amsterdam",
+                                            "location": "Egelantiersgracht 45, Amsterdam",
+                                            "description": {
+                                                "property": "Furnished studio, 25m². Private kitchen and bathroom.",
+                                                "period": "Available from 15 April 2025",
+                                                "bills": "Excl. utilities, approx. €80/month",
+                                                "flatmates": "No flatmates, self-contained"
+                                            },
+                                            "main_image": "https://res.cloudinary.com/example/image/upload/v123/studio1.jpg",
+                                            "images": []
+                                        }
+                                    ]
                                 }
                             }
                         }
@@ -1314,7 +1476,7 @@
                     "Properties"
                 ],
                 "summary": "Delete a property",
-                "operationId": "336e88d1634573b14e2058d80c5fe260",
+                "operationId": "a8f089ac202fd6f6fdfd2de7b731558d",
                 "parameters": [
                     {
                         "name": "id",
@@ -1340,6 +1502,65 @@
                                         },
                                         "data": {
                                             "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/property/signal-test": {
+            "get": {
+                "tags": [
+                    "Properties"
+                ],
+                "summary": "Test Signal integration with the latest property",
+                "operationId": "45d85ab492a7c9d9986fafe4f7df94e8",
+                "responses": {
+                    "200": {
+                        "description": "Signal integration test completed",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Error response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Property not found"
+                                        },
+                                        "tag": {
+                                            "type": "string",
+                                            "example": "property_not_found"
                                         }
                                     },
                                     "type": "object"
@@ -1867,6 +2088,142 @@
                         }
                     }
                 }
+            }
+        },
+        "/api/v1/renting/{id}": {
+            "get": {
+                "tags": [
+                    "Renting"
+                ],
+                "summary": "Get all rentings for a property by property_id (admin)",
+                "operationId": "fb5ba7b6fa00f824ce0d0afa6bac1d28",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Property ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    },
+                    "404": {
+                        "description": "Property not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/renting/list": {
+            "get": {
+                "tags": [
+                    "Renting"
+                ],
+                "summary": "List all rentings by property_id (admin)",
+                "operationId": "99401ddfc81f1b3cca74a3cbb689223c",
+                "parameters": [
+                    {
+                        "name": "property_id",
+                        "in": "query",
+                        "description": "Property ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Items per page",
+                        "schema": {
+                            "type": "integer",
+                            "default": 15
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number",
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/renting/edit": {
+            "patch": {
+                "tags": [
+                    "Renting"
+                ],
+                "summary": "Update renting status and internal note (admin)",
+                "operationId": "c87b4f47bffb8041a48503bc4bf28707",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "id"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "status": {
+                                        "type": "string",
+                                        "example": "reviewed"
+                                    },
+                                    "internal_note": {
+                                        "type": "string",
+                                        "example": "Internal note text"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Updated successfully"
+                    },
+                    "404": {
+                        "description": "Renting not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
             }
         },
         "/api/v1/renting/searching/create": {
