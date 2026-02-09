@@ -15,6 +15,7 @@ return [
 
     'public_patterns' => [
         'api/webhooks/stripe/*',
+        'api/v*/property/listing',
         'api/v*/blog/*', // Versioned blog routes
         'api/v*/property/*', // Versioned property routes
         'api/v*/feedback/list', // Versioned feedback list
