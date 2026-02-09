@@ -74,6 +74,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/details/{id}', [PropertyController::class, 'details']);
 
         Route::get('/listing', [PropertyController::class, 'show'])->middleware('domain.whitelist');
+        Route::get('/listing.xml', [PropertyController::class, 'listingXml']); // Public: open in browser to get XML (like /api/documentation)
 
         Route::post('/create', [PropertyController::class, 'create']);
         Route::post('/edit', [PropertyController::class, 'edit'])->middleware('auth.role:admin');

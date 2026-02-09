@@ -23,6 +23,7 @@ use App\Services\Payment\PaymentLinkService;
 use Illuminate\Support\Facades\Validator;
 use Exception;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 
@@ -223,6 +224,83 @@ class PropertyController extends Controller
         $properties = $propertyService->parsePropertiesForListing(properties: $properties, language: $language);
 
         return ApiResponseClass::sendSuccess($properties);
+    }
+
+    /**
+     * List all active properties with status "Rent" (2) as XML.
+     * Same filters as listing (released, status 2 only) for feeds/sitemaps.
+     */
+    public function listingXml(Request $request, PropertyService $propertyService): Response
+    {
+        $properties = Property::with(['personalData', 'propertyData'])
+            ->whereNotNull('release_timestamp')
+            ->where('release_timestamp', '<', Carbon::now())
+            ->where('status', 2)
+            ->get()
+            ->toArray();
+
+        $language = $this->extractLanguageFromRequest($request);
+        $properties = $propertyService->parsePropertiesForListing(properties: $properties, language: $language);
+
+        $xml = $this->buildPropertiesXml($properties);
+
+        return new Response($xml, 200, [
+            'Content-Type' => 'application/xml; charset=UTF-8',
+        ]);
+    }
+
+    /**
+     * Build XML string from listing properties array.
+     *
+     * @param array<int, array<string, mixed>> $properties
+     * @return string
+     */
+    private function buildPropertiesXml(array $properties): string
+    {
+        $writer = new \XMLWriter();
+        $writer->openMemory();
+        $writer->setIndent(true);
+        $writer->setIndentString('  ');
+        $writer->startDocument('1.0', 'UTF-8');
+        $writer->startElement('properties');
+        $writer->writeAttribute('count', (string) count($properties));
+
+        foreach ($properties as $p) {
+            $writer->startElement('property');
+            $writer->writeElement('id', (string) ($p['id'] ?? ''));
+            $writer->writeElement('status', (string) ($p['status'] ?? ''));
+            $writer->writeElement('statusCode', (string) ($p['statusCode'] ?? ''));
+            $writer->writeElement('slug', (string) ($p['slug'] ?? ''));
+            $writer->writeElement('price', (string) ($p['price'] ?? ''));
+            $writer->writeElement('title', (string) ($p['title'] ?? ''));
+            $writer->writeElement('city', (string) ($p['city'] ?? ''));
+            $writer->writeElement('location', (string) ($p['location'] ?? ''));
+            $writer->writeElement('link', (string) ($p['link'] ?? ''));
+            $writer->writeElement('main_image', (string) ($p['main_image'] ?? ''));
+
+            if (!empty($p['description']) && is_array($p['description'])) {
+                $writer->startElement('description');
+                foreach ($p['description'] as $key => $value) {
+                    $writer->writeElement($key, (string) $value);
+                }
+                $writer->endElement();
+            }
+
+            if (!empty($p['images']) && is_array($p['images'])) {
+                $writer->startElement('images');
+                foreach ($p['images'] as $url) {
+                    $writer->writeElement('image', (string) $url);
+                }
+                $writer->endElement();
+            }
+
+            $writer->endElement();
+        }
+
+        $writer->endElement();
+        $writer->endDocument();
+
+        return $writer->outputMemory();
     }
 
     /**
