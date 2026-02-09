@@ -73,7 +73,7 @@ Route::prefix('v1')->group(function () {
 
         Route::get('/details/{id}', [PropertyController::class, 'details']);
 
-        Route::get('/listing', [PropertyController::class, 'show']);
+        Route::get('/listing', [PropertyController::class, 'show'])->middleware('domain.whitelist');
 
         Route::post('/create', [PropertyController::class, 'create']);
         Route::post('/edit', [PropertyController::class, 'edit'])->middleware('auth.role:admin');
