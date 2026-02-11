@@ -27,7 +27,15 @@ class PropertyData extends Model
         'folder',
         'images',
         'payment_link',
-    ]; 
+        'type',
+        'furnished_type',
+        'shared_space',
+        'bathrooms',
+        'toilets',
+        'amenities',
+        'available_from',
+        'available_to',
+    ];
 
     public function property()
     {
