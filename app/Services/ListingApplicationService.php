@@ -62,6 +62,30 @@ class ListingApplicationService
     }
 
     /**
+     * Normalize incoming payload keys from camelCase (API) to snake_case (DB columns).
+     */
+    public function mapCamelToSnakeKeys(array $data): array
+    {
+        $camelToSnake = [
+            'petsAllowed'     => 'pets_allowed',
+            'smokingAllowed'  => 'smoking_allowed',
+            'furnishedType'   => 'furnished_type',
+            'sharedSpace'     => 'shared_space',
+            'availableFrom'   => 'available_from',
+            'availableTo'     => 'available_to',
+        ];
+
+        foreach ($camelToSnake as $from => $to) {
+            if (array_key_exists($from, $data)) {
+                $data[$to] = $data[$from];
+                unset($data[$from]);
+            }
+        }
+
+        return $data;
+    }
+
+    /**
      * Save or update a listing application draft from request data.
      * Sets user_id when present in request (via JWT).
      * Request: images (string) = reordered existing; new_images (array) = new files to upload and append.
@@ -80,6 +104,9 @@ class ListingApplicationService
             $request->except(['id', 'referenceId', 'reference_id', 'user_id', 'new_images']),
             fn ($v) => ! is_null($v)
         );
+
+        // Normalize camelCase API keys to snake_case model attributes
+        $data = $this->mapCamelToSnakeKeys($data);
 
         if ($userId !== null) {
             $data['user_id'] = $userId;

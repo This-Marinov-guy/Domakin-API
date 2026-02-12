@@ -489,6 +489,9 @@ class ListingApplicationController extends Controller
         }
 
         $data = $request->except(['id', 'user_id', 'new_images']);
+        // Reuse service-level key normalization so edit/save behave identically
+        $data = $listingApplicationService->mapCamelToSnakeKeys($data);
+
         if ($userId !== null) {
             $data['user_id'] = $userId;
         }
