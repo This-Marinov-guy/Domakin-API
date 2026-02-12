@@ -440,8 +440,15 @@ class PropertyController extends Controller
         $folder =
             substr($data['propertyData']['description']['en'] ?? $data['propertyData']['description'], 0, 10) . '|' . date('Y-m-d H:i:s');
 
-        // modify property data with translations
+        // modify property data with translations (wraps title, period, bills, flatmates, description in locale JSON)
         $data['propertyData'] = $propertyService->modifyPropertyDataWithTranslations($data['propertyData']);
+
+        // ensure flatmates, bills, description, period (and title) are JSON strings for DB json columns (no arrays passed through)
+        foreach (['title', 'period', 'bills', 'flatmates', 'description'] as $key) {
+            if (array_key_exists($key, $data['propertyData']) && ! is_string($data['propertyData'][$key])) {
+                $data['propertyData'][$key] = json_encode($data['propertyData'][$key] ?? [], JSON_UNESCAPED_UNICODE);
+            }
+        }
 
         $data['propertyData']['folder'] = $folder;
 
@@ -468,7 +475,7 @@ class PropertyController extends Controller
             $rent = (float) ($request->input('propertyData.rent') ?? ($data['propertyData']['rent'] ?? 0));
             $paymentLink = null;
             
-            if ($rent > 0) {string: 
+            if ($rent > 0) {
                 $mainImage = explode(',', $data['propertyData']['images'])[0];
                 $paymentLink = $paymentLinks->createPropertyFeeLink($rent, imageSrc: $mainImage);
             }

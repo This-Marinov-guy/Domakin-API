@@ -105,16 +105,18 @@ class ListingApplication extends Model
             'smokingAllowed' => 'nullable|boolean',
             'furnishedType' => 'required|integer',
             'sharedSpace'   => 'nullable|string',
+            'amenities'      => 'nullable|string',
             'bathrooms'      => 'required|integer',
             'toilets'        => 'required|integer',
-            'amenities'      => 'nullable|string',
         ];
     }
 
     public static function step5Rules(): array
     {
         return [
-            'images' => 'required',
+            'images' => 'required_without:new_images|nullable|string',
+            'new_images' => 'required_without:images|nullable|array',
+            'new_images.*' => 'file|image|mimes:jpeg,png,jpg,gif,webp,heic,heif,mp4,mov,avi,wmv,flv,mkv,webm,gif|max:5120',
         ];
     }
 
@@ -126,7 +128,7 @@ class ListingApplication extends Model
         return array_merge(
             self::step1Rules(),
             self::step2Rules($request),
-            ['images' => 'required'],
+            self::step5Rules(),
             self::step4Rules()
         );
     }

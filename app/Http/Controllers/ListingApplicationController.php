@@ -307,28 +307,34 @@ class ListingApplicationController extends Controller
         try {
             $property = DB::transaction(function () use ($application, $userId, $propertyService, $paymentLinks) {
                 $personalData = [
-                    'name'    => $application->name,
-                    'surname' => $application->surname,
-                    'email'   => $application->email,
-                    'phone'   => $application->phone,
+                    'name'    => $application->name ?? '',
+                    'surname' => $application->surname ?? '',
+                    'email'   => $application->email ?? '',
+                    'phone'   => $application->phone ?? '',
                 ];
 
                 $folder = substr(is_array($application->description)
                     ? ($application->description['en'] ?? (string) json_encode($application->description))
                     : (string) $application->description, 0, 10) . '|' . date('Y-m-d H:i:s');
 
+                $imagesString = $application->images;
+                if (is_array($imagesString)) {
+                    $imagesString = implode(', ', $imagesString);
+                }
+                $imagesString = $imagesString !== null ? (string) $imagesString : '';
+
                 $propertyData = [
-                    'city'           => $application->city,
-                    'address'        => $application->address,
-                    'postcode'       => $application->postcode,
-                    'size'           => $application->size,
-                    'rent'           => $application->rent,
-                    'registration'   => $application->registration,
-                    'bills'          => $application->bills,
-                    'flatmates'      => $application->flatmates,
-                    'period'         => $application->period,
-                    'description'    => $application->description,
-                    'images'         => $application->images,
+                    'city'           => $application->city ?? '',
+                    'address'        => $application->address ?? '',
+                    'postcode'       => $application->postcode ?? '',
+                    'size'           => $application->size ?? '',
+                    'rent'           => $application->rent ?? '',
+                    'registration'   => $application->registration ?? false,
+                    'bills'          => $application->bills ?? [],
+                    'flatmates'      => $application->flatmates ?? [],
+                    'period'         => ($application->available_from ?? '') . ' - ' . ($application->available_to ?? ''),
+                    'description'    => $application->description ?? [],
+                    'images'         => $imagesString,
                     'folder'         => $folder,
                     'pets_allowed'   => $application->pets_allowed ?? false,
                     'smoking_allowed' => $application->smoking_allowed ?? false,
@@ -337,7 +343,7 @@ class ListingApplicationController extends Controller
                     'shared_space'   => $application->shared_space,
                     'bathrooms'      => $application->bathrooms,
                     'toilets'        => $application->toilets,
-                    'amenities'      => $application->amenities,
+                    'amenities'      => $application->amenities !== null ? (string) $application->amenities : null,
                     'available_from' => $application->available_from,
                     'available_to'   => $application->available_to,
                 ];
@@ -360,12 +366,10 @@ class ListingApplicationController extends Controller
 
                 $rent = (float) $application->rent;
                 $paymentLink = null;
-                if ($rent > 0 && !empty($application->images)) {
-                    $mainImage = is_string($application->images)
-                        ? explode(',', $application->images)[0]
-                        : (is_array($application->images) ? ($application->images[0] ?? null) : null);
-                    if ($mainImage) {
-                        $paymentLink = $paymentLinks->createPropertyFeeLink($rent, imageSrc: trim($mainImage));
+                if ($rent > 0 && $imagesString !== '') {
+                    $mainImage = trim(explode(',', $imagesString)[0]);
+                    if ($mainImage !== '') {
+                        $paymentLink = $paymentLinks->createPropertyFeeLink($rent, imageSrc: $mainImage);
                     }
                 }
 
@@ -379,8 +383,12 @@ class ListingApplicationController extends Controller
 
                 return $property;
             });
-        } catch (\Exception $e) {
-            return ApiResponseClass::sendError($e->getMessage());
+        } catch (\Throwable $e) {
+            $message = $e->getMessage();
+            if (str_contains($message, '25P02') || str_contains($message, 'aborted')) {
+                $message = 'A database error occurred during submit. Please check that all required fields are filled. Original: ' . $message;
+            }
+            return ApiResponseClass::sendError($message);
         }
 
         return ApiResponseClass::sendSuccess($property);
