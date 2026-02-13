@@ -137,11 +137,11 @@ class PropertyService
             $slug = $this->createPropertySlug($property);
         }
 
-        $languagePrefix = ($lang !== null && $lang !== 'en') ? '/' . $lang : '';
+        // $languagePrefix = ($lang !== null && $lang !== 'en') ? '/' . $lang : '';
 
         $id = (int)$property['id'] + Properties::FRONTEND_PROPERTY_ID_INDEXING;
 
-        return env('FRONTEND_URL') . '/' . $languagePrefix . '/services/renting/property/' . $id . '-' . $slug;
+        return env('FRONTEND_URL') . '/services/renting/property/' . $slug;
     }
 
     /**

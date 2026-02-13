@@ -6,6 +6,7 @@ use App\Constants\Properties;
 use App\Constants\Translations;
 use App\Models\JobTracking;
 use App\Models\Property;
+use App\Services\PropertyService;
 use App\Services\Helpers;
 use App\Services\Integrations\GitHubActionsIntegrationService;
 use App\Services\Integrations\OpenAIService;
@@ -41,7 +42,7 @@ class ReformatPropertyDescriptionJob implements ShouldQueue
      * @param int $propertyId
      */
     public function __construct(
-        public int $propertyId
+        public int $propertyId,
     ) {
         // Register job tracking when job is created
         $this->registerJobTracking();
@@ -77,7 +78,7 @@ class ReformatPropertyDescriptionJob implements ShouldQueue
      * @param GitHubActionsIntegrationService $githubActionsIntegrationService
      * @return void
      */
-    public function handle(OpenAIService $openAIService, GitHubActionsIntegrationService $githubActionsIntegrationService): void
+    public function handle(OpenAIService $openAIService, GitHubActionsIntegrationService $githubActionsIntegrationService, PropertyService $propertyService): void
     {
         try {
             Log::info("[ReformatPropertyDescriptionJob] Starting job execution", [
@@ -161,7 +162,7 @@ class ReformatPropertyDescriptionJob implements ShouldQueue
             ]);
 
             // Update property data with new translations and slug
-            $this->updatePropertyData($property, $result, $githubActionsIntegrationService);
+            $this->updatePropertyData($property, $result, $githubActionsIntegrationService, $propertyService);
 
             Log::info("[ReformatPropertyDescriptionJob] Successfully completed", [
                 'property_id' => $this->propertyId,
@@ -256,7 +257,7 @@ class ReformatPropertyDescriptionJob implements ShouldQueue
      * @param array $result
      * @return void
      */
-    private function updatePropertyData($property, array $result, GitHubActionsIntegrationService $githubActionsIntegrationService): void
+    private function updatePropertyData($property, array $result, GitHubActionsIntegrationService $githubActionsIntegrationService, PropertyService $propertyService): void
     {
         Log::info("[ReformatPropertyDescriptionJob] Updating property data", [
             'property_id' => $this->propertyId,
@@ -310,7 +311,11 @@ class ReformatPropertyDescriptionJob implements ShouldQueue
         // Update slug on property
         if (isset($result['slug'])) {
             $oldSlug = $property->slug;
-            $property->slug = Helpers::sanitizeSlug($this->propertyId + Properties::FRONTEND_PROPERTY_ID_INDEXING . '-' . $result['slug'] . '-' . $property->propertyData->city);
+            $newSlug = Helpers::sanitizeSlug($this->propertyId + Properties::FRONTEND_PROPERTY_ID_INDEXING . '-' . $result['slug'] . '-' . $property->propertyData->city);
+            
+            $property->slug = $newSlug;
+            $property->link = $propertyService->getPropertyUrl($property);
+
             Log::info("[ReformatPropertyDescriptionJob] Updated slug", [
                 'property_id' => $this->propertyId,
                 'old_slug' => $oldSlug,
