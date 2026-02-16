@@ -11,9 +11,11 @@ use App\Services\ListingApplicationService;
 use App\Services\Payment\PaymentLinkService;
 use App\Services\PropertyService;
 use App\Services\UserService;
+use Illuminate\Container\Attributes\Log;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log as FacadesLog;
 use Illuminate\Support\Facades\Validator;
 
 /**
@@ -404,10 +406,15 @@ class ListingApplicationController extends Controller
      *     summary="Get all listing applications for the current user",
      *     tags={"Listing Applications"},
      *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="page", in="query", description="Page number", @OA\Schema(type="integer", default=1)),
+     *     @OA\Parameter(name="per_page", in="query", description="Items per page (1-100)", @OA\Schema(type="integer", default=15)),
+     *     @OA\Parameter(name="city", in="query", description="Filter by city (partial match)", @OA\Schema(type="string")),
+     *     @OA\Parameter(name="search", in="query", description="Search in email, name or surname", @OA\Schema(type="string")),
+     *     @OA\Parameter(name="referenceId", in="query", description="Filter by reference ID (UUID, exact match)", @OA\Schema(type="string", format="uuid")),
      *     @OA\Response(
      *         response=200,
      *         description="Success",
-     *         @OA\JsonContent(@OA\Property(property="status", type="boolean", example=true), @OA\Property(property="data", type="array", @OA\Items(type="object")))
+     *         @OA\JsonContent(@OA\Property(property="status", type="boolean", example=true), @OA\Property(property="data", type="object", @OA\Property(property="data", type="array", @OA\Items(type="object")), @OA\Property(property="current_page", type="integer"), @OA\Property(property="last_page", type="integer"), @OA\Property(property="per_page", type="integer"), @OA\Property(property="total", type="integer")))
      *     )
      * )
      */
@@ -415,11 +422,103 @@ class ListingApplicationController extends Controller
     {
         $userId = $user->extractIdFromRequest($request);
 
-        $applications = ListingApplication::where('user_id', $userId)
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $perPage = (int) $request->get('per_page', 15);
+        $perPage = max(1, min(100, $perPage));
+        $page = max(1, (int) $request->get('page', 1));
 
-        return ApiResponseClass::sendSuccess($applications);
+        $query = ListingApplication::where('user_id', $userId);
+        $query = $this->applyListingApplicationFilters($query, $request);
+
+        $paginator = $query->orderBy('created_at', 'desc')
+            ->paginate($perPage, ['*'], 'page', $page);
+
+        return ApiResponseClass::sendSuccess([
+            'data' => $paginator->items(),
+            'current_page' => $paginator->currentPage(),
+            'last_page' => $paginator->lastPage(),
+            'per_page' => $paginator->perPage(),
+            'total' => $paginator->total(),
+        ]);
+    }
+
+    // ---------------------------------------------------------------
+    // GET – list all applications (admin)
+    // ---------------------------------------------------------------
+
+    /**
+     * @OA\Get(
+     *     path="/api/v1/listing-application/list-all",
+     *     summary="Get all listing applications (admin)",
+     *     tags={"Listing Applications"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="page", in="query", description="Page number", @OA\Schema(type="integer", default=1)),
+     *     @OA\Parameter(name="per_page", in="query", description="Items per page (1-100)", @OA\Schema(type="integer", default=15)),
+     *     @OA\Parameter(name="city", in="query", description="Filter by city (partial match)", @OA\Schema(type="string")),
+     *     @OA\Parameter(name="search", in="query", description="Search in email, name or surname", @OA\Schema(type="string")),
+     *     @OA\Parameter(name="referenceId", in="query", description="Filter by reference ID (UUID, exact match)", @OA\Schema(type="string", format="uuid")),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(@OA\Property(property="status", type="boolean", example=true), @OA\Property(property="data", type="object", @OA\Property(property="data", type="array", @OA\Items(type="object")), @OA\Property(property="current_page", type="integer"), @OA\Property(property="last_page", type="integer"), @OA\Property(property="per_page", type="integer"), @OA\Property(property="total", type="integer")))
+     *     )
+     * )
+     */
+    public function listAll(Request $request): JsonResponse
+    {
+        $perPage = (int) $request->get('per_page', 15);
+        $perPage = max(1, min(100, $perPage));
+        $page = max(1, (int) $request->get('page', 1));
+
+        $query = ListingApplication::query();
+        $query = $this->applyListingApplicationFilters($query, $request);
+
+        $paginator = $query->orderBy('created_at', 'desc')
+            ->paginate($perPage, ['*'], 'page', $page);
+
+        return ApiResponseClass::sendSuccess([
+            'data' => $paginator->items(),
+            'current_page' => $paginator->currentPage(),
+            'last_page' => $paginator->lastPage(),
+            'per_page' => $paginator->perPage(),
+            'total' => $paginator->total(),
+        ]);
+    }
+
+    /**
+     * Apply city, search (email/name/surname) and referenceId filters to listing application query.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder<ListingApplication> $query
+     * @return \Illuminate\Database\Eloquent\Builder<ListingApplication>
+     */
+    private function applyListingApplicationFilters(\Illuminate\Database\Eloquent\Builder $query, Request $request): \Illuminate\Database\Eloquent\Builder
+    {
+        $referenceId = $request->get('referenceId') ?? $request->get('reference_id');
+        $city = $request->get('city');
+        $search = $request->get('search');
+
+        $query->when(
+            !empty($referenceId),
+            fn($q) =>
+            $q->whereRaw('CAST(reference_id AS TEXT) ILIKE ?', ["%" . trim($referenceId) . "%"])
+        );
+
+        $query->when(
+            !empty($city),
+            fn($q) =>
+            $q->where('city', 'ILIKE', '%' . trim($city) . '%')
+        );
+
+        if ($search) {
+            $term = '%' . strtolower(trim((string) $search)) . '%';
+            $query->where(function ($q) use ($term) {
+                $q->whereRaw('LOWER(COALESCE(email, \'\')) LIKE ?', [$term])
+                    ->orWhereRaw('LOWER(COALESCE(name, \'\')) LIKE ?', [$term])
+                    ->orWhereRaw('LOWER(COALESCE(surname, \'\')) LIKE ?', [$term])
+                    ->orWhereRaw('LOWER(COALESCE(address, \'\')) LIKE ?', [$term]);
+            });
+        }
+
+        return $query;
     }
 
     // ---------------------------------------------------------------

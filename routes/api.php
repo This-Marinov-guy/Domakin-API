@@ -97,7 +97,8 @@ Route::prefix('v1')->group(function () {
         Route::post('/save',   [ListingApplicationController::class, 'save']);
         Route::post('/submit', [ListingApplicationController::class, 'submit']);
 
-        Route::get('/list',    [ListingApplicationController::class, 'list'])->middleware('auth.role');
+        Route::get('/list',      [ListingApplicationController::class, 'list'])->middleware('auth.role');
+        Route::get('/list-extended',  [ListingApplicationController::class, 'listAll'])->middleware('auth.role:admin');
         Route::get('/{referenceId}', [ListingApplicationController::class, 'show']);
 
         // Mutate (auth required)
