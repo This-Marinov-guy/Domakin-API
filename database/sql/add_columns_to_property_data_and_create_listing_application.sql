@@ -66,16 +66,15 @@ ALTER TABLE listing_applications
   ADD CONSTRAINT listing_applications_user_id_fkey
   FOREIGN KEY (user_id) REFERENCES public.users(id);
 
-CREATE TABLE IF NOT EXISTS reminders (
+CREATE TABLE IF NOT EXISTS email_reminders (
   id               BIGSERIAL    PRIMARY KEY,
-  type             INTEGER      NOT NULL,
-  template         TEXT         NOT NULL,
+  status           TEXT      NOT NULL DEFAULT 'pending',
+  scheduled_date             DATE         NOT NULL,
+  template_id         TEXT         NOT NULL,
   email            TEXT         NOT NULL,
-  frequency        INTEGER      NOT NULL,
-  reference_id     BIGINT       NULL,
-  reference_table  TEXT         NULL,
-  created_at       TIMESTAMP(0) NULL,
-  updated_at       TIMESTAMP(0) NULL
+  metadata         JSONB        NULL,
+  created_at       TIMESTAMP(0) NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at       TIMESTAMP(0) NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- ============================================================

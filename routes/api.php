@@ -14,6 +14,7 @@ use App\Http\Controllers\ViewingController;
 use App\Http\Controllers\Integration\WordPressController;
 use App\Http\Controllers\Webhook\StripeWebhookController;
 use App\Http\Controllers\ListingApplicationController;
+use App\Http\Controllers\ReminderController;
 use App\Http\Controllers\Test;
 
 /*
@@ -104,6 +105,10 @@ Route::prefix('v1')->group(function () {
         // Mutate (auth required)
         Route::patch('/edit',    [ListingApplicationController::class, 'edit'])->middleware('auth.role');
         Route::delete('/delete', [ListingApplicationController::class, 'destroy'])->middleware('auth.role');
+    });
+
+    Route::prefix('reminder')->group(function () {
+        Route::post('/listing', [ReminderController::class, 'sendListingReminder']);
     });
 
     Route::prefix('authentication')->group(function () {

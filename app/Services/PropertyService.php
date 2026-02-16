@@ -64,7 +64,17 @@ class PropertyService
                 'id' =>  $property['id'] + 1000, // to avoid collision with the id of the property,
                 'status' => PropertyStatus::from($property['status'])->label(),
                 'statusCode' => $property['status'],
-                'slug' => $property['slug'],
+                'amenities' => $property['property_data']['amenities'],
+                'bathrooms' => $property['property_data']['bathrooms'],
+                'toilets' => $property['property_data']['toilets'],
+                'shared_space' => $property['property_data']['shared_space'],
+                'furnished_type' => $property['property_data']['furnished_type'],
+                'type' => $property['property_data']['type'],
+                'pets_allowed' => $property['property_data']['pets_allowed'],
+                'smoking_allowed' => $property['property_data']['smoking_allowed'],
+                'rent' => $property['property_data']['rent'],
+                'size' => $property['property_data']['size'],
+                'registration' => $property['property_data']['registration'],
                 'price' => $property['property_data']['rent'],
                 'title' => Helpers::getTranslatedValue($property['property_data']['title'], $language) ?? 'Available room',
                 'city' => $property['property_data']['city'],
@@ -81,7 +91,7 @@ class PropertyService
         }
 
         foreach ($modifiedProperties as $key => $item) {
-            $modifiedProperties[$key]['link'] = $this->getPropertyUrl($item, true, $language);
+            $modifiedProperties[$key]['link'] = $item['link'] ?? $this->getPropertyUrl($item, true, $language);
         }
 
         return $modifiedProperties;
