@@ -29,24 +29,20 @@ class OpenAIService
     }
 
     /**
-     * Reformats and translates property description, flatmates, bills, period, and size context using OpenAI
+     * Reformats and translates property description, flatmates, and period context using OpenAI
      *
      * @param string $description The original description in English
      * @param array $languages Array of language codes (e.g., ['en', 'nl', 'de', 'fr'])
      * @param string|null $flatmates The flatmates value (usually a number)
-     * @param string|null $bills The bills value (in euro)
      * @param string|null $period The period value
-     * @param float|null $size Size in square meters (e.g. 15.5)
-     * @return array Returns array with 'description', 'title', 'flatmates', 'bills', 'period', 'slug', and optionally 'size'
+     * @return array Returns array with 'description', 'title', 'flatmates', 'period', 'slug'
      * @throws Exception
      */
     public function reformatAndTranslateDescription(
         string $description,
         array $languages,
         ?string $flatmates = null,
-        ?string $bills = null,
-        ?string $period = null,
-        ?float $size = null
+        ?string $period = null
     ): array
     {
         if (empty($this->apiKey)) {
@@ -67,7 +63,7 @@ class OpenAIService
         }
 
         // Create the prompt
-        $prompt = $this->buildPrompt($description, $languages, $flatmates, $bills, $period, $size);
+        $prompt = $this->buildPrompt($description, $languages, $flatmates, $period);
 
         try {
             $requestHeaders = [
@@ -105,11 +101,7 @@ class OpenAIService
                 // Add test translations for additional fields
                 foreach ($languages as $lang) {
                     $testResult['flatmates'][$lang] = $flatmates ?? '2';
-                    $testResult['bills'][$lang] = $bills ?? '€150';
                     $testResult['period'][$lang] = $period ?? '12 months';
-                }
-                if ($size !== null) {
-                    $testResult['size'] = $size;
                 }
 
                 return $testResult;
@@ -160,7 +152,7 @@ class OpenAIService
             }
 
             // Validate and structure the response
-            $structured = $this->validateAndStructureResponse($result, $languages, $size);
+            $structured = $this->validateAndStructureResponse($result, $languages);
 
             return $structured;
         } catch (Exception $e) {
@@ -178,29 +170,20 @@ class OpenAIService
      * @param string $description
      * @param array $languages
      * @param string|null $flatmates
-     * @param string|null $bills
      * @param string|null $period
-     * @param float|null $size Size in square meters
      * @return string
      */
-    private function buildPrompt(string $description, array $languages, ?string $flatmates = null, ?string $bills = null, ?string $period = null, ?float $size = null): string
+    private function buildPrompt(string $description, array $languages, ?string $flatmates = null, ?string $period = null): string
     {
         $languagesList = implode(', ', $languages);
         $languageCodes = implode('", "', $languages);
 
         // Build additional fields section
         $additionalFields = '';
-        if ($flatmates !== null || $bills !== null || $period !== null || $size !== null) {
+        if ($flatmates !== null || $period !== null) {
             $additionalFields = "\n\nAdditional property information (extract also from description if provided):\n";
-            if ($size !== null) {
-                $sizeFormatted = (float) $size === (int) $size ? (int) $size : $size;
-                $additionalFields .= "- Size: {$sizeFormatted}  as a number and m² at the end. Example: '15.5 m²' or '15 m²' or '15 m²' etc.\n";
-            }
             if ($flatmates !== null) {
-                $additionalFields .= "- Flatmates: {$flatmates} (usually a number, e.g., '2', '3-4', and genders if provided. Format: 'none', '2' or '2 male' or '2 female' or '2 (male and female)' or '2 male and 1 female' or '2 female and 1 male' etc.). If its only 1, dont mention the gender.\n";
-            }
-            if ($bills !== null) {
-                $additionalFields .= "- Bills: {$bills} (in euros, e.g., '€150', '€200-250', 'included. Include also any additional information about the bills if provided. Format: 'included' or '€150 per month' or '€150 per month + €50 for internet' or '€150 per month + €50 for internet + €100 for utilities' etc. and add deposit if provided.)\n";
+                $additionalFields .= "- Flatmates: {$flatmates} (usually a number, e.g., '2', '3-4', and genders if provided - the first number is for male and the second is for females. Format: 'none', '2' or '2 male' or '2 female' or '2 (male and female)' or '2 male and 1 female' or '2 female and 1 male' etc.). If it will be only you, dont mention the gender, type none.\n";
             }
             if ($period !== null) {
                 $additionalFields .= "- Period: {$period} (rental period, e.g., '12 months from now', '6-12 months from now', 'indefinite' and dates if provided. Format: '12 months from now' or '12 months from [date]' or 'indefinite' or '12 months to [date]'). Always mention start date or available from now\n";
@@ -221,6 +204,7 @@ Requirements:
    - Suitable for real estate listings (rooms/apartments)
    - Clear and informative
    - Engaging but not overly promotional
+   - no emojis or special characters, just brief paragraphs and sentences.
 
 2. Create translations for the following languages: {$languagesList}
 
@@ -230,9 +214,8 @@ Requirements:
    - Professional
    - Translated to all requested languages
 
-4. Translate the additional fields (flatmates, bills, period) to all requested languages:
+4. Translate the additional fields (flatmates, period) to all requested languages:
    - Flatmates: Keep numbers as-is, but translate any descriptive text (e.g., "mixed" → appropriate translation)
-   - Bills: Keep the euro amount format, but ensure currency symbol and format are appropriate for each language
    - Period: Translate time periods appropriately (e.g., "12 months" → "12 maanden" in Dutch, "12 μήνες" in Greek)
 
 5. Generate a URL-friendly slug (English only) based on the English title. The slug should be:
@@ -258,9 +241,6 @@ Please return a JSON object with the following structure:
   "flatmates": {
     "{$languageCodes}": "translated flatmates value for each language"
   },
-  "bills": {
-    "{$languageCodes}": "translated bills value for each language (keep euro format)"
-  },
   "period": {
     "{$languageCodes}": "translated period value for each language"
   },
@@ -276,11 +256,10 @@ PROMPT;
      *
      * @param array $result
      * @param array $languages
-     * @param float|null $size Size in square meters (passed through when provided)
      * @return array
      * @throws Exception
      */
-    private function validateAndStructureResponse(array $result, array $languages, ?float $size = null): array
+    private function validateAndStructureResponse(array $result, array $languages): array
     {
         // Validate structure
         if (!isset($result['description']) || !isset($result['title'])) {
@@ -306,9 +285,6 @@ PROMPT;
             // Check optional fields
             if (isset($result['flatmates']) && !isset($result['flatmates'][$lang])) {
                 $missingLanguages[] = "flatmates.{$lang}";
-            }
-            if (isset($result['bills']) && !isset($result['bills'][$lang])) {
-                $missingLanguages[] = "bills.{$lang}";
             }
             if (isset($result['period']) && !isset($result['period'][$lang])) {
                 $missingLanguages[] = "period.{$lang}";
@@ -347,25 +323,12 @@ PROMPT;
             }
         }
 
-        // Fill in bills if provided
-        if (isset($result['bills']) && is_array($result['bills'])) {
-            $structured['bills'] = [];
-            foreach ($languages as $lang) {
-                $structured['bills'][$lang] = $result['bills'][$lang] ?? '';
-            }
-        }
-
         // Fill in period if provided
         if (isset($result['period']) && is_array($result['period'])) {
             $structured['period'] = [];
             foreach ($languages as $lang) {
                 $structured['period'][$lang] = $result['period'][$lang] ?? '';
             }
-        }
-
-        // Pass through size in square meters when provided (number, not translated)
-        if ($size !== null) {
-            $structured['size'] = $size;
         }
 
         return $structured;

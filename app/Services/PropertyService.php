@@ -12,7 +12,7 @@ class PropertyService
     {
         $defaultTranslations = Helpers::getDefaultLocalesObject();
 
-        $values = ['title', 'period', 'bills', 'flatmates', 'description'];
+        $values = ['title', 'period', 'flatmates', 'description'];
 
         foreach ($values as $key) {
             if (isset($data[$key])) {
@@ -33,7 +33,7 @@ class PropertyService
 
     public function stringifyPropertyDataWithTranslations($data)
     {
-        $values = ['title', 'period', 'bills', 'flatmates', 'description'];
+        $values = ['title', 'period', 'flatmates', 'description'];
 
         foreach ($values as $key) {
             if (isset($data[$key])) {
@@ -46,7 +46,7 @@ class PropertyService
 
     public function parseProperties($properties)
     {
-        $modifiedProperties = Helpers::decodeJsonKeys($properties, ['property_data.title', 'property_data.bills', 'property_data.description', 'property_data.period', 'property_data.flatmates']);
+        $modifiedProperties = Helpers::decodeJsonKeys($properties, ['property_data.title', 'property_data.description', 'property_data.period', 'property_data.flatmates']);
         $modifiedProperties = Helpers::splitStringKeys($modifiedProperties, ['property_data.images']);
 
         return $modifiedProperties;
@@ -56,7 +56,7 @@ class PropertyService
     // TODO: fix translations
     public function parsePropertiesForListing($properties, $language = 'en')
     {
-        $modifiedProperties = Helpers::decodeJsonKeys($properties, ['property_data.title', 'property_data.bills', 'property_data.description', 'property_data.period', 'property_data.flatmates']);
+        $modifiedProperties = Helpers::decodeJsonKeys($properties, ['property_data.title', 'property_data.description', 'property_data.period', 'property_data.flatmates']);
         $modifiedProperties = Helpers::splitStringKeys($modifiedProperties, ['property_data.images']);
 
         foreach ($modifiedProperties as $key => $property) {
@@ -82,7 +82,7 @@ class PropertyService
                 'description' => [
                     'property' => Helpers::getTranslatedValue($property['property_data']['description'], $language),
                     'period' => Helpers::getTranslatedValue($property['property_data']['period'], $language),
-                    'bills' => Helpers::getTranslatedValue($property['property_data']['bills'], $language),
+                    'bills' => $property['property_data']['bills'] ?? null,
                     'flatmates' => Helpers::getTranslatedValue($property['property_data']['flatmates'], $language),
                 ],
                 'main_image' => $property['property_data']['images'][0] ?? null,

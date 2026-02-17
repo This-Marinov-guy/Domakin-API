@@ -180,11 +180,11 @@ class ListingApplicationController extends Controller
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             required={"city","size","rent","bills","description","furnished_type","bathrooms","toilets"},
+     *             required={"city","size","rent","description","furnished_type","bathrooms","toilets"},
      *             @OA\Property(property="city",           type="string",  example="Amsterdam"),
-     *             @OA\Property(property="size",           type="string",  example="25m²"),
+     *             @OA\Property(property="size",           type="integer", example=25),
      *             @OA\Property(property="rent",           type="number",  example=850, minimum=1),
-     *             @OA\Property(property="bills",          type="object"),
+     *             @OA\Property(property="bills",          type="integer", nullable=true, example=80, description="Optional monthly bills amount in euros"),
      *             @OA\Property(property="flatmates",      type="object"),
      *             @OA\Property(property="period",         type="object"),
      *             @OA\Property(property="description",    type="object"),
@@ -329,10 +329,10 @@ class ListingApplicationController extends Controller
                     'city'           => $application->city ?? '',
                     'address'        => $application->address ?? '',
                     'postcode'       => $application->postcode ?? '',
-                    'size'           => $application->size ?? '',
+                    'size'           => $application->size,
                     'rent'           => $application->rent ?? '',
                     'registration'   => $application->registration ?? false,
-                    'bills'          => $application->bills ?? [],
+                    'bills'          => $application->bills,
                     'flatmates'      => $application->flatmates ?? [],
                     'period'         => ($application->available_from ?? '') . ' - ' . ($application->available_to ?? ''),
                     'description'    => $application->description ?? [],
@@ -348,6 +348,7 @@ class ListingApplicationController extends Controller
                     'amenities'      => $application->amenities !== null ? (string) $application->amenities : null,
                     'available_from' => $application->available_from,
                     'available_to'   => $application->available_to,
+                    'deposit'        => $application->deposit,
                 ];
 
                 if (empty($propertyData['title'])) {

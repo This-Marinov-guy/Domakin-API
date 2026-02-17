@@ -151,7 +151,7 @@ class PropertyController extends Controller
      *                         description="Translated description blocks",
      *                         @OA\Property(property="property", type="string", example="Spacious room with canal view, 15m². Shared kitchen and bathroom."),
      *                         @OA\Property(property="period", type="string", example="From 1 March 2025, minimum 6 months"),
-     *                         @OA\Property(property="bills", type="string", example="Included: gas, water, electricity, internet"),
+     *                         @OA\Property(property="bills", type="integer", nullable=true, example=80, description="Optional monthly bills in euros"),
      *                         @OA\Property(property="flatmates", type="string", example="2 flatmates, international household")
      *                     ),
      *                     @OA\Property(property="main_image", type="string", nullable=true, description="URL of the primary image", example="https://res.cloudinary.com/example/image/upload/v123/room1.jpg"),
@@ -174,7 +174,7 @@ class PropertyController extends Controller
      *                         "description": {
      *                             "property": "Spacious room with canal view, 15m². Shared kitchen and bathroom.",
      *                             "period": "From 1 March 2025, minimum 6 months",
-     *                             "bills": "Included: gas, water, electricity, internet",
+     *                             "bills": 80,
      *                             "flatmates": "2 flatmates, international household"
      *                         },
      *                         "main_image": "https://res.cloudinary.com/example/image/upload/v123/room1.jpg",
@@ -193,7 +193,7 @@ class PropertyController extends Controller
      *                         "description": {
      *                             "property": "Furnished studio, 25m². Private kitchen and bathroom.",
      *                             "period": "Available from 15 April 2025",
-     *                             "bills": "Excl. utilities, approx. €80/month",
+     *                             "bills": 80,
      *                             "flatmates": "No flatmates, self-contained"
      *                         },
      *                         "main_image": "https://res.cloudinary.com/example/image/upload/v123/studio1.jpg",
@@ -443,8 +443,8 @@ class PropertyController extends Controller
         // modify property data with translations (wraps title, period, bills, flatmates, description in locale JSON)
         $data['propertyData'] = $propertyService->modifyPropertyDataWithTranslations($data['propertyData']);
 
-        // ensure flatmates, bills, description, period (and title) are JSON strings for DB json columns (no arrays passed through)
-        foreach (['title', 'period', 'bills', 'flatmates', 'description'] as $key) {
+        // ensure flatmates, description, period (and title) are JSON strings for DB json columns; bills is optional int
+        foreach (['title', 'period', 'flatmates', 'description'] as $key) {
             if (array_key_exists($key, $data['propertyData']) && ! is_string($data['propertyData'][$key])) {
                 $data['propertyData'][$key] = json_encode($data['propertyData'][$key] ?? [], JSON_UNESCAPED_UNICODE);
             }

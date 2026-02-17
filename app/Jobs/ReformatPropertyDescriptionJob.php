@@ -101,7 +101,6 @@ class ReformatPropertyDescriptionJob implements ShouldQueue
                 'property_id' => $this->propertyId,
                 'has_description' => !empty($description),
                 'has_flatmates' => !empty($propertyData->flatmates),
-                'has_bills' => !empty($propertyData->bills),
                 'has_period' => !empty($propertyData->period),
             ]);
 
@@ -115,20 +114,16 @@ class ReformatPropertyDescriptionJob implements ShouldQueue
                 throw new Exception("No English description found for property ID: {$this->propertyId}");
             }
 
-            // Extract English values for flatmates, bills, and period
+            // Extract English values for flatmates and period (size and bills are stored as separate optional fields)
             $englishFlatmates = $this->extractEnglishValue($propertyData->flatmates);
-            $englishBills = $this->extractEnglishValue($propertyData->bills);
             $englishPeriod = $this->extractEnglishValue($propertyData->period);
-            $sizeM2 = $propertyData->size;
 
             Log::info("[ReformatPropertyDescriptionJob] Extracted English values", [
                 'property_id' => $this->propertyId,
                 'description_length' => strlen($englishDescription),
                 'description_preview' => substr($englishDescription, 0, 100) . '...',
                 'flatmates' => $englishFlatmates,
-                'bills' => $englishBills,
                 'period' => $englishPeriod,
-                'size_m2' => $sizeM2,
             ]);
 
             // Get supported locales
@@ -144,9 +139,7 @@ class ReformatPropertyDescriptionJob implements ShouldQueue
                 $englishDescription,
                 $languages,
                 $englishFlatmates,
-                $englishBills,
                 $englishPeriod,
-                $sizeM2
             );
 
             Log::info("[ReformatPropertyDescriptionJob] OpenAI service returned results", [
@@ -154,10 +147,8 @@ class ReformatPropertyDescriptionJob implements ShouldQueue
                 'has_description' => isset($result['description']),
                 'has_title' => isset($result['title']),
                 'has_flatmates' => isset($result['flatmates']),
-                'has_bills' => isset($result['bills']),
                 'has_period' => isset($result['period']),
                 'has_slug' => isset($result['slug']),
-                'has_size' => isset($result['size']),
                 'description_languages' => isset($result['description']) ? array_keys($result['description']) : [],
             ]);
 
@@ -290,14 +281,7 @@ class ReformatPropertyDescriptionJob implements ShouldQueue
             ]);
         }
 
-        // Update bills - convert array to JSON string
-        if (isset($result['bills']) && is_array($result['bills'])) {
-            $property->propertyData->bills = json_encode($result['bills'], JSON_UNESCAPED_UNICODE);
-            Log::info("[ReformatPropertyDescriptionJob] Updated bills", [
-                'property_id' => $this->propertyId,
-                'languages' => array_keys($result['bills']),
-            ]);
-        }
+        // Bills is stored as optional integer; not updated from OpenAI result
 
         // Update period - convert array to JSON string
         if (isset($result['period']) && is_array($result['period'])) {
@@ -327,11 +311,6 @@ class ReformatPropertyDescriptionJob implements ShouldQueue
         // Update flatmates - convert array to JSON string
         if (isset($result['flatmates']) && is_array($result['flatmates'])) {
             $property->propertyData->flatmates = json_encode($result['flatmates'], JSON_UNESCAPED_UNICODE);
-        }
-
-        // Update bills - convert array to JSON string
-        if (isset($result['bills']) && is_array($result['bills'])) {
-            $property->propertyData->bills = json_encode($result['bills'], JSON_UNESCAPED_UNICODE);
         }
 
         // Update period - convert array to JSON string

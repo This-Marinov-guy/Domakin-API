@@ -35,6 +35,13 @@ class PropertyData extends Model
         'amenities',
         'available_from',
         'available_to',
+        'deposit',
+    ];
+
+    protected $casts = [
+        'size'    => 'integer',
+        'bills'   => 'integer',
+        'deposit' => 'integer',
     ];
 
     public function property()

@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS listing_applications (
   size              VARCHAR(255) NULL,
   rent              VARCHAR(255) NULL,
   registration      VARCHAR(255) NULL,
-  bills             JSONB        NULL,
+  bills             INTEGER      NULL,
   flatmates         JSONB        NULL,
   period            JSONB        NULL,
   description       JSONB        NULL,
@@ -89,3 +89,67 @@ ALTER TABLE property_data
 ALTER TABLE listing_applications
   ALTER COLUMN registration TYPE BOOLEAN
   USING (registration = 'yes');
+
+-- ============================================================
+-- Add deposit (INT NULL) and convert size to INT with reformat
+-- (extract first number from values like "25m²", "100 sqm"; empty → NULL)
+-- ============================================================
+
+-- property_data: add deposit, then convert size
+ALTER TABLE property_data
+  ADD COLUMN IF NOT EXISTS deposit INTEGER NULL;
+
+ALTER TABLE property_data
+  ALTER COLUMN size DROP NOT NULL;
+
+ALTER TABLE property_data
+  ALTER COLUMN size TYPE INTEGER
+  USING ((regexp_match(trim(COALESCE(size, '')), '[0-9]+'))[1])::integer;
+
+-- listing_applications: add deposit, then convert size
+ALTER TABLE listing_applications
+  ADD COLUMN IF NOT EXISTS deposit INTEGER NULL;
+
+ALTER TABLE listing_applications
+  ALTER COLUMN size TYPE INTEGER
+  USING ((regexp_match(trim(COALESCE(size, '')), '[0-9]+'))[1])::integer;
+
+-- ============================================================
+-- Convert bills from JSON/JSONB to INTEGER NULL
+-- (extract first number from content, e.g. "€150" or {"en":"€200"} → 150, 200; no number → NULL)
+-- ============================================================
+
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'property_data' AND column_name = 'bills'
+    AND data_type IN ('jsonb', 'json')
+  ) THEN
+    ALTER TABLE property_data ADD COLUMN bills_new INTEGER NULL;
+    UPDATE property_data SET bills_new = ((regexp_match(trim(COALESCE(bills::text, '')), '[0-9]+'))[1])::integer WHERE bills IS NOT NULL AND trim(bills::text) <> '';
+    ALTER TABLE property_data DROP COLUMN bills;
+    ALTER TABLE property_data RENAME COLUMN bills_new TO bills;
+  END IF;
+END $$;
+
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'listing_applications' AND column_name = 'bills'
+    AND data_type IN ('jsonb', 'json')
+  ) THEN
+    ALTER TABLE listing_applications ADD COLUMN bills_new INTEGER NULL;
+    UPDATE listing_applications SET bills_new = ((regexp_match(trim(COALESCE(bills::text, '')), '[0-9]+'))[1])::integer WHERE bills IS NOT NULL AND trim(bills::text) <> '';
+    ALTER TABLE listing_applications DROP COLUMN bills;
+    ALTER TABLE listing_applications RENAME COLUMN bills_new TO bills;
+  END IF;
+END $$;
+
+-- ============================================================
+-- Remove independent column from both tables (if present)
+-- ============================================================
+
+ALTER TABLE property_data DROP COLUMN IF EXISTS independent;
+ALTER TABLE listing_applications DROP COLUMN IF EXISTS independent;

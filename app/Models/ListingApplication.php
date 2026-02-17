@@ -42,16 +42,19 @@ class ListingApplication extends Model
         'bathrooms',
         'toilets',
         'amenities',
+        'deposit',
     ];
 
     protected $casts = [
-        'bills'          => 'array',
+        'bills'          => 'integer',
         'flatmates'      => 'array',
         'period'         => 'array',
         'description'    => 'array',
         'registration'   => 'boolean',
         'pets_allowed'   => 'boolean',
         'smoking_allowed' => 'boolean',
+        'size'           => 'integer',
+        'deposit'        => 'integer',
     ];
 
     // ---------------------------------------------------------------
@@ -96,9 +99,9 @@ class ListingApplication extends Model
     public static function step4Rules(): array
     {
         return [
-            'size'           => 'required|string',
+            'size'           => 'required|integer|min:1',
             'rent'           => 'required|numeric|min:1',
-            'bills'          => 'required',
+            'bills'          => 'nullable|integer',
             'flatmates'      => 'nullable',
             'description'    => 'required',
             'petsAllowed'   => 'nullable|boolean',
@@ -108,6 +111,7 @@ class ListingApplication extends Model
             'amenities'      => 'nullable|string',
             'bathrooms'      => 'required|integer',
             'toilets'        => 'required|integer',
+            'deposit'        => 'nullable|integer',
         ];
     }
 

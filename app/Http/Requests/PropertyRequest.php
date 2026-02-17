@@ -31,10 +31,10 @@ class PropertyRequest extends FormRequest
 
             'propertyData.city' => 'required|string',
             'propertyData.address' => 'required|string',
-            'propertyData.size' => 'required|string',
+            'propertyData.size' => 'required|integer|min:1',
             'propertyData.period' => 'required|string',
             'propertyData.rent' => 'required|string',
-            'propertyData.bills' => 'required|string',
+            'propertyData.bills' => 'nullable|integer',
             'propertyData.flatmates' => 'required|string',
             'propertyData.registration' => 'required|string',
             'propertyData.description' => 'required|string',
