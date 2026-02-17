@@ -4,6 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Classes\ApiResponseClass;
 use App\Constants\Translations;
+use App\Enums\Amenities;
+use App\Enums\FurnishedType;
+use App\Enums\PropertyType;
+use App\Enums\SharedSpace;
 use App\Files\CloudinaryService;
 use App\Http\Controllers\Controller;
 use App\Mail\Notification;
@@ -277,6 +281,18 @@ class PropertyController extends Controller
             $writer->writeElement('location', (string) ($p['location'] ?? ''));
             $writer->writeElement('link', (string) ($p['link'] ?? ''));
             $writer->writeElement('main_image', (string) ($p['main_image'] ?? ''));
+
+            $writer->writeElement('type', PropertyType::tryLabel($p['type'] ?? null) ?? '');
+            $writer->writeElement('furnished_type', FurnishedType::tryLabel($p['furnished_type'] ?? null) ?? '');
+            $writer->writeElement('amenities', Amenities::getLabelsForValue($p['amenities'] ?? null));
+            $writer->writeElement('shared_space', SharedSpace::getLabelsForValue($p['shared_space'] ?? null));
+            $writer->writeElement('bathrooms', (string) ($p['bathrooms'] ?? ''));
+            $writer->writeElement('toilets', (string) ($p['toilets'] ?? ''));
+            $writer->writeElement('size', (string) ($p['size'] ?? ''));
+            $writer->writeElement('rent', (string) ($p['rent'] ?? ''));
+            $writer->writeElement('deposit', isset($p['deposit']) ? (string) $p['deposit'] : '');
+            $writer->writeElement('pets_allowed', isset($p['pets_allowed']) ? ($p['pets_allowed'] ? '1' : '0') : '');
+            $writer->writeElement('smoking_allowed', isset($p['smoking_allowed']) ? ($p['smoking_allowed'] ? '1' : '0') : '');
 
             if (!empty($p['description']) && is_array($p['description'])) {
                 $writer->startElement('description');
