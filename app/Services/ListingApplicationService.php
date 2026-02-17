@@ -131,7 +131,7 @@ class ListingApplicationService
             });
             $application = $query->first();
 
-            if (! $application) {
+            if (!$application) {
                 return null;
             }
 
