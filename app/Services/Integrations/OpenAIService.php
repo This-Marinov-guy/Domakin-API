@@ -206,6 +206,8 @@ Requirements:
    - Engaging but not overly promotional
    - no emojis or special characters, just brief paragraphs and sentences.
 
+   Turn the description into html format with paragraphs by meaning - use p tags and br tags for new lines.
+
 2. Create translations for the following languages: {$languagesList}
 
 3. Generate a brief, SEO-optimized title (maximum 6 words) that describes the property. The title should be:

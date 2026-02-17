@@ -76,6 +76,7 @@ class PropertyService
                 'size' => $property['property_data']['size'],
                 'registration' => $property['property_data']['registration'],
                 'price' => $property['property_data']['rent'],
+                'deposit' => $property['property_data']['deposit'],
                 'title' => Helpers::getTranslatedValue($property['property_data']['title'], $language) ?? 'Available room',
                 'city' => $property['property_data']['city'],
                 'location' => Helpers::extractStreetName($property['property_data']['address']) . ', ' . $property['property_data']['city'],
