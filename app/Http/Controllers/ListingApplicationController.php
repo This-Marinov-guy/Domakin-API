@@ -3,19 +3,22 @@
 namespace App\Http\Controllers;
 
 use App\Classes\ApiResponseClass;
+use App\Jobs\ReformatPropertyDescriptionJob;
+use App\Mail\Notification;
 use App\Models\ListingApplication;
 use App\Models\PersonalData;
 use App\Models\Property;
 use App\Models\PropertyData;
+use App\Services\GoogleServices\GoogleSheetsService;
 use App\Services\ListingApplicationService;
 use App\Services\Payment\PaymentLinkService;
 use App\Services\PropertyService;
 use App\Services\UserService;
-use Illuminate\Container\Attributes\Log;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log as FacadesLog;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 /**
@@ -282,7 +285,7 @@ class ListingApplicationController extends Controller
      *     @OA\Response(response=400, description="Error")
      * )
      */
-    public function submit(Request $request, UserService $user, PropertyService $propertyService, PaymentLinkService $paymentLinks): JsonResponse
+    public function submit(Request $request, UserService $user, PropertyService $propertyService, PaymentLinkService $paymentLinks, GoogleSheetsService $sheetsService): JsonResponse
     {
         $validator = Validator::make($request->all(), [
             'referenceId' => 'required|string',
@@ -392,6 +395,24 @@ class ListingApplicationController extends Controller
                 $message = 'A database error occurred during submit. Please check that all required fields are filled. Original: ' . $message;
             }
             return ApiResponseClass::sendError($message);
+        }
+
+        try {
+            // Dispatch background job to reformat and translate description using OpenAI
+            ReformatPropertyDescriptionJob::dispatch($property->id);
+        } catch (Exception $error) {
+            Log::error($error->getMessage());
+        }
+
+        try {
+            (new Notification('New property uploaded', 'property', ['property' => $property]))->sendNotification();
+
+            $sheetsService->exportModelToSpreadsheet(
+                Property::class,
+                'Properties'
+            );
+        } catch (Exception $error) {
+            Log::error($error->getMessage());
         }
 
         return ApiResponseClass::sendSuccess($property);
