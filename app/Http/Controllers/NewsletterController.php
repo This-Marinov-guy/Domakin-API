@@ -7,6 +7,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Newsletter;
 use Illuminate\Http\Request;
 use App\Services\GoogleServices\GoogleSheetsService;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Exception;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -129,30 +131,24 @@ class NewsletterController extends Controller
      *     )
      * )
      */
-    public function destroy(Request $request, GoogleSheetsService $sheetsService): JsonResponse
+    public function destroy(Request $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|string|email',
-            'id' => 'required|integer',
-        ]);
-
-        if ($validator->fails()) {
-            return ApiResponseClass::sendInvalidFields($validator->errors()->toArray());
-        }
-
         try {
-            Newsletter::where('id', $request->id)->where('email', $request->email)->delete();
-        } catch (Exception $error) {
-            return ApiResponseClass::sendError("No mail found!");
-        }
+            $email = (string) $request->input('email', '');
 
-        try {
-            $sheetsService->exportModelToSpreadsheet(
-                Newsletter::class,
-                'Newsletter emails'
-            );
+            if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                DB::table('unsubscribed_emails')->upsert(
+                    [[
+                        'email' => $email,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]],
+                    ['email'],
+                    ['updated_at']
+                );
+            }
         } catch (Exception $error) {
-            //do nothing        
+            Log::error('Newsletter unsubscribe failed', ['error' => $error->getMessage()]);
         }
 
         return ApiResponseClass::sendSuccess();
