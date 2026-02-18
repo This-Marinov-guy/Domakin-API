@@ -129,6 +129,11 @@ Route::prefix('v1')->group(function () {
     });
 });
 
+// Health check (no versioning, used by CI/CD)
+Route::get('/health', function () {
+    return response()->json(['status' => 'ok', 'timestamp' => now()->toIso8601String()]);
+});
+
 // Stripe webhook (no versioning, legacy support)
 Route::post('/webhooks/stripe/checkout', [StripeWebhookController::class, 'handle']);
 
