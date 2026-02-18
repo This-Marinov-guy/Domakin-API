@@ -50,5 +50,6 @@ jobs:
             cd /root/domakin-api
             git pull origin master
             cd /root
-            docker-compose up -d --build domakin-api domakin-api-queue
+            docker compose build --no-cache domakin-api domakin-api-queue
+            docker compose up -d --build domakin-api domakin-api-queue
             docker system prune -f
