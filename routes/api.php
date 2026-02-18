@@ -32,7 +32,7 @@ Route::prefix('v1')->group(function () {
     // Note: common routes with basic functionality
     Route::prefix('common')->group(function () {
         Route::post('/newsletter/subscribe', [NewsletterController::class, 'create']);
-        Route::delete('/newsletter/unsubscribe', [NewsletterController::class, 'destroy']);
+        Route::match(['delete', 'post'], '/newsletter/unsubscribe', [NewsletterController::class, 'destroy']);
     });
 
     Route::prefix('blog')->group(function () {
