@@ -9,8 +9,10 @@ use Illuminate\Http\Request;
 use App\Services\GoogleServices\GoogleSheetsService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Validator;
 use Exception;
+use Throwable;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 /**
@@ -134,9 +136,10 @@ class NewsletterController extends Controller
     public function destroy(Request $request): JsonResponse
     {
         try {
-            $email = (string) $request->input('email', '');
+            // Support body (POST) and query (e.g. ?email= for DELETE / link clicks); many proxies drop DELETE body
+            $email = (string) ($request->input('email') ?? $request->query('email', ''));
 
-            if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            if (filter_var($email, FILTER_VALIDATE_EMAIL) && Schema::hasTable('unsubscribed_emails')) {
                 DB::table('unsubscribed_emails')->upsert(
                     [[
                         'email' => $email,
@@ -147,8 +150,8 @@ class NewsletterController extends Controller
                     ['updated_at']
                 );
             }
-        } catch (Exception $error) {
-            Log::error('Newsletter unsubscribe failed', ['error' => $error->getMessage()]);
+        } catch (Throwable $e) {
+            Log::error('Newsletter unsubscribe failed', ['error' => $e->getMessage()]);
         }
 
         return ApiResponseClass::sendSuccess();
