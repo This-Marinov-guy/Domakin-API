@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
 use App\Classes\ApiResponseClass;
@@ -23,6 +25,7 @@ use App\Services\Helpers;
 use App\Jobs\ReformatPropertyDescriptionJob;
 use App\Services\Integrations\SignalIntegrationService;
 use App\Services\PropertyService;
+use App\Services\ListingMailerService;
 use App\Services\Payment\PaymentLinkService;
 use Illuminate\Support\Facades\Validator;
 use Exception;
@@ -433,7 +436,7 @@ class PropertyController extends Controller
      *     )
      * )
      */
-    public function create(Request $request, CloudinaryService $cloudinary, GoogleSheetsService $sheetsService, PropertyService $propertyService, UserService $user, PaymentLinkService $paymentLinks): JsonResponse
+    public function create(Request $request, CloudinaryService $cloudinary, GoogleSheetsService $sheetsService, PropertyService $propertyService, UserService $user, PaymentLinkService $paymentLinks, ListingMailerService $listingMailer): JsonResponse
     {
         $data = [
             'personalData' => json_decode($request->get('personalData'), true),
@@ -511,6 +514,14 @@ class PropertyController extends Controller
         } catch (Exception $error) {
             Log::error($error->getMessage());
         }
+
+        $listingMailer->sendSubmittedListing(
+            $property->id,
+            $data['personalData']['email'] ?? '',
+            trim(($data['personalData']['name'] ?? '') . ' ' . ($data['personalData']['surname'] ?? '')),
+            $data['propertyData']['address'] ?? '',
+            $data['propertyData']['city'] ?? ''
+        );
 
         try {
             (new Notification('New property uploaded', 'property', $data))->sendNotification();

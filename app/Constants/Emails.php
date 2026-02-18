@@ -13,4 +13,8 @@ class Emails
     public const PHONE_NUMBERS = [
         'domakin_call_center' => '+31 85 083 5000',
     ];
+
+    public const LINKS = [
+        'application_finish' => 'https://domakin.nl/services/add-listing?reference_id=',
+    ];
 }

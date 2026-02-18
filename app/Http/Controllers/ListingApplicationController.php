@@ -11,6 +11,7 @@ use App\Models\Property;
 use App\Models\PropertyData;
 use App\Services\GoogleServices\GoogleSheetsService;
 use App\Services\ListingApplicationService;
+use App\Services\ListingMailerService;
 use App\Services\Payment\PaymentLinkService;
 use App\Services\PropertyService;
 use App\Services\UserService;
@@ -247,7 +248,7 @@ class ListingApplicationController extends Controller
      *     @OA\Response(response=400, description="Error")
      * )
      */
-    public function save(Request $request, ListingApplicationService $listingApplicationService): JsonResponse
+    public function save(Request $request, ListingApplicationService $listingApplicationService, ListingMailerService $listingMailer): JsonResponse
     {
         try {
             $application = $listingApplicationService->saveDraft($request);
@@ -257,6 +258,8 @@ class ListingApplicationController extends Controller
         } catch (\Exception $e) {
             return ApiResponseClass::sendError($e->getMessage());
         }
+
+        $listingMailer->sendFinishApplication($application);
 
         return ApiResponseClass::sendSuccess(
             array_merge($application->toArray(), ['referenceId' => $application->reference_id])
@@ -285,7 +288,7 @@ class ListingApplicationController extends Controller
      *     @OA\Response(response=400, description="Error")
      * )
      */
-    public function submit(Request $request, UserService $user, PropertyService $propertyService, PaymentLinkService $paymentLinks, GoogleSheetsService $sheetsService): JsonResponse
+    public function submit(Request $request, UserService $user, PropertyService $propertyService, PaymentLinkService $paymentLinks, GoogleSheetsService $sheetsService, ListingMailerService $listingMailer): JsonResponse
     {
         $validator = Validator::make($request->all(), [
             'referenceId' => 'required|string',
@@ -403,6 +406,15 @@ class ListingApplicationController extends Controller
         } catch (Exception $error) {
             Log::error($error->getMessage());
         }
+
+        $property->load(['personalData', 'propertyData']);
+        $listingMailer->sendSubmittedListing(
+            $property->id,
+            $property->personalData->email ?? '',
+            trim(($property->personalData->name ?? '') . ' ' . ($property->personalData->surname ?? '')),
+            $property->propertyData->address ?? '',
+            $property->propertyData->city ?? ''
+        );
 
         try {
             (new Notification('New property uploaded', 'property', ['property' => $property]))->sendNotification();
