@@ -125,7 +125,7 @@ class Renting extends Model
             'surname' => 'required|string',
             'phone' => 'required|string|min:6',
             'email' => 'required|string|email',
-            'letter' => 'required|file|mimes:pdf,doc,docx|max:4120',
+            'letter' => 'nullable|file|mimes:pdf,doc,docx|max:4120',
             'interface' => 'required|string|in:web,mobile,signal',
         ];
 

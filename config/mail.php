@@ -14,7 +14,7 @@ return [
     |
     */
 
-    'default' => env('MAIL_MAILER', 'mailtrap'),
+    'default' => env('MAIL_MAILER', 'system'),
 
     /*
     |--------------------------------------------------------------------------
@@ -50,10 +50,6 @@ return [
                 'name' => env('GMAIL_FROM_NAME', 'No Reply System'),
             ],
             'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url(env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
-        ],
-
-        'mailtrap' => [
-            'transport' => 'mailtrap'
         ],
 
     ],

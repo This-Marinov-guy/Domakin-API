@@ -19,9 +19,8 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => [
-        env('FRONTEND_URL', 'http://localhost:3000'),
-        env("APP_ENV") === 'dev' ? 'http://localhost:3000' : '',
+    'allowed_origins' => env("APP_ENV") === 'dev' ? ['*'] : [
+        env('FRONTEND_URL', ''),
         'https://domakin.nl',
         'https://demo.domakin.nl',
     ],
