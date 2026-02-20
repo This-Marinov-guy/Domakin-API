@@ -331,7 +331,7 @@ class PropertyController extends Controller
     private function extractLanguageFromRequest(Request $request): string
     {
         $acceptLanguage = $request->header('Accept-Language', '');
-        
+
         if (empty($acceptLanguage)) {
             return 'en'; // Default to English
         }
@@ -340,7 +340,7 @@ class PropertyController extends Controller
         // Extract the first language code
         if (preg_match('/^([a-z]{2})(?:-[a-z]{2})?(?:;q=[\d.]+)?/i', $acceptLanguage, $matches)) {
             $language = strtolower($matches[1]);
-            
+
             // Validate against supported locales
             $supportedLocales = Translations::WEB_SUPPORTED_LOCALES;
             if (in_array($language, $supportedLocales)) {
@@ -493,7 +493,7 @@ class PropertyController extends Controller
             // Create payment link based on rent (EUR), rounded up
             $rent = (float) ($request->input('propertyData.rent') ?? ($data['propertyData']['rent'] ?? 0));
             $paymentLink = null;
-            
+
             if ($rent > 0) {
                 $mainImage = explode(',', $data['propertyData']['images'])[0];
                 $paymentLink = $paymentLinks->createPropertyFeeLink($rent, imageSrc: $mainImage);
@@ -550,13 +550,12 @@ class PropertyController extends Controller
      *             @OA\Schema(
      *                 required={"id", "propertyData"},
      *                 @OA\Property(property="id", type="integer", example=1),
-     *                 @OA\Property(property="propertyData", type="string", description="JSON string of property data"),
+     *                 @OA\Property(property="propertyData", type="string", description="JSON string. propertyData.images = array of strings: existing image URLs and \"__new__\" placeholders in display order (first = main). New files go in newImages in same order as \"__new__\"."),
      *                 @OA\Property(property="referralCode", type="string"),
      *                 @OA\Property(property="status", type="integer", example=1),
      *                 @OA\Property(property="approved", type="boolean", example=true),
      *                 @OA\Property(property="releaseTimestamp", type="string", format="date-time"),
-     *                 @OA\Property(property="images", type="string", description="Comma-separated image URLs"),
-     *                 @OA\Property(property="newImages", type="array", @OA\Items(type="string", format="binary"), description="New images to upload")
+     *                 @OA\Property(property="newImages", type="array", @OA\Items(type="string", format="binary"), description="New image files in same order as \"__new__\" in propertyData.images")
      *             )
      *         )
      *     ),
@@ -612,7 +611,10 @@ class PropertyController extends Controller
             'status' => $request->get('status'),
             'approved' => $request->get('approved'),
             'release_timestamp' => $releaseTimestamp,
-            'terms' => json_decode($request->get('terms'), true),
+            'terms' => [
+                'contact' => true,
+                'legals' => true,
+            ], // set default to true for terms acceptance
             'newImages' => $request->file('newImages'),
             'last_updated_by' => $user->extractIdFromRequest($request),
         ];
@@ -629,49 +631,50 @@ class PropertyController extends Controller
             return ApiResponseClass::sendInvalidFields($validator->errors()->toArray(), Property::messages());
         }
 
-        // Process images - handle both existing images string and new uploads
-        $finalImages = [];
+        // Process images: propertyData.images = ordered array (URLs + "__new__"); newImages = files for each "__new__"
+        // First item in final list = main image.
+        $propertyData = $data['propertyData'];
+        $imagesOrder = $propertyData['images'] ?? [];
+        if (is_string($imagesOrder)) {
+            $imagesOrder = array_map('trim', explode(',', $imagesOrder));
+        }
+        $imagesOrder = is_array($imagesOrder) ? $imagesOrder : [];
 
-        // 1. Handle existing images (order updates or removals)
-        if (!empty($request->get('images'))) {
-            $existingImages = $request->get('images');
-            if (is_string($existingImages)) {
-                $existingImages = explode(',', $existingImages);
-                $existingImages = array_map('trim', $existingImages);
-            }
-            $finalImages = is_array($existingImages) ? $existingImages : [];
-        } elseif (!empty($data['propertyData']['images'])) {
-            $existingImages = $data['propertyData']['images'];
-            if (is_string($existingImages)) {
-                $existingImages = explode(',', $existingImages);
-                $existingImages = array_map('trim', $existingImages);
-            }
-            $finalImages = is_array($existingImages) ? $existingImages : [];
+        $newImages = $request->file('newImages');
+        if (! is_array($newImages)) {
+            $newImages = $newImages ? [$newImages] : [];
         }
 
-        // 2. Handle new image uploads if present
-        if ($request->hasFile('newImages')) {
-            // Get existing folder or create new one if needed
-            $folder = $property->propertyData->folder ??
-                substr($propertyData['title']['en'] ?? ($propertyData['title'] ?? ''), 0, 10) . '|' . date('Y-m-d H:i:s');
-
-            // Upload new images
-            $uploadedImages = $cloudinary->multiUpload($data['newImages'], [
-                'folder' => "properties/" . $folder,
-            ]);
-
-            // Combine with existing images
-            $finalImages = array_merge($finalImages, $uploadedImages);
-
-            // Ensure folder is set in property data
-            if (empty($property->propertyData->folder)) {
-                $data['propertyData']['folder'] = $folder;
+        $ordered = [];
+        $newIndex = 0;
+        $folder = $property->propertyData->folder
+            ?? substr($propertyData['title']['en'] ?? ($propertyData['title'] ?? ''), 0, 10) . '|' . date('Y-m-d H:i:s');
+        foreach ($imagesOrder as $item) {
+            $item = is_string($item) ? trim($item) : (string) $item;
+            if ($item === '__new__') {
+                if (isset($newImages[$newIndex]) && $newImages[$newIndex]) {
+                    $uploaded = $cloudinary->multiUpload([$newImages[$newIndex]], [
+                        'folder' => 'properties/' . $folder,
+                    ]);
+                    $ordered[] = $uploaded[0] ?? null;
+                }
+                $newIndex++;
+            } else {
+                if ($item !== '') {
+                    $ordered[] = $item;
+                }
             }
         }
-
-        // 3. Update images field with final result
-        if (!empty($finalImages)) {
-            $data['propertyData']['images'] = implode(', ', $finalImages);
+        if (! empty($ordered) && empty($property->propertyData->folder)) {
+            $data['propertyData']['folder'] = $folder;
+        }
+        $ordered = array_filter($ordered);
+        if (! empty($ordered)) {
+            $data['propertyData']['images'] = implode(', ', $ordered);
+        } elseif (is_array($imagesOrder) && count($imagesOrder) === 0) {
+            $data['propertyData']['images'] = '';
+        } else {
+            $data['propertyData']['images'] = $property->propertyData->images ?? '';
         }
 
         $data['propertyData'] = $propertyService->stringifyPropertyDataWithTranslations($data['propertyData']);
@@ -704,14 +707,14 @@ class PropertyController extends Controller
             $property->status = $data['status'];
             $property->last_updated_by = $user->extractIdFromRequest($request);
             $property->referral_code = $data['referral_code'];
-            
+
             // Handle release_timestamp - set to null if explicitly null, otherwise set the value
             if ($data['release_timestamp'] === null) {
                 $property->release_timestamp = null;
             } else {
                 $property->release_timestamp = $data['release_timestamp'];
             }
-            
+
             $property->propertyData->update($data['propertyData']);
 
             $property->save();
