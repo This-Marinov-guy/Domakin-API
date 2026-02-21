@@ -26,7 +26,7 @@ class AxiomLoggerMiddleware
      */
     public function handle(Request $request, Closure $next)
     {
-        if ($request->isMethod('GET')) {
+        if ($request->isMethod('GET') && str_contains((string) $request->headers->get('origin'), 'domakin.nl')) {
             return $next($request);
         }
 
