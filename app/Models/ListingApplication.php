@@ -143,7 +143,7 @@ class ListingApplication extends Model
             'email.email' => [
                 'tag' => 'account:authentication.errors.email_invalid',
             ],
-            'phone.min' => [
+            'phone.min.string' => [
                 'tag' => 'account:authentication.errors.phone_invalid',
             ],
             'terms.contact.accepted' => [

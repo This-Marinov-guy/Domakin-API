@@ -305,7 +305,7 @@ class ListingApplicationController extends Controller
 
         $referenceId = $request->get('referenceId') ?? $request->get('reference_id');
         $application = ListingApplication::where('reference_id', $referenceId)
-            ->when($userId !== null, fn($q) => $q->where('user_id', $userId))
+            // ->when($userId !== null, fn($q) => $q->where('user_id', $userId))
             ->first();
 
         if (!$application) {
