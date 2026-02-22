@@ -95,7 +95,7 @@ class ListingApplication extends Model
             'type'           => 'required|integer',
             'address'        => 'required|string',
             'postcode'       => 'required|string',
-            'registration'   => 'required|in:true,false,0,1',
+            'registration'   => 'required|boolean',
             'availableFrom' => 'required|date',
             'availableTo'   => 'nullable|date|after_or_equal:available_from',
         ];
@@ -105,18 +105,18 @@ class ListingApplication extends Model
     {
         return [
             'size'           => 'required|integer|min:1',
-            'rent'           => 'required|numeric|min:1',
-            'bills'          => 'nullable|integer',
+            'rent'           => 'required|integer|min:1',
+            'bills'          => 'required|integer|min:0',
             'flatmates'      => 'nullable',
             'description'    => 'required',
-            'petsAllowed'   => 'nullable|in:true,false,0,1',
-            'smokingAllowed' => 'nullable|in:true,false,0,1',
+            'petsAllowed'   => 'nullable|boolean',
+            'smokingAllowed' => 'nullable|boolean',
             'furnishedType' => 'required|integer',
             'sharedSpace'   => 'nullable|string',
             'amenities'      => 'nullable|string',
             'bathrooms'      => 'required|integer',
             'toilets'        => 'required|integer',
-            'deposit'        => 'nullable|integer',
+            'deposit'        => 'required|integer|min:0',
         ];
     }
 

@@ -312,6 +312,17 @@ class ListingApplicationController extends Controller
             return ApiResponseClass::sendError('Listing application not found');
         }
 
+        $applicationValidator = Validator::make($application->toArray(), [
+            'size'  => 'required|integer|min:1',
+            'rent'  => 'required|integer|min:1',
+            'bills' => 'required|integer|min:0',
+            'deposit' => 'required|integer|min:0',
+        ]);
+
+        if ($applicationValidator->fails()) {
+            return ApiResponseClass::sendInvalidFields($applicationValidator->errors()->toArray(), []);
+        }
+
         try {
             $property = DB::transaction(function () use ($application, $userId, $propertyService, $paymentLinks) {
                 $personalData = [
