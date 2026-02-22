@@ -57,6 +57,11 @@ class ListingApplication extends Model
         'deposit'        => 'integer',
     ];
 
+    public function setBillsAttribute($value): void
+    {
+        $this->attributes['bills'] = is_numeric($value) ? (int) $value : null;
+    }
+
     // ---------------------------------------------------------------
     // Validation rules per step
     // ---------------------------------------------------------------
@@ -90,7 +95,7 @@ class ListingApplication extends Model
             'type'           => 'required|integer',
             'address'        => 'required|string',
             'postcode'       => 'required|string',
-            'registration'   => 'required|boolean',
+            'registration'   => 'required|in:true,false,0,1',
             'availableFrom' => 'required|date',
             'availableTo'   => 'nullable|date|after_or_equal:available_from',
         ];
@@ -104,8 +109,8 @@ class ListingApplication extends Model
             'bills'          => 'nullable|integer',
             'flatmates'      => 'nullable',
             'description'    => 'required',
-            'petsAllowed'   => 'nullable|boolean',
-            'smokingAllowed' => 'nullable|boolean',
+            'petsAllowed'   => 'nullable|in:true,false,0,1',
+            'smokingAllowed' => 'nullable|in:true,false,0,1',
             'furnishedType' => 'required|integer',
             'sharedSpace'   => 'nullable|string',
             'amenities'      => 'nullable|string',
