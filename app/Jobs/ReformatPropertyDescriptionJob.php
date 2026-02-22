@@ -298,7 +298,7 @@ class ReformatPropertyDescriptionJob implements ShouldQueue
             $newSlug = Helpers::sanitizeSlug($this->propertyId + Properties::FRONTEND_PROPERTY_ID_INDEXING . '-' . $result['slug'] . '-' . $property->propertyData->city);
             
             $property->slug = $newSlug;
-            $property->link = $propertyService->getPropertyUrl($property);
+            $property->link = $propertyService->getPropertyUrl($property->toArray());
 
             Log::info("[ReformatPropertyDescriptionJob] Updated slug", [
                 'property_id' => $this->propertyId,
