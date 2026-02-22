@@ -123,12 +123,12 @@ class ListingApplicationService
 
         if ($referenceId) {
             $query = ListingApplication::where('reference_id', $referenceId);
-            $query->where(function ($q) use ($userId) {
-                $q->whereNull('user_id');
-                if ($userId !== null) {
-                    $q->orWhere('user_id', $userId);
-                }
-            });
+            // $query->where(function ($q) use ($userId) {
+            //     $q->whereNull('user_id');
+            //     if ($userId !== null) {
+            //         $q->orWhere('user_id', $userId);
+            //     }
+            // });
             $application = $query->first();
 
             if (!$application) {
