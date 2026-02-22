@@ -459,6 +459,11 @@ class PropertyController extends Controller
         $folder =
             substr($data['propertyData']['description']['en'] ?? $data['propertyData']['description'], 0, 10) . '|' . date('Y-m-d H:i:s');
 
+        // set period from available_from and available_to
+        if (!empty($data['propertyData']['available_from']) || !empty($data['propertyData']['available_to'])) {
+            $data['propertyData']['period'] = ($data['propertyData']['available_from'] ?? '') . ' - ' . ($data['propertyData']['available_to'] ?? '');
+        }
+
         // modify property data with translations (wraps title, period, bills, flatmates, description in locale JSON)
         $data['propertyData'] = $propertyService->modifyPropertyDataWithTranslations($data['propertyData']);
 
