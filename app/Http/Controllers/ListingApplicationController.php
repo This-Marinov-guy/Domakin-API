@@ -417,7 +417,10 @@ class ListingApplicationController extends Controller
         );
 
         try {
-            (new Notification('New property uploaded', 'property', ['property' => $property]))->sendNotification();
+            (new Notification('New property uploaded', 'property', [
+                'personalData' => $property->personalData?->toArray() ?? [],
+                'propertyData' => $property->propertyData?->toArray() ?? [],
+            ]))->sendNotification();
 
             $sheetsService->exportModelToSpreadsheet(
                 Property::class,
