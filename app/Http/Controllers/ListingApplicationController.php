@@ -299,9 +299,9 @@ class ListingApplicationController extends Controller
         }
 
         $userId = $user->extractIdFromRequest($request);
-        if ($userId === null) {
-            return ApiResponseClass::sendError('Unauthorized', null, 401);
-        }
+        // if ($userId === null) {
+        //     return ApiResponseClass::sendError('Unauthorized', null, 401);
+        // }
 
         $referenceId = $request->get('referenceId') ?? $request->get('reference_id');
         $application = ListingApplication::where('reference_id', $referenceId)
