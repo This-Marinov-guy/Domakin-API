@@ -13,9 +13,11 @@ use App\Http\Controllers\SearchRentingController;
 use App\Http\Controllers\ViewingController;
 use App\Http\Controllers\Integration\WordPressController;
 use App\Http\Controllers\Webhook\StripeWebhookController;
+use App\Http\Controllers\Webhook\ViewingWebhookController;
 use App\Http\Controllers\ListingApplicationController;
 use App\Http\Controllers\ReminderController;
 use App\Http\Controllers\Test;
+use App\Http\Controllers\UserController;
 
 /*
 |--------------------------------------------------------------------------
@@ -126,6 +128,9 @@ Route::prefix('v1')->group(function () {
         Route::post('/edit-details', [ProfileController::class, 'edit'])
             ->middleware('auth.role')
             ->name('edit-user-details');
+
+        Route::patch('/fcm-token', [UserController::class, 'updateFcmToken'])
+            ->middleware('auth.role');
     });
 });
 
@@ -134,8 +139,10 @@ Route::get('/health', function () {
     return response()->json(['status' => 'ok', 'timestamp' => now()->toIso8601String()]);
 });
 
-// Stripe webhook (no versioning, legacy support)
+// Webhooks (no versioning, called by external services)
 Route::post('/webhooks/stripe/checkout', [StripeWebhookController::class, 'handle']);
+Route::post('/webhooks/viewing-created', [ViewingWebhookController::class, 'handle'])
+    ->middleware('webhook.secret');
 
 /*
 |--------------------------------------------------------------------------

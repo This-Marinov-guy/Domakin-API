@@ -14,7 +14,7 @@ return [
     */
 
     'public_patterns' => [
-        'api/webhooks/stripe/*',
+        'api/webhooks/*',
         'api/v*/property/listing',
         'api/v*/blog/*', // Versioned blog routes
         'api/v*/property/*', // Versioned property routes
@@ -37,7 +37,7 @@ return [
     */
 
     'csrf_excluded' => [
-        'api/webhooks/stripe/*',
+        'api/webhooks/*',
         'api/v*/blog/*', // Versioned blog routes
         'api/v*/property/*', // Versioned property routes
         'api/v1/property/signal-test', // Explicitly exclude Signal test endpoint

@@ -29,6 +29,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'verified' => \App\Http\Middleware\EnsureEmailIsVerified::class,
             'auth.role' => \App\Http\Middleware\AuthorizationMiddleware::class,
             'domain.whitelist' => \App\Http\Middleware\DomainWhitelistMiddleware::class,
+            'webhook.secret' => \App\Http\Middleware\VerifyWebhookSecret::class,
         ]);
 
         //
