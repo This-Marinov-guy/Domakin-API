@@ -19,14 +19,20 @@ class PushNotificationService
 
     public function __construct()
     {
+        $credentialsPath = base_path('google-credentials.orange-sa-key.json');
+
+        if (!file_exists($credentialsPath)) {
+            throw new \Exception('Google credentials file not found at: ' . $credentialsPath);
+        }
+
         $credentials = json_decode(
-            file_get_contents(base_path('google-credentials.orange-sa-key.json')),
+            file_get_contents($credentialsPath),
             true,
             512,
             JSON_THROW_ON_ERROR,
         );
 
-        $this->projectId  = $credentials['project_id'];
+        $this->projectId   = $credentials['project_id'];
         $this->clientEmail = $credentials['client_email'];
         $this->privateKey  = $credentials['private_key'];
     }
