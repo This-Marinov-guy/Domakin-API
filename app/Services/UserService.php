@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Enums\AccessLevels;
+use App\Enums\Roles;
 use App\Models\User;
 use Firebase\JWT\JWT;
 
@@ -28,8 +30,29 @@ class UserService
         return $userId;
     }
 
-    public function getUserByRequest($request)
+    public function getUserByRequest($request): ?User
     {
         return User::find($this->extractIdFromRequest($request));
+    }
+
+    public function hasLevel1Access(User $user): bool
+    {
+        $userRoles = $user->roles ?? '';
+
+        return collect(AccessLevels::LEVEL_1->roles())->contains(
+            fn(Roles $role) => str_contains($userRoles, $role->value)
+        );
+    }
+
+    public function updateFcmToken(User $user, string $fcmToken): void
+    {
+        $user->fcm_token = $fcmToken;
+        $user->save();
+    }
+
+    public function updateReferralCode(User $user, string $referralCode): void
+    {
+        $user->referral_code = $referralCode;
+        $user->save();
     }
 }

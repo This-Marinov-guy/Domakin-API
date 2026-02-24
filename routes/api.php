@@ -131,6 +131,9 @@ Route::prefix('v1')->group(function () {
 
         Route::patch('/fcm-token', [UserController::class, 'updateFcmToken'])
             ->middleware('auth.role');
+
+        Route::patch('/referral-code', [UserController::class, 'updateReferralCode'])
+            ->middleware('auth.role');
     });
 });
 

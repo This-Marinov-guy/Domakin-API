@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Classes\ApiResponseClass;
-use App\Enums\AccessLevels;
-use App\Enums\Roles;
-use App\Models\User;
 use App\Services\UserService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 /**
@@ -61,20 +60,13 @@ class UserController extends Controller
      */
     public function updateFcmToken(Request $request, UserService $userService): JsonResponse
     {
-        $userId = $userService->extractIdFromRequest($request);
-        $user = User::find($userId);
+        $user = $userService->getUserByRequest($request);
 
         if (!$user) {
             return ApiResponseClass::sendError('User not found', 404, 404);
         }
 
-        $userRoles = $user->roles ?? '';
-
-        $hasAccess = collect(AccessLevels::LEVEL_1->roles())->contains(
-            fn(Roles $role) => str_contains($userRoles, $role->value)
-        );
-
-        if (!$hasAccess) {
+        if (!$userService->hasLevel1Access($user)) {
             return ApiResponseClass::sendError('Forbidden', 403, 403);
         }
 
@@ -82,9 +74,58 @@ class UserController extends Controller
             'token' => 'required|string',
         ]);
 
-        $user->fcm_token = $request->token;
-        $user->save();
+        $userService->updateFcmToken($user, $request->input('token'));
 
         return ApiResponseClass::sendSuccess();
+    }
+
+    /**
+     * @OA\Patch(
+     *     path="/api/v1/user/referral-code",
+     *     summary="Update user referral code",
+     *     tags={"User"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"referral_code"},
+     *             @OA\Property(property="referral_code", type="string", minLength=4, example="VLAD2024")
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Referral code updated successfully"),
+     *     @OA\Response(response=404, description="User not found"),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
+     */
+    public function updateReferralCode(Request $request, UserService $userService): JsonResponse
+    {
+        $user = $userService->getUserByRequest($request);
+
+        if (!$user) {
+            return ApiResponseClass::sendError('User not found', 404, 404);
+        }
+
+        $messages = [
+            'referralCode.required' => ['tag' => 'account:profile.errors.referral_code_required'],
+            'referralCode.min'      => ['tag' => 'account:profile.errors.referral_code_too_short'],
+            'referralCode.unique'   => ['tag' => 'account:profile.errors.referral_code_taken'],
+        ];
+
+        $validator = Validator::make($request->all(), [
+            'referralCode' => [
+                'required',
+                'string',
+                'min:4',
+                Rule::unique('users', 'referral_code')->ignore($user->id),
+            ],
+        ], $messages);
+
+        if ($validator->fails()) {
+            return ApiResponseClass::sendInvalidFields($validator->errors()->toArray(), $messages);
+        }
+
+        $userService->updateReferralCode($user, $request->input('referralCode'));
+
+        return ApiResponseClass::sendSuccess(['referral_code' => $user->referral_code]);
     }
 }
