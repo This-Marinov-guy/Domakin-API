@@ -20,6 +20,9 @@ WORKDIR /var/www
 # Copy application files
 COPY . .
 
+# Copy Google service account credentials
+COPY google-credentials*.json /var/www/
+
 # Install PHP dependencies using Composer
 RUN composer install --no-dev --optimize-autoloader
 
