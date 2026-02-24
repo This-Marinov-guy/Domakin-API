@@ -73,9 +73,9 @@ class AxiomLoggerMiddleware
     protected function sanitizeHeaders(array $headers): array
     {
         $sensitiveHeaders = [
-            'authorization',
+            // 'authorization', // use this for tracking
+            // 'x-api-key', // use this for tracking
             'cookie',
-            'x-api-key',
             'x-csrf-token',
             'x-xsrf-token',
         ];

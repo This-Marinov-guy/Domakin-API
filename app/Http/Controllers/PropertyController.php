@@ -474,6 +474,13 @@ class PropertyController extends Controller
             }
         }
 
+        // convert empty available_from/available_to (e.g. sent as `{}`) to null
+        foreach (['available_from', 'available_to'] as $key) {
+            if (array_key_exists($key, $data['propertyData']) && is_array($data['propertyData'][$key])) {
+                $data['propertyData'][$key] = empty($data['propertyData'][$key]) ? null : json_encode($data['propertyData'][$key]);
+            }
+        }
+
         $data['propertyData']['folder'] = $folder;
 
         try {
