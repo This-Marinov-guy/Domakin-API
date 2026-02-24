@@ -186,7 +186,7 @@ class OpenAIService
                 $additionalFields .= "- Flatmates: {$flatmates} (usually a number, e.g., '2', '3-4', and genders if provided - the first number is for male and the second is for females. Format: 'none', '2' or '2 male' or '2 female' or '2 (male and female)' or '2 male and 1 female' or '2 female and 1 male' etc.). If it will be only you, dont mention the gender, type none.\n";
             }
             if ($period !== null) {
-                $additionalFields .= "- Period: {$period} (rental period, e.g., '12 months from now', '6-12 months from now', 'indefinite' and dates if provided. Format: '12 months from now' or '12 months from [date]' or 'indefinite' or '12 months to [date]'). Always mention start date or available from now\n";
+                $additionalFields .= "- Period: {$period} (rental period, e.g., '12 months from now', '6-12 months from now', 'indefinite' and dates if provided. Format: '12 months from now' or '12 months from [date]' or 'indefinite' or '12 months to [date]'). Always mention start date or available from now and format dates like 1st of January 2026 or 1st of January 2027 etc.\n";
             }
         }
 
