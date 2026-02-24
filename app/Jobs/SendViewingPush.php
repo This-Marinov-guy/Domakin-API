@@ -21,7 +21,10 @@ class SendViewingPush implements ShouldQueue
     {
         $tokens = User::where('roles', 'like', '%admin%')
             ->whereNotNull('fcm_token')
+            ->whereHas('settings', fn ($q) => $q->where('push_notifications', true))
             ->pluck('fcm_token')
+            ->unique()
+            ->values()
             ->toArray();
 
         if (empty($tokens)) {
