@@ -79,10 +79,10 @@ class UserController extends Controller
         }
 
         $request->validate([
-            'fcm_token' => 'required|string',
+            'token' => 'required|string',
         ]);
 
-        $user->fcm_token = $request->fcm_token;
+        $user->fcm_token = $request->token;
         $user->save();
 
         return ApiResponseClass::sendSuccess();
