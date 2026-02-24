@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Classes\ApiResponseClass;
+use App\Models\UserSettings;
 use App\Services\UserService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -127,5 +128,55 @@ class UserController extends Controller
         $userService->updateReferralCode($user, $request->input('referralCode'));
 
         return ApiResponseClass::sendSuccess(['referral_code' => $user->referral_code]);
+    }
+
+    /**
+     * @OA\Patch(
+     *     path="/api/v1/user/notification-settings",
+     *     summary="Update user notification settings",
+     *     tags={"User"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         @OA\JsonContent(
+     *             @OA\Property(property="email_notifications", type="boolean", example=true),
+     *             @OA\Property(property="push_notifications", type="boolean", example=false)
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Notification settings updated successfully"),
+     *     @OA\Response(response=401, description="Unauthorized"),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
+     */
+    public function updateNotificationSettings(Request $request, UserService $userService): JsonResponse
+    {
+        $userId = $userService->extractIdFromRequest($request);
+
+        if ($userId === null) {
+            return ApiResponseClass::sendError('Unauthorized', null, 401);
+        }
+
+        $request->validate([
+            'email_notifications' => 'sometimes|boolean',
+            'push_notifications' => 'sometimes|boolean',
+        ]);
+
+        $settings = UserSettings::query()
+            ->firstOrCreate(
+                ['user_id' => $userId],
+                [
+                    'email_notifications' => true,
+                    'push_notifications' => false,
+                ]
+            );
+
+        $data = array_filter($request->only(['email_notifications', 'push_notifications']), fn ($v) => $v !== null);
+        if (!empty($data)) {
+            $settings->update($data);
+        }
+
+        return ApiResponseClass::sendSuccess([
+            'email_notifications' => $settings->email_notifications,
+            'push_notifications' => $settings->push_notifications,
+        ]);
     }
 }

@@ -170,4 +170,12 @@ class User extends Authenticatable
     {
         return $this->hasMany(Property::class);
     }
+
+    /**
+     * Get the user's settings.
+     */
+    public function settings()
+    {
+        return $this->hasOne(UserSettings::class);
+    }
 }

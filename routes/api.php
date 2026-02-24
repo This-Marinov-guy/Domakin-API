@@ -134,6 +134,9 @@ Route::prefix('v1')->group(function () {
 
         Route::patch('/referral-code', [UserController::class, 'updateReferralCode'])
             ->middleware('auth.role');
+
+        Route::patch('/notification-settings', [UserController::class, 'updateNotificationSettings'])
+            ->middleware('auth.role');
     });
 });
 
