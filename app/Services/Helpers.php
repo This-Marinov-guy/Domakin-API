@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Constants\Translations;
+use Illuminate\Support\Carbon;
 
 class Helpers
 {
@@ -151,6 +152,36 @@ class Helpers
         }
 
         return $translated ?? $value['en'] ?? $fallback;
+    }
+
+    /**
+     * Normalize any date input to a consistent DB format (Y-m-d).
+     *
+     * Accepts: Carbon instances, PHP DateTime objects, ISO strings (Y-m-d),
+     * JS ISO strings (Y-m-dTH:i:s.vZ), already-formatted strings (d-m-Y),
+     * or any other value parseable by Carbon::parse().
+     *
+     * Returns null for: null, empty string, 'null', arrays, objects, or values that cannot be parsed.
+     */
+    public static function formatDate(mixed $date, string $format = 'Y-m-d'): ?string
+    {
+        if ($date === null || $date === '' || $date === 'null') {
+            return null;
+        }
+
+        if (is_array($date) || (is_object($date) && !($date instanceof \DateTimeInterface))) {
+            return null;
+        }
+
+        try {
+            if ($date instanceof \DateTimeInterface) {
+                return Carbon::instance($date)->format($format);
+            }
+
+            return Carbon::parse($date)->format($format);
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 
     /**

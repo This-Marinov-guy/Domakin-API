@@ -476,22 +476,14 @@ class PropertyController extends Controller
             }
         }
 
-        // normalize available_from/available_to: empty arrays/objects → null, date strings → dd-mm-yyyy
+        // normalize available_from/available_to to d-m-Y
         foreach (['available_from', 'available_to'] as $key) {
-            if (!array_key_exists($key, $data['propertyData'])) continue;
-            $val = $data['propertyData'][$key];
-            if (is_array($val)) {
-                $data['propertyData'][$key] = null;
-            } elseif (!empty($val)) {
-                try {
-                    $data['propertyData'][$key] = Carbon::parse($val)->format('d-m-Y');
-                } catch (Exception $e) {
-                    $data['propertyData'][$key] = null;
-                }
+            if (array_key_exists($key, $data['propertyData'])) {
+                $data['propertyData'][$key] = Helpers::formatDate($data['propertyData'][$key]);
             }
         }
 
-        // set period from available_from and available_to (already formatted as dd-mm-yyyy)
+        // set period from available_from and available_to (already formatted as Y-m-d)
         if (!empty($data['propertyData']['available_from']) || !empty($data['propertyData']['available_to'])) {
             $data['propertyData']['period'] = $data['propertyData']['period'] . ' + ' . ('Available from: ' . ($data['propertyData']['available_from'] ?? '') . ' - Available to: ' . ($data['propertyData']['available_to'] ?? ''));
         }
@@ -741,18 +733,10 @@ class PropertyController extends Controller
 
         $data['propertyData'] = $propertyService->stringifyPropertyDataWithTranslations($data['propertyData']);
 
-        // normalize available_from/available_to to dd-mm-yyyy (strip time component)
+        // normalize available_from/available_to to d-m-Y
         foreach (['available_from', 'available_to'] as $key) {
-            if (!array_key_exists($key, $data['propertyData'])) continue;
-            $val = $data['propertyData'][$key];
-            if (is_array($val)) {
-                $data['propertyData'][$key] = null;
-            } elseif (!empty($val)) {
-                try {
-                    $data['propertyData'][$key] = Carbon::parse($val)->format('d-m-Y');
-                } catch (Exception $e) {
-                    $data['propertyData'][$key] = null;
-                }
+            if (\array_key_exists($key, $data['propertyData'])) {
+                $data['propertyData'][$key] = Helpers::formatDate($data['propertyData'][$key]);
             }
         }
 
