@@ -151,11 +151,13 @@ class RentingController extends Controller
             $data['property_id'] = (int)substr($data['property'], 0, 4) - Properties::FRONTEND_PROPERTY_ID_INDEXING;
         }
 
-        $data['letter'] = $cloudinary->singleUpload($data['letter'], [
-            'public_id' => uniqid() . '.' .  $request->file('letter')->getClientOriginalExtension(),
-            'resource_type' => 'raw',
-            'folder' => "motivational_letters",
-        ]);
+        if ($request->hasFile('letter')) {
+            $data['letter'] = $cloudinary->singleUpload($data['letter'], [
+                'public_id' => uniqid() . '.' .  $request->file('letter')->getClientOriginalExtension(),
+                'resource_type' => 'raw',
+                'folder' => "motivational_letters",
+            ]);
+        }
 
         try {
             Renting::create($data);

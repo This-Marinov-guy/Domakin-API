@@ -169,6 +169,7 @@ class PropertyService
         $perPage = (int)($request->get('per_page', 15));
         $page = (int)($request->get('page', 1));
         $paginator = $query
+            ->whereHas('propertyData')
             ->orderByDesc('created_at')
             ->with($relations)
             ->paginate($perPage, ['*'], 'page', $page);
