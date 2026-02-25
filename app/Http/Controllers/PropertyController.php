@@ -459,6 +459,20 @@ class PropertyController extends Controller
         $folder =
             substr($data['propertyData']['description']['en'] ?? $data['propertyData']['description'], 0, 10) . '|' . date('Y-m-d H:i:s');
 
+        // normalize available_from/available_to to Y-m-d before translations wrap period in JSON
+        foreach (['available_from', 'available_to'] as $key) {
+            if (\array_key_exists($key, $data['propertyData'])) {
+                $data['propertyData'][$key] = Helpers::formatDate($data['propertyData'][$key]);
+            }
+        }
+
+        // append available dates to period while it is still a plain string
+        if (!empty($data['propertyData']['available_from']) || !empty($data['propertyData']['available_to'])) {
+            $data['propertyData']['period'] = ($data['propertyData']['period'] ?? '')
+                . ' + Available from: ' . ($data['propertyData']['available_from'] ?? '')
+                . ' - Available to: ' . ($data['propertyData']['available_to'] ?? '');
+        }
+
         // modify property data with translations (wraps title, period, bills, flatmates, description in locale JSON)
         $data['propertyData'] = $propertyService->modifyPropertyDataWithTranslations($data['propertyData']);
 
@@ -474,18 +488,6 @@ class PropertyController extends Controller
             if (array_key_exists($key, $data['propertyData']) && is_array($data['propertyData'][$key])) {
                 $data['propertyData'][$key] = implode(',', $data['propertyData'][$key]);
             }
-        }
-
-        // normalize available_from/available_to to d-m-Y
-        foreach (['available_from', 'available_to'] as $key) {
-            if (array_key_exists($key, $data['propertyData'])) {
-                $data['propertyData'][$key] = Helpers::formatDate($data['propertyData'][$key]);
-            }
-        }
-
-        // set period from available_from and available_to (already formatted as Y-m-d)
-        if (!empty($data['propertyData']['available_from']) || !empty($data['propertyData']['available_to'])) {
-            $data['propertyData']['period'] = $data['propertyData']['period'] . ' + ' . ('Available from: ' . ($data['propertyData']['available_from'] ?? '') . ' - Available to: ' . ($data['propertyData']['available_to'] ?? ''));
         }
 
         $data['propertyData']['folder'] = $folder;
