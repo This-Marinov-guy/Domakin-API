@@ -193,7 +193,7 @@ class OpenAIService
         return <<<PROMPT
 You are a professional real estate content writer. Please reformat and translate the following property description and additional information.
 
-Original description (in English):
+Original description (make in English if it is not in English):
 {$description}{$additionalFields}
 
 Requirements:

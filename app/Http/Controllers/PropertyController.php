@@ -444,7 +444,7 @@ class PropertyController extends Controller
             'referral_code' => $request->get('referralCode'),
             'interface' => $request->get('interface'),
             'terms' => json_decode($request->get('terms'), true),
-            'images' => $request->file('images'),
+            'newImages' => $request->file('newImages'),
             'created_by' => $user->extractIdFromRequest($request),
             'last_updated_by' => $user->extractIdFromRequest($request),
         ];
@@ -459,11 +459,6 @@ class PropertyController extends Controller
         $folder =
             substr($data['propertyData']['description']['en'] ?? $data['propertyData']['description'], 0, 10) . '|' . date('Y-m-d H:i:s');
 
-        // set period from available_from and available_to
-        if (!empty($data['propertyData']['available_from']) || !empty($data['propertyData']['available_to'])) {
-            $data['propertyData']['period'] = ($data['propertyData']['available_from'] ?? '') . ' - ' . ($data['propertyData']['available_to'] ?? '');
-        }
-
         // modify property data with translations (wraps title, period, bills, flatmates, description in locale JSON)
         $data['propertyData'] = $propertyService->modifyPropertyDataWithTranslations($data['propertyData']);
 
@@ -474,21 +469,76 @@ class PropertyController extends Controller
             }
         }
 
-        // convert empty available_from/available_to (e.g. sent as `{}`) to null
-        foreach (['available_from', 'available_to'] as $key) {
+        // convert array fields to comma-separated strings for DB storage
+        foreach (['amenities', 'shared_space'] as $key) {
             if (array_key_exists($key, $data['propertyData']) && is_array($data['propertyData'][$key])) {
-                $data['propertyData'][$key] = empty($data['propertyData'][$key]) ? null : json_encode($data['propertyData'][$key]);
+                $data['propertyData'][$key] = implode(',', $data['propertyData'][$key]);
             }
+        }
+
+        // normalize available_from/available_to: empty arrays/objects → null, date strings → dd-mm-yyyy
+        foreach (['available_from', 'available_to'] as $key) {
+            if (!array_key_exists($key, $data['propertyData'])) continue;
+            $val = $data['propertyData'][$key];
+            if (is_array($val)) {
+                $data['propertyData'][$key] = null;
+            } elseif (!empty($val)) {
+                try {
+                    $data['propertyData'][$key] = Carbon::parse($val)->format('d-m-Y');
+                } catch (Exception $e) {
+                    $data['propertyData'][$key] = null;
+                }
+            }
+        }
+
+        // set period from available_from and available_to (already formatted as dd-mm-yyyy)
+        if (!empty($data['propertyData']['available_from']) || !empty($data['propertyData']['available_to'])) {
+            $data['propertyData']['period'] = $data['propertyData']['period'] . ' + ' . ('Available from: ' . ($data['propertyData']['available_from'] ?? '') . ' - Available to: ' . ($data['propertyData']['available_to'] ?? ''));
         }
 
         $data['propertyData']['folder'] = $folder;
 
         try {
-            // upload images
-            $data['propertyData']['images'] = $cloudinary->multiUpload($data['images'], [
-                'folder' => "properties/" . $folder,
-            ]);
-            $data['propertyData']['images'] = implode(", ", $data['propertyData']['images']);
+            // upload images: propertyData.images = ordered array with "__new__" placeholders; newImages = files
+            $imagesOrder = $data['propertyData']['images'] ?? [];
+            if (is_string($imagesOrder)) {
+                $imagesOrder = array_map('trim', explode(',', $imagesOrder));
+            }
+            $imagesOrder = is_array($imagesOrder) ? $imagesOrder : [];
+
+            $newImages = $data['newImages'];
+            if (! is_array($newImages)) {
+                $newImages = $newImages ? [$newImages] : [];
+            }
+
+            $ordered = [];
+            $newIndex = 0;
+            foreach ($imagesOrder as $item) {
+                $item = is_string($item) ? trim($item) : (string) $item;
+                if ($item === '__new__') {
+                    if (isset($newImages[$newIndex]) && $newImages[$newIndex]) {
+                        $uploaded = $cloudinary->multiUpload([$newImages[$newIndex]], [
+                            'folder' => 'properties/' . $folder,
+                        ]);
+                        $ordered[] = $uploaded[0] ?? null;
+                    }
+                    $newIndex++;
+                } else {
+                    if ($item !== '') {
+                        $ordered[] = $item;
+                    }
+                }
+            }
+
+            // fallback: if no __new__ entries were processed but files exist, upload all newImages directly
+            if (empty($ordered) && ! empty($newImages)) {
+                $ordered = $cloudinary->multiUpload($newImages, [
+                    'folder' => 'properties/' . $folder,
+                ]);
+            }
+
+            $ordered = array_filter($ordered);
+            $data['propertyData']['images'] = implode(', ', $ordered);
 
             $property = Property::create([
                 'referral_code' => $data['referral_code'],
@@ -690,6 +740,21 @@ class PropertyController extends Controller
         }
 
         $data['propertyData'] = $propertyService->stringifyPropertyDataWithTranslations($data['propertyData']);
+
+        // normalize available_from/available_to to dd-mm-yyyy (strip time component)
+        foreach (['available_from', 'available_to'] as $key) {
+            if (!array_key_exists($key, $data['propertyData'])) continue;
+            $val = $data['propertyData'][$key];
+            if (is_array($val)) {
+                $data['propertyData'][$key] = null;
+            } elseif (!empty($val)) {
+                try {
+                    $data['propertyData'][$key] = Carbon::parse($val)->format('d-m-Y');
+                } catch (Exception $e) {
+                    $data['propertyData'][$key] = null;
+                }
+            }
+        }
 
         // Refresh payment link if rent is present and > 0
         $rent = (float) (($propertyData['rent'] ?? null) ?? ($property->propertyData->rent ?? 0));
