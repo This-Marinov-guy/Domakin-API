@@ -1,4 +1,5 @@
 <?php
+// Deprecated test file, use ListingApplicationControllerDirectTest instead
 
 namespace Tests\Feature\ListingApplication;
 
