@@ -142,7 +142,7 @@ class ListingApplicationTest extends TestCase
             'rent'           => 850,
             'bills'          => 80,
             'deposit'        => 500,
-            'description'    => ['en' => 'Test room available'],
+            'description'    => 'Wow what a nice room',
             'images'         => 'https://example.com/image.jpg',
             'step'           => 5,
             'available_from' => '2026-03-01',

@@ -35,6 +35,7 @@ trait ListingApplicationData
             'postcode'      => '1015 BZ',
             'registration'  => true,
             'availableFrom' => '2026-03-01',
+            'availableTo'   => '2026-03-31',
         ], $overrides);
     }
 
@@ -53,7 +54,10 @@ trait ListingApplicationData
             'furnishedType'  => 1,
             'bathrooms'      => 1,
             'toilets'        => 1,
-            'description'    => ['en' => 'Nice room'],
+            'amenities'      => '1,2,4',
+            'flatmates'      => '1,2',
+            'sharedSpace'    => '1,2,4',
+            'description'    => ['en' => 'Wow what a nice room'],
             'petsAllowed'    => false,
             'smokingAllowed' => false,
         ], $overrides);
