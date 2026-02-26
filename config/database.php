@@ -42,11 +42,6 @@ return [
             'prefix' => '',
             'schema' => 'public',
             'sslmode' => 'prefer',
-            // Emulate prepared statements client-side to avoid "prepared statement does not exist"
-            // errors when running behind PgBouncer in transaction-pooling mode.
-            'options' => [
-                \PDO::ATTR_EMULATE_PREPARES => true,
-            ],
         ],
 
         // 'sqlite' => [
