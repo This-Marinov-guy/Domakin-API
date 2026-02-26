@@ -33,4 +33,20 @@ trait MocksListingServices
             fn($m) => $m->shouldReceive('exportModelToSpreadsheet')->andReturn(null)
         );
     }
+
+    /**
+     * Mock only payment and sheets for submit; leave PropertyService real so
+     * modifyPropertyDataWithTranslations encodes title/period/flatmates/description for DB.
+     */
+    protected function mockPaymentAndSheetsOnly(): void
+    {
+        $this->mock(
+            PaymentLinkService::class,
+            fn($m) => $m->shouldReceive('createPropertyFeeLink')->andReturn(null)
+        );
+        $this->mock(
+            GoogleSheetsService::class,
+            fn($m) => $m->shouldReceive('exportModelToSpreadsheet')->andReturn(null)
+        );
+    }
 }

@@ -400,22 +400,41 @@ class ListingApplicationControllerDirectTest extends TestCase
     {
         Queue::fake();
 
+        // Prod-like data: scalar values so controller + real PropertyService produce valid JSON for property_data.
+        // ListingApplication casts flatmates/description to array on read; store values that decode to strings
+        // so we pass strings into property_data (real modifyPropertyDataWithTranslations then JSON-encodes them).
         $application = ListingApplication::create([
-            'type'           => 1,
-            'city'           => 'Amsterdam',
-            'address'        => 'Herengracht 1',
-            'postcode'       => '1015 BZ',
-            'size'           => 25,
-            'rent'           => 850,
-            'bills'          => 80,
-            'deposit'        => 500,
+            'name'            => 'Vladislav',
+            'surname'         => 'Admin',
+            'email'           => 'vlady1002@abv.bg',
+            'phone'           => '+93 312312',
+            'type'            => 1,
+            'city'            => 'Amsterdam',
+            'address'         => 'Herengracht 1',
+            'postcode'        => '1015 BZ',
+            'size'            => 25,
+            'rent'             => '850',
+            'bills'           => 80,
+            'deposit'         => 500,
+            'registration'    => true,
+            'pets_allowed'    => false,
+            'smoking_allowed' => false,
+            'furnished_type'  => 1,
+            'bathrooms'       => 1,
+            'toilets'         => 1,
+            'available_from'  => '2026-03-01',
+            'available_to'    => '2026-03-31',
+            'shared_space'    => '1,2',
+            'amenities'       => '7,10',
+            // Store so model returns string (array cast decodes): flatmates/description as JSON string values
+            'flatmates'       => '0,1',
             'description'    => 'Wow what a nice room',
-            'images'         => 'https://example.com/image.jpg',
-            'step'           => 5,
-            'available_from' => '2026-03-01',
+            'images'          => 'https://example.com/image.jpg',
+            'step'            => 5,
         ])->fresh();
 
-        $this->mockSubmitServices();
+        // Use real PropertyService so modifyPropertyDataWithTranslations encodes JSON columns; mock only I/O
+        $this->mockPaymentAndSheetsOnly();
 
         $request = Request::create(
             '/api/v1/listing-application/submit',
