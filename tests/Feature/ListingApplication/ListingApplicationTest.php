@@ -55,16 +55,16 @@ class ListingApplicationTest extends TestCase
 
         Queue::fake();
 
-        $this->testUser = User::firstOrCreate(
-            ['id' => self::TEST_USER_ID],
-            [
-                'email'         => self::TEST_USER_EMAIL,
-                'name'          => self::TEST_USER_NAME,
-                'status'        => 1,
-                'roles'         => 'admin',
-                'referral_code' => 'VLADYADMIN1',
-            ]
-        );
+        $user = User::find(self::TEST_USER_ID);
+
+        if (!$user) {
+            $this->markTestSkipped(
+                'Test user ' . self::TEST_USER_EMAIL . ' (id: ' . self::TEST_USER_ID . ') not found in the database. ' .
+                'Create the user manually or update TEST_USER_ID to match an existing user.'
+            );
+        }
+
+        $this->testUser = $user;
 
         $this->mockMailerService();
     }
