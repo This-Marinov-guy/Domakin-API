@@ -18,7 +18,7 @@ class ListingApplicationTest extends TestCase
 
     private const JWT_ALGO = 'HS256';
 
-    private const TEST_USER_ID    = '9c99f1c5-4185-4911-9405-44ce8af10e53';
+    private const TEST_USER_ID    = '2ada6861-b4c9-4896-a57f-a3a57528d71d';
     private const TEST_USER_EMAIL = 'vlady1002@abv.bg';
     private const TEST_USER_NAME  = 'Vladislav Admin';
 
@@ -113,7 +113,7 @@ class ListingApplicationTest extends TestCase
 
     private function makeApplication(array $overrides = []): ListingApplication
     {
-        return ListingApplication::create(array_merge([
+        return ListingApplication::create([
             'name'            => 'Vladislav',
             'surname'         => 'Admin',
             'email'           => self::TEST_USER_EMAIL,
@@ -127,12 +127,13 @@ class ListingApplicationTest extends TestCase
             'toilets'         => 1,
             'flatmates'       => ['0', '0'],
             'user_id'         => (string) $this->testUser->id,
-        ], $overrides));
+            ...$overrides,
+        ])->fresh();
     }
 
     private function makeFullApplication(array $overrides = []): ListingApplication
     {
-        return $this->makeApplication(array_merge([
+        return $this->makeApplication([
             'type'           => 1,
             'city'           => 'Amsterdam',
             'address'        => 'Herengracht 1',
@@ -145,7 +146,8 @@ class ListingApplicationTest extends TestCase
             'images'         => 'https://example.com/image.jpg',
             'step'           => 5,
             'available_from' => '2026-03-01',
-        ], $overrides));
+            ...$overrides,
+        ]);
     }
 
     // ---------------------------------------------------------------
@@ -156,7 +158,7 @@ class ListingApplicationTest extends TestCase
     {
         $response = $this->postJson('/api/v1/listing-application/validate/step-2', $this->step2Data());
 
-        $response->assertStatus(200)
+        $this->assertHttpStatus($response, 200)
             ->assertJson(['status' => true])
             ->assertJsonPath('data.email', self::TEST_USER_EMAIL)
             ->assertJsonPath('data.step', 3)
@@ -172,7 +174,7 @@ class ListingApplicationTest extends TestCase
             $this->step2Data(['referenceId' => $application->reference_id, 'name' => 'Updated Name'])
         );
 
-        $response->assertStatus(200)
+        $this->assertHttpStatus($response, 200)
             ->assertJson(['status' => true])
             ->assertJsonPath('data.name', 'Updated Name');
     }
@@ -184,7 +186,7 @@ class ListingApplicationTest extends TestCase
             $this->without($this->step2Data(), 'surname', 'email', 'phone')
         );
 
-        $response->assertStatus(200)
+        $this->assertHttpStatus($response, 422)
             ->assertJson(['status' => false]);
     }
 
@@ -195,7 +197,7 @@ class ListingApplicationTest extends TestCase
             $this->step2Data(['email' => 'not-a-valid-email'])
         );
 
-        $response->assertStatus(200)
+        $this->assertHttpStatus($response, 422)
             ->assertJson(['status' => false]);
     }
 
@@ -206,7 +208,7 @@ class ListingApplicationTest extends TestCase
             $this->step2Data(['phone' => '123']) // too short (min:6)
         );
 
-        $response->assertStatus(200)
+        $this->assertHttpStatus($response, 422)
             ->assertJson(['status' => false]);
     }
 
@@ -223,7 +225,7 @@ class ListingApplicationTest extends TestCase
             $this->step3Data($application->reference_id)
         );
 
-        $response->assertStatus(200)
+        $this->assertHttpStatus($response, 200)
             ->assertJson(['status' => true])
             ->assertJsonPath('data.step', 4);
     }
@@ -237,7 +239,7 @@ class ListingApplicationTest extends TestCase
             $this->without($this->step3Data($application->reference_id), 'address')
         );
 
-        $response->assertStatus(200)
+        $this->assertHttpStatus($response, 422)
             ->assertJson(['status' => false]);
     }
 
@@ -250,7 +252,7 @@ class ListingApplicationTest extends TestCase
             $this->without($this->step3Data($application->reference_id), 'registration')
         );
 
-        $response->assertStatus(200)
+        $this->assertHttpStatus($response, 422)
             ->assertJson(['status' => false]);
     }
 
@@ -263,7 +265,7 @@ class ListingApplicationTest extends TestCase
             $this->without($this->step3Data($application->reference_id), 'availableFrom')
         );
 
-        $response->assertStatus(200)
+        $this->assertHttpStatus($response, 422)
             ->assertJson(['status' => false]);
     }
 
@@ -280,7 +282,7 @@ class ListingApplicationTest extends TestCase
             $this->step4Data($application->reference_id)
         );
 
-        $response->assertStatus(200)
+        $this->assertHttpStatus($response, 200)
             ->assertJson(['status' => true])
             ->assertJsonPath('data.step', 5);
     }
@@ -294,7 +296,7 @@ class ListingApplicationTest extends TestCase
             $this->without($this->step4Data($application->reference_id), 'rent')
         );
 
-        $response->assertStatus(200)
+        $this->assertHttpStatus($response, 422)
             ->assertJson(['status' => false]);
     }
 
@@ -307,7 +309,7 @@ class ListingApplicationTest extends TestCase
             $this->step4Data($application->reference_id, ['rent' => 0, 'bills' => 0, 'deposit' => 0]) // below min:1
         );
 
-        $response->assertStatus(200)
+        $this->assertHttpStatus($response, 422)
             ->assertJson(['status' => false]);
     }
 
@@ -320,7 +322,7 @@ class ListingApplicationTest extends TestCase
             $this->without($this->step4Data($application->reference_id), 'bathrooms')
         );
 
-        $response->assertStatus(200)
+        $this->assertHttpStatus($response, 422)
             ->assertJson(['status' => false]);
     }
 
@@ -337,7 +339,7 @@ class ListingApplicationTest extends TestCase
             $this->step5Data($application->reference_id)
         );
 
-        $response->assertStatus(200)
+        $this->assertHttpStatus($response, 200)
             ->assertJson(['status' => true])
             ->assertJsonPath('data.step', 6);
     }
@@ -351,7 +353,7 @@ class ListingApplicationTest extends TestCase
             $this->without($this->step5Data($application->reference_id), 'images')
         );
 
-        $response->assertStatus(200)
+        $this->assertHttpStatus($response, 422)
             ->assertJson(['status' => false]);
     }
 
@@ -363,7 +365,7 @@ class ListingApplicationTest extends TestCase
     {
         $response = $this->postJson('/api/v1/listing-application/save', $this->saveData());
 
-        $response->assertStatus(200)
+        $this->assertHttpStatus($response, 200)
             ->assertJson(['status' => true])
             ->assertJsonPath('data.email', self::TEST_USER_EMAIL)
             ->assertJsonStructure(['data' => ['referenceId']]);
@@ -378,7 +380,7 @@ class ListingApplicationTest extends TestCase
             $this->saveData(['referenceId' => $application->reference_id, 'name' => 'New Name'])
         );
 
-        $response->assertStatus(200)
+        $this->assertHttpStatus($response, 200)
             ->assertJson(['status' => true])
             ->assertJsonPath('data.name', 'New Name');
     }
@@ -390,7 +392,7 @@ class ListingApplicationTest extends TestCase
             $this->saveData(['referenceId' => '00000000-0000-0000-0000-000000000000'])
         );
 
-        $response->assertStatus(200)
+        $this->assertHttpStatus($response, 400)
             ->assertJson(['status' => false]);
     }
 
@@ -404,7 +406,7 @@ class ListingApplicationTest extends TestCase
 
         $response = $this->getJson('/api/v1/listing-application/' . $application->reference_id);
 
-        $response->assertStatus(200)
+        $this->assertHttpStatus($response, 200)
             ->assertJson(['status' => true])
             ->assertJsonPath('data.email', $application->email);
     }
@@ -413,7 +415,7 @@ class ListingApplicationTest extends TestCase
     {
         $response = $this->getJson('/api/v1/listing-application/00000000-0000-0000-0000-000000000000');
 
-        $response->assertStatus(200)
+        $this->assertHttpStatus($response, 400)
             ->assertJson(['status' => false]);
     }
 
@@ -425,7 +427,7 @@ class ListingApplicationTest extends TestCase
     {
         $response = $this->getJson('/api/v1/listing-application/list');
 
-        $response->assertStatus(401);
+        $this->assertHttpStatus($response, 401);
     }
 
     public function test_list_returns_applications_for_authenticated_user(): void
@@ -436,7 +438,7 @@ class ListingApplicationTest extends TestCase
         $response = $this->withToken($this->makeJwt())
             ->getJson('/api/v1/listing-application/list');
 
-        $response->assertStatus(200)
+        $this->assertHttpStatus($response, 200)
             ->assertJson(['status' => true])
             ->assertJsonStructure(['data' => ['data', 'current_page', 'last_page', 'per_page', 'total']]);
 
@@ -450,7 +452,7 @@ class ListingApplicationTest extends TestCase
         $response = $this->withToken($this->makeJwt())
             ->getJson('/api/v1/listing-application/list?page=1&per_page=5');
 
-        $response->assertStatus(200)
+        $this->assertHttpStatus($response, 200)
             ->assertJson(['status' => true])
             ->assertJsonPath('data.per_page', 5)
             ->assertJsonPath('data.current_page', 1);
@@ -464,7 +466,7 @@ class ListingApplicationTest extends TestCase
     {
         $response = $this->getJson('/api/v1/listing-application/list-extended');
 
-        $response->assertStatus(401);
+        $this->assertHttpStatus($response, 401);
     }
 
     public function test_list_all_returns_403_for_non_admin_user(): void
@@ -472,7 +474,7 @@ class ListingApplicationTest extends TestCase
         $response = $this->withToken($this->makeJwt())
             ->getJson('/api/v1/listing-application/list-extended');
 
-        $response->assertStatus(403);
+        $this->assertHttpStatus($response, 403);
     }
 
     public function test_list_all_returns_all_applications_for_admin(): void
@@ -483,7 +485,7 @@ class ListingApplicationTest extends TestCase
         $response = $this->withToken($this->makeJwt('admin'))
             ->getJson('/api/v1/listing-application/list-extended');
 
-        $response->assertStatus(200)
+        $this->assertHttpStatus($response, 200)
             ->assertJson(['status' => true])
             ->assertJsonStructure(['data' => ['data', 'current_page', 'last_page', 'per_page', 'total']]);
     }
@@ -495,7 +497,7 @@ class ListingApplicationTest extends TestCase
         $response = $this->withToken($this->makeJwt('admin'))
             ->getJson('/api/v1/listing-application/list-extended?search=uniquesearch');
 
-        $response->assertStatus(200)
+        $this->assertHttpStatus($response, 200)
             ->assertJson(['status' => true]);
 
         $this->assertGreaterThanOrEqual(1, $response->json('data.total'));
@@ -508,7 +510,7 @@ class ListingApplicationTest extends TestCase
         $response = $this->withToken($this->makeJwt('admin'))
             ->getJson('/api/v1/listing-application/list-extended?referenceId=' . $application->reference_id);
 
-        $response->assertStatus(200)
+        $this->assertHttpStatus($response, 200)
             ->assertJson(['status' => true])
             ->assertJsonPath('data.total', 1);
     }
@@ -526,7 +528,7 @@ class ListingApplicationTest extends TestCase
             $this->editData($application->id, ['name' => 'Changed'])
         );
 
-        $response->assertStatus(401);
+        $this->assertHttpStatus($response, 401);
     }
 
     public function test_edit_updates_application_for_owner(): void
@@ -539,7 +541,7 @@ class ListingApplicationTest extends TestCase
                 $this->editData($application->id, ['name' => 'Changed Name'])
             );
 
-        $response->assertStatus(200)
+        $this->assertHttpStatus($response, 200)
             ->assertJson(['status' => true])
             ->assertJsonPath('data.name', 'Changed Name');
     }
@@ -554,7 +556,7 @@ class ListingApplicationTest extends TestCase
                 $this->editData($application->id, ['name' => 'Changed'])
             );
 
-        $response->assertStatus(200)
+        $this->assertHttpStatus($response, 400)
             ->assertJson(['status' => false]);
     }
 
@@ -568,7 +570,7 @@ class ListingApplicationTest extends TestCase
                 $this->editData($application->id, ['furnishedType' => 2, 'petsAllowed' => true])
             );
 
-        $response->assertStatus(200)
+        $this->assertHttpStatus($response, 200)
             ->assertJson(['status' => true])
             ->assertJsonPath('data.furnished_type', 2);
     }
@@ -586,7 +588,7 @@ class ListingApplicationTest extends TestCase
             $this->deleteData($application->id)
         );
 
-        $response->assertStatus(401);
+        $this->assertHttpStatus($response, 401);
     }
 
     public function test_destroy_deletes_application_for_owner(): void
@@ -599,7 +601,7 @@ class ListingApplicationTest extends TestCase
                 $this->deleteData($application->id)
             );
 
-        $response->assertStatus(200)
+        $this->assertHttpStatus($response, 200)
             ->assertJson(['status' => true]);
 
         $this->assertNull(ListingApplication::find($application->id));
@@ -615,7 +617,7 @@ class ListingApplicationTest extends TestCase
                 $this->deleteData($application->id)
             );
 
-        $response->assertStatus(200)
+        $this->assertHttpStatus($response, 400)
             ->assertJson(['status' => false]);
     }
 
@@ -627,7 +629,7 @@ class ListingApplicationTest extends TestCase
     {
         $response = $this->postJson('/api/v1/listing-application/submit', []);
 
-        $response->assertStatus(422)
+        $this->assertHttpStatus($response, 422)
             ->assertJson(['status' => false])
             ->assertJsonStructure(['invalid_fields']);
     }
@@ -639,7 +641,7 @@ class ListingApplicationTest extends TestCase
             $this->submitData('00000000-0000-0000-0000-000000000000')
         );
 
-        $response->assertStatus(200)
+        $this->assertHttpStatus($response, 400)
             ->assertJson(['status' => false]);
     }
 
@@ -652,7 +654,7 @@ class ListingApplicationTest extends TestCase
             $this->submitData($application->reference_id)
         );
 
-        $response->assertStatus(200)
+        $this->assertHttpStatus($response, 422)
             ->assertJson(['status' => false]);
     }
 
@@ -667,7 +669,7 @@ class ListingApplicationTest extends TestCase
             $this->submitData($application->reference_id)
         );
 
-        $response->assertStatus(200)
+        $this->assertHttpStatus($response, 200)
             ->assertJson(['status' => true]);
 
         $this->assertNull(
