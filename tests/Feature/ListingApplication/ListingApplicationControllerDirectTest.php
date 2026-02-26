@@ -295,9 +295,7 @@ class ListingApplicationControllerDirectTest extends TestCase
             app(UserService::class)
         );
 
-        $payload = $response->getData(true);
-
-        $this->assertEquals(200, $response->getStatusCode());
+        $payload = $this->assertJsonStatus($response, 200);
         $this->assertTrue($payload['status']);
         $this->assertSame('example@example.com', $payload['data']['email']);
     }
@@ -317,8 +315,8 @@ class ListingApplicationControllerDirectTest extends TestCase
             app(UserService::class)
         );
 
-        $this->assertEquals(400, $response->getStatusCode());
-        $this->assertFalse($response->getData(true)['status']);
+        $payload = $this->assertJsonStatus($response, 400);
+        $this->assertFalse($payload['status']);
     }
 
     // ---------------------------------------------------------------
@@ -344,8 +342,8 @@ class ListingApplicationControllerDirectTest extends TestCase
             app(ListingMailerService::class)
         );
 
-        $this->assertEquals(422, $response->getStatusCode());
-        $this->assertFalse($response->getData(true)['status']);
+        $payload = $this->assertJsonStatus($response, 422);
+        $this->assertFalse($payload['status']);
     }
 
     public function test_submit_direct_fails_for_unknown_reference_id(): void
@@ -367,8 +365,8 @@ class ListingApplicationControllerDirectTest extends TestCase
             app(ListingMailerService::class)
         );
 
-        $this->assertEquals(400, $response->getStatusCode());
-        $this->assertFalse($response->getData(true)['status']);
+        $payload = $this->assertJsonStatus($response, 400);
+        $this->assertFalse($payload['status']);
     }
 
     public function test_submit_direct_fails_when_application_missing_size_rent_bills_deposit(): void
@@ -394,8 +392,8 @@ class ListingApplicationControllerDirectTest extends TestCase
             app(ListingMailerService::class)
         );
 
-        $this->assertEquals(422, $response->getStatusCode());
-        $this->assertFalse($response->getData(true)['status']);
+        $payload = $this->assertJsonStatus($response, 422);
+        $this->assertFalse($payload['status']);
     }
 
     public function test_submit_direct_creates_property_and_removes_application(): void
@@ -436,11 +434,7 @@ class ListingApplicationControllerDirectTest extends TestCase
             app(ListingMailerService::class)
         );
 
-        if ($response->getStatusCode() !== 200) {
-            $this->fail(sprintf('[HTTP %d] %s', $response->getStatusCode(), $response->getContent()));
-        }
-
-        $payload = $response->getData(true);
+        $payload = $this->assertJsonStatus($response, 200);
         $this->assertTrue($payload['status']);
 
         $this->assertNull(
