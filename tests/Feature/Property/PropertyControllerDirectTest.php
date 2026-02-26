@@ -53,13 +53,13 @@ class PropertyControllerDirectTest extends TestCase
     {
         $this->mock(PropertyService::class, function ($mock) {
             $mock->shouldReceive('parsePropertiesForListing')
-                ->withArgs(fn($properties, $lang) => $lang === 'nl')
+                ->withArgs(fn($properties, $lang) => $lang === 'bg')
                 ->once()
                 ->andReturn([]);
         });
 
         $request = Request::create('/api/v1/property/listing', 'GET', [], [], [], [
-            'HTTP_ACCEPT_LANGUAGE' => 'nl-NL,nl;q=0.9,en;q=0.8',
+            'HTTP_ACCEPT_LANGUAGE' => 'bg-BG,bg;q=0.9,en;q=0.8',
         ]);
 
         $controller = app(PropertyController::class);

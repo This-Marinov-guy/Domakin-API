@@ -85,7 +85,7 @@ trait PropertyControllerData
             'personalData' => json_encode($this->personalDataArray()),
             'propertyData' => json_encode($this->propertyDataArray()),
             'interface'    => 'web',
-            'terms'        => 'null', // json_decode('null') = null; avoids PHP 8 TypeError on json_decode(null)
+            'terms'        => json_encode(['contact' => true, 'legals' => true]),
         ], $overrides);
     }
 

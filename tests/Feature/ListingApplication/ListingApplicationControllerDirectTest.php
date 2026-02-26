@@ -386,6 +386,7 @@ class ListingApplicationControllerDirectTest extends TestCase
         $application = ListingApplication::create($this->applicationAttrsForSubmitSuccess())->fresh();
 
         $this->mockPaymentAndSheetsOnly();
+        $this->mockMailerService();
 
         $request = Request::create(
             '/api/v1/listing-application/submit',

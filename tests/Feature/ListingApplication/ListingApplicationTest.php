@@ -147,6 +147,10 @@ class ListingApplicationTest extends TestCase
             'images'         => 'https://example.com/image.jpg',
             'step'           => 5,
             'available_from' => '2026-03-01',
+            'available_to'   => '2026-03-31',
+            'flatmates'      => '0,1',  // string so array-cast returns string on read
+            'amenities'      => '7,10',
+            'shared_space'   => '1,2',
             ...$overrides,
         ]);
     }
@@ -663,7 +667,7 @@ class ListingApplicationTest extends TestCase
     {
         $application = $this->makeFullApplication();
 
-        $this->mockSubmitServices();
+        $this->mockPaymentAndSheetsOnly();
 
         $response = $this->postJson(
             '/api/v1/listing-application/submit',

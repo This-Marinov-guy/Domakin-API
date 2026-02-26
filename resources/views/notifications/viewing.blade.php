@@ -15,7 +15,7 @@
     <p>Address: {{ $data['address'] }}</p>
     <p>Date: {{ $data['date'] }}</p>
     <p>Time: {{ $data['time'] }}</p>
-    <p>Note: {{ $data['note'] }}</p>
+    <p>Note: {{ $data['note'] ?? '' }}</p>
 </body>
 
 </html>
