@@ -44,6 +44,11 @@
         }
     },
     "scripts": {
+        "test": ["php vendor/bin/phpunit"],
+        "test:feature": ["php vendor/bin/phpunit --testsuite=Feature"],
+        "test:unit": ["php vendor/bin/phpunit --testsuite=Unit"],
+        "test:listing": ["php vendor/bin/phpunit tests/Feature/ListingApplication"],
+        "t": ["php vendor/bin/phpunit"],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
             "@php artisan package:discover --ansi"

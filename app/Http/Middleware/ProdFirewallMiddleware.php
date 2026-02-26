@@ -44,7 +44,7 @@ class ProdFirewallMiddleware
     private function isDevelopmentEnvironment(): bool
     {
         $env = env('APP_ENV');
-        return $env === 'dev' || $env === 'local';
+        return $env === 'dev' || $env === 'local' || $env === 'testing';
     }
 
     private function extractHost(?string $url): ?string

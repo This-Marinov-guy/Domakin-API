@@ -63,11 +63,17 @@ class AxiomLoggerMiddleware
             context: [],
         );
 
-        if (!$this->axiomIngest->ingest($event)) {
+        if (!$this->axiomIngest->ingest($event) && !$this->isDevOrTesting()) {
             Log::warning('Axiom ingest skipped or failed for API request.');
         }
 
         return $response;
+    }
+
+    private function isDevOrTesting(): bool
+    {
+        $env = config('app.env', env('APP_ENV', 'prod'));
+        return in_array($env, ['local', 'dev', 'testing'], true);
     }
 
     protected function sanitizeHeaders(array $headers): array
