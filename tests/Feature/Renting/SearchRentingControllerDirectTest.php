@@ -8,12 +8,31 @@ use App\Services\GoogleServices\GoogleSheetsService;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class SearchRentingControllerDirectTest extends TestCase
 {
     use DatabaseTransactions;
     use MocksRentingServices;
+
+    protected function setUp(): void
+    {
+        try {
+            DB::reconnect();
+        } catch (\Throwable) {
+        }
+        parent::setUp();
+    }
+
+    protected function tearDown(): void
+    {
+        parent::tearDown();
+        try {
+            DB::reconnect();
+        } catch (\Throwable) {
+        }
+    }
 
     // ---------------------------------------------------------------
     // Request payloads

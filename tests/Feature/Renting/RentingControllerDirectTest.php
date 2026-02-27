@@ -9,6 +9,7 @@ use App\Services\RentingService;
 use App\Services\UserService;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class RentingControllerDirectTest extends TestCase
@@ -16,6 +17,24 @@ class RentingControllerDirectTest extends TestCase
     use DatabaseTransactions;
     use MocksRentingServices;
     use RentingControllerData;
+
+    protected function setUp(): void
+    {
+        try {
+            DB::reconnect();
+        } catch (\Throwable) {
+        }
+        parent::setUp();
+    }
+
+    protected function tearDown(): void
+    {
+        parent::tearDown();
+        try {
+            DB::reconnect();
+        } catch (\Throwable) {
+        }
+    }
 
     // ---------------------------------------------------------------
     // create — POST /api/v1/renting/create

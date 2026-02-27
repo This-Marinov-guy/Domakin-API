@@ -8,6 +8,7 @@ use App\Models\ListingApplication;
 use App\Models\User;
 use Firebase\JWT\JWT;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
@@ -52,6 +53,10 @@ class ListingApplicationTest extends TestCase
 
     protected function setUp(): void
     {
+        try {
+            DB::reconnect();
+        } catch (\Throwable) {
+        }
         parent::setUp();
 
         Queue::fake();
@@ -68,6 +73,17 @@ class ListingApplicationTest extends TestCase
         $this->testUser = $user;
 
         $this->mockMailerService();
+    }
+
+    protected function tearDown(): void
+    {
+        parent::tearDown();
+        // Reconnect so the next test never reuses a connection left in "aborted transaction" state (PostgreSQL 25P02).
+        try {
+            DB::reconnect();
+        } catch (\Throwable) {
+            // Ignore if app is already torn down.
+        }
     }
 
     // ---------------------------------------------------------------
