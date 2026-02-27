@@ -8,6 +8,7 @@ use App\Services\GoogleServices\GoogleCalendarService;
 use App\Services\GoogleServices\GoogleSheetsService;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class ViewingControllerDirectTest extends TestCase
@@ -15,6 +16,24 @@ class ViewingControllerDirectTest extends TestCase
     use DatabaseTransactions;
     use MocksViewingServices;
     use ViewingControllerData;
+
+    protected function setUp(): void
+    {
+        try {
+            DB::reconnect();
+        } catch (\Throwable) {
+        }
+        parent::setUp();
+    }
+
+    protected function tearDown(): void
+    {
+        parent::tearDown();
+        try {
+            DB::reconnect();
+        } catch (\Throwable) {
+        }
+    }
 
     // ---------------------------------------------------------------
     // list — GET /api/v1/viewing/list

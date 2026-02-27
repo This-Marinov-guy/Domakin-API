@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="vendor/autoload.php"
+         colors="true"
+         stderr="true"
+>
+    <testsuites>
+        <testsuite name="Unit">
+            <directory>tests/Unit</directory>
+        </testsuite>
+        <testsuite name="Feature">
+            <directory>tests/Feature</directory>
+        </testsuite>
+    </testsuites>
+
+    <source>
+        <include>
+            <directory>app</directory>
+        </include>
+    </source>
+
+    <!--
+        This is a sample PHPUnit configuration intended for sharing.
+        It intentionally omits all <env> entries so that no sensitive
+        environment variables are committed.
+        Copy to phpunit.xml locally and add your own <env> settings
+        under the <php> section as needed.
+    -->
+    <php>
+        <!-- Place project-specific <env> entries here in your local phpunit.xml -->
+        <ini name="display_errors" value="1"/>
+        <ini name="display_startup_errors" value="1"/>
+        <ini name="error_reporting" value="-1"/>
+    </php>
+</phpunit>
+

@@ -119,7 +119,7 @@ class UserController extends Controller
                 'min:4',
                 Rule::unique('users', 'referral_code')->ignore($user->id),
             ],
-        ], $messages);
+        ]);
 
         if ($validator->fails()) {
             return ApiResponseClass::sendInvalidFields($validator->errors()->toArray(), $messages);

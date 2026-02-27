@@ -13,6 +13,7 @@ use App\Services\PropertyService;
 use App\Services\UserService;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
@@ -21,6 +22,24 @@ class ListingApplicationControllerDirectTest extends TestCase
     use DatabaseTransactions;
     use MocksListingServices;
     use ListingApplicationData;
+
+    protected function setUp(): void
+    {
+        try {
+            DB::reconnect();
+        } catch (\Throwable) {
+        }
+        parent::setUp();
+    }
+
+    protected function tearDown(): void
+    {
+        parent::tearDown();
+        try {
+            DB::reconnect();
+        } catch (\Throwable) {
+        }
+    }
 
     // ---------------------------------------------------------------
     // validateStep2 — POST /api/v1/listing-application/validate/step-2
