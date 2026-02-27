@@ -33,7 +33,6 @@ abstract class TestCase extends BaseTestCase
             // Ignore reconnect failures; individual tests can still handle them.
         }
     }
-    
     /**
      * Assert HTTP status and include the response body in the failure message.
      */
