@@ -103,17 +103,21 @@ class Helpers
         return $items;
     }
 
-    public static function extractStreetName($address)
+    public static function extractStreetName(string $address): string
     {
-        // Remove all commas
-        $address = str_replace(',', '', $address);
+        // Replace commas with spaces
+        $address = str_replace(',', ' ', $address);
 
-        // Match everything up to the first digit
-        if (preg_match('/^[^\d]*/', $address, $matches)) {
-            return trim($matches[0]);
-        }
+        // Remove any token that contains a digit (12, 12A, A12, 221B, 4/2, A-12, etc.)
+        $address = preg_replace('/\b\S*\d\S*\b/u', ' ', $address);
 
-        return $address;
+        // Remove 1–2 character words (A, B, II, 3? already removed above)
+        $address = preg_replace('/\b\p{L}{1,2}\b/u', ' ', $address);
+
+        // Collapse whitespace
+        $address = preg_replace('/\s+/u', ' ', $address);
+
+        return trim($address);
     }
 
     public static function getPreferredLanguage($default = 'en')
