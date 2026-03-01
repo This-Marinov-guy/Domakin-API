@@ -279,31 +279,71 @@ class PropertyControllerDirectTest extends TestCase
     {
         $this->mockSignalIntegrationService();
 
-        $request = Request::create('/api/v1/property/delete', 'DELETE', ['id' => 999999]);
-
+        $request = Request::create('/api/v1/property/delete/999999', 'DELETE');
         $controller = app(PropertyController::class);
 
-        $response = $controller->delete($request, app(SignalIntegrationService::class));
+        $response = $controller->delete($request, 999999, app(SignalIntegrationService::class));
 
         $payload = $this->assertJsonStatus($response, 400);
         $this->assertFalse($payload['status']);
     }
 
-    public function test_delete_direct_deletes_existing_property(): void
+    public function test_delete_direct_soft_deletes_existing_property(): void
     {
         $property = $this->createPropertyWithRelations();
 
         $this->mockSignalIntegrationService();
 
-        $request = Request::create('/api/v1/property/delete', 'DELETE', ['id' => $property->id]);
-
+        $request = Request::create("/api/v1/property/delete/{$property->id}", 'DELETE');
         $controller = app(PropertyController::class);
 
-        $response = $controller->delete($request, app(SignalIntegrationService::class));
+        $response = $controller->delete($request, $property->id, app(SignalIntegrationService::class));
 
         $payload = $this->assertJsonStatus($response, 200);
         $this->assertTrue($payload['status']);
+        $this->assertSame('Property deleted successfully', $payload['data']['message']);
+
+        // Soft delete: not found by default scope, but exists with trashed
         $this->assertNull(Property::find($property->id));
+        $trashed = Property::onlyTrashed()->find($property->id);
+        $this->assertNotNull($trashed);
+        $this->assertTrue($trashed->trashed());
+    }
+
+    public function test_restore_direct_returns_error_when_property_not_trashed(): void
+    {
+        $property = $this->createPropertyWithRelations();
+
+        $request = Request::create('/api/v1/property/restore', 'POST', ['id' => $property->id]);
+        $controller = app(PropertyController::class);
+
+        $response = $controller->restore($request);
+
+        $payload = $this->assertJsonStatus($response, 400);
+        $this->assertFalse($payload['status']);
+        $this->assertSame('Property not found or not deleted', $payload['message']);
+    }
+
+    public function test_restore_direct_restores_soft_deleted_property(): void
+    {
+        $property = $this->createPropertyWithRelations();
+        $property->delete();
+
+        $this->assertNull(Property::find($property->id));
+        $this->assertNotNull(Property::onlyTrashed()->find($property->id));
+
+        $request = Request::create('/api/v1/property/restore', 'POST', ['id' => $property->id]);
+        $controller = app(PropertyController::class);
+
+        $response = $controller->restore($request);
+
+        $payload = $this->assertJsonStatus($response, 200);
+        $this->assertTrue($payload['status']);
+        $this->assertSame('Property restored successfully', $payload['data']['message']);
+
+        $restored = Property::find($property->id);
+        $this->assertNotNull($restored);
+        $this->assertFalse($restored->trashed());
     }
 
     // ---------------------------------------------------------------

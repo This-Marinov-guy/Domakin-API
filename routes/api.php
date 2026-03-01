@@ -82,8 +82,9 @@ Route::prefix('v1')->group(function () {
         Route::get('/listing.xml', [PropertyController::class, 'listingXml']); // Public: open in browser to get XML (like /api/documentation)
 
         Route::post('/create', [PropertyController::class, 'create']);
-        Route::post('/edit', [PropertyController::class, 'edit'])->middleware('auth.role:admin');
-        Route::delete('/delete', [PropertyController::class, 'delete']);
+        Route::post('/edit', [PropertyController::class, 'edit'])->middleware('auth.role');
+        Route::delete('/delete/{id}', [PropertyController::class, 'delete']);
+        Route::post('/restore', [PropertyController::class, 'restore']);
 
         // Route::match(methods: ['GET', 'POST', 'OPTIONS'], '/signal-test', [PropertyController::class, 'testSignalIntegration']);
         Route::post('/payment/create-link', [PropertyController::class, 'createPaymentLink'])->middleware('auth.role:admin');
