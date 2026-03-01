@@ -146,10 +146,12 @@ Route::get('/health', function () {
     return response()->json(['status' => 'ok', 'timestamp' => now()->toIso8601String()]);
 });
 
-// Webhooks (no versioning, called by external services)
-Route::post('/webhooks/stripe/checkout', [StripeWebhookController::class, 'handle']);
-Route::post('/webhooks/viewing-created', [ViewingWebhookController::class, 'handle'])
-    ->middleware('webhook.secret');
+// Webhooks (no versioning, called by external services). Logged to Axiom with same structure as API requests.
+Route::prefix('webhook')->middleware('axiom.webhook.logger')->group(function () {
+    Route::post('/stripe/checkout', [StripeWebhookController::class, 'handle']);
+    Route::post('/viewing-created', [ViewingWebhookController::class, 'handle'])
+        ->middleware('webhook.secret');
+});
 
 /*
 |--------------------------------------------------------------------------
