@@ -647,11 +647,12 @@ class PropertyController extends Controller
      */
     public function edit(Request $request, PropertyService $propertyService, UserService $user, PaymentLinkService $paymentLinks, CloudinaryService $cloudinary, SignalIntegrationService $signalIntegrationService): JsonResponse
     {
-        // Normalize releaseTimestamp - convert string "null" to actual null
+        // Normalize releaseTimestamp: "undefined" or empty = do not update; "null" = clear (set to null); else = value
         $releaseTimestamp = $request->get('releaseTimestamp');
-
-        if ($releaseTimestamp === 'null' || $releaseTimestamp === null || $releaseTimestamp === '') {
-            $releaseTimestamp = null;
+        if ($releaseTimestamp === 'undefined' || $releaseTimestamp === '') {
+            $releaseTimestamp = false; // sentinel: do not update the column
+        } elseif ($releaseTimestamp === 'null' || $releaseTimestamp === null) {
+            $releaseTimestamp = null; // explicitly clear
         }
 
         $referralCode = $request->get('referralCode');
@@ -771,8 +772,10 @@ class PropertyController extends Controller
             $property->last_updated_by = $user->extractIdFromRequest($request);
             $property->referral_code = $data['referral_code'];
 
-            // Handle release_timestamp - set to null if explicitly null, otherwise set the value
-            if ($data['release_timestamp'] === null) {
+            // Handle release_timestamp - false = do not update; null = clear; else = set value
+            if ($data['release_timestamp'] === false) {
+                // "undefined" or empty from client: leave existing value unchanged
+            } elseif ($data['release_timestamp'] === null) {
                 $property->release_timestamp = null;
             } else {
                 $property->release_timestamp = $data['release_timestamp'];
@@ -805,7 +808,7 @@ class PropertyController extends Controller
     /**
      * @OA\Delete(
      *     path="/api/v1/property/delete",
-     *     summary="Delete a property",
+     *     summary="Soft-delete a property and remove it from Signal",
      *     tags={"Properties"},
      *     security={{"bearerAuth":{}}},
      *     @OA\Parameter(
@@ -817,7 +820,7 @@ class PropertyController extends Controller
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Property deleted successfully",
+     *         description="Property soft-deleted successfully; can be restored via restore endpoint",
      *         @OA\JsonContent(
      *             @OA\Property(property="status", type="boolean", example=true),
      *             @OA\Property(property="data", type="object")
@@ -825,26 +828,71 @@ class PropertyController extends Controller
      *     )
      * )
      */
-    public function delete(Request $request, SignalIntegrationService $signalIntegrationService): JsonResponse
+    public function delete(Request $request, $id, SignalIntegrationService $signalIntegrationService): JsonResponse
     {
-        $propertyId = $request->get('id');
+        $propertyId = $id ?? $request->route('id') ?? $request->get('id');
         $property = Property::find($propertyId);
 
         if (!$property) {
             return ApiResponseClass::sendError('Property not found');
         }
 
-        // Delete from Signal API if property exists
+        // Remove from Signal API so it no longer appears there; property stays in our DB (soft deleted).
         try {
             $signalIntegrationService->deleteProperty($property);
         } catch (Exception $error) {
             Log::error($error->getMessage());
         }
 
-        //TODO: perhaps something needs to be done to delete images? Not sure if this deletes images, needs testing
+        // Soft delete: sets deleted_at so the property can be restored later.
         $property->delete();
 
         return ApiResponseClass::sendSuccess(['message' => 'Property deleted successfully']);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/api/v1/property/restore",
+     *     summary="Restore a soft-deleted property",
+     *     tags={"Properties"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="query",
+     *         description="Property ID",
+     *         required=true,
+     *         @OA\Schema(type="integer", example=1)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Property restored successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Property not found or not trashed",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string")
+     *         )
+     *     )
+     * )
+     */
+    public function restore(Request $request): JsonResponse
+    {
+        $propertyId = $request->get('id');
+        $property = Property::onlyTrashed()->find($propertyId);
+
+        if (!$property) {
+            return ApiResponseClass::sendError('Property not found or not deleted');
+        }
+
+        $property->restore();
+
+        return ApiResponseClass::sendSuccess(['message' => 'Property restored successfully']);
     }
 
     /**

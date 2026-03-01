@@ -7,10 +7,12 @@ use App\Models\Concerns\HasDomainBasedTermsValidation;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Property extends Model
 {
     use HasDomainBasedTermsValidation;
+    use SoftDeletes;
     protected $fillable = [
         'personal_data',
         'property_data',
