@@ -35,5 +35,32 @@ return Application::configure(basePath: dirname(__DIR__))
         //
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+        $exceptions->report(function (\Throwable $e) {
+            try {
+                /** @var \App\Services\AxiomIngestService $axiom */
+                $axiom = app(\App\Services\AxiomIngestService::class);
+
+                if (!$axiom->isEnabled()) {
+                    return false;
+                }
+
+                $exceptionPayload = new \App\Logging\Axiom\AxiomExceptionPayload(
+                    message: $e->getMessage(),
+                    code: $e->getCode() ?: null,
+                    file: $e->getFile(),
+                    line: $e->getLine(),
+                );
+
+                $event = \App\Logging\Axiom\AxiomErrorLog::make(
+                    message: 'Unhandled exception: ' . get_class($e),
+                    exception: $exceptionPayload,
+                );
+
+                $axiom->ingest($event);
+            } catch (\Throwable) {
+                // Never let Axiom reporting break the app
+            }
+
+            return false; // Let Laravel's default reporting continue
+        });
     })->create();
