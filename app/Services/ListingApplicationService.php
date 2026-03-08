@@ -73,6 +73,7 @@ class ListingApplicationService
             'sharedSpace'     => 'shared_space',
             'availableFrom'   => 'available_from',
             'availableTo'     => 'available_to',
+            'referralCode'    => 'referral_code',
         ];
 
         foreach ($camelToSnake as $from => $to) {

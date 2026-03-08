@@ -256,6 +256,29 @@ class ListingApplicationControllerDirectTest extends TestCase
         $this->assertArrayHasKey('referenceId', $payload['data']);
     }
 
+    public function test_save_direct_stores_referral_code(): void
+    {
+        $this->mockMailerService();
+
+        $request = Request::create(
+            '/api/v1/listing-application/save',
+            'POST',
+            $this->saveData(['referralCode' => 'MYCODE'])
+        );
+
+        $controller = app(ListingApplicationController::class);
+
+        $response = $controller->save(
+            $request,
+            app(ListingApplicationService::class),
+            app(ListingMailerService::class)
+        );
+
+        $payload = $this->assertJsonStatus($response, 200);
+        $this->assertTrue($payload['status']);
+        $this->assertSame('MYCODE', $payload['data']['referral_code']);
+    }
+
     public function test_save_direct_returns_error_for_unknown_reference_id(): void
     {
         $this->mockMailerService();
@@ -396,6 +419,39 @@ class ListingApplicationControllerDirectTest extends TestCase
 
         $payload = $this->assertJsonStatus($response, 422);
         $this->assertFalse($payload['status']);
+    }
+
+    public function test_submit_direct_transfers_referral_code_to_property(): void
+    {
+        Queue::fake();
+
+        $application = ListingApplication::create(
+            $this->applicationAttrsForSubmitSuccess(['referral_code' => 'REFCODE123'])
+        )->fresh();
+
+        $this->mockPaymentAndSheetsOnly();
+        $this->mockMailerService();
+
+        $request = Request::create(
+            '/api/v1/listing-application/submit',
+            'POST',
+            $this->submitData($application->reference_id)
+        );
+
+        $controller = app(ListingApplicationController::class);
+
+        $response = $controller->submit(
+            $request,
+            app(UserService::class),
+            app(PropertyService::class),
+            app(PaymentLinkService::class),
+            app(GoogleSheetsService::class),
+            app(ListingMailerService::class)
+        );
+
+        $payload = $this->assertJsonStatus($response, 200);
+        $this->assertTrue($payload['status']);
+        $this->assertSame('REFCODE123', $payload['data']['referral_code']);
     }
 
     public function test_submit_direct_creates_property_and_removes_application(): void
