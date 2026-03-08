@@ -135,6 +135,7 @@ class ListingApplicationTest extends TestCase
             'surname'         => 'Admin',
             'email'           => self::TEST_USER_EMAIL,
             'phone'           => '+31612345678',
+            'referral_code'   => 'PROMO2026',
             'step'            => 3,
             'registration'    => true,
             'pets_allowed'    => false,
@@ -406,6 +407,15 @@ class ListingApplicationTest extends TestCase
             ->assertJsonPath('data.name', 'New Name');
     }
 
+    public function test_save_stores_referral_code(): void
+    {
+        $response = $this->postJson('/api/v1/listing-application/save', $this->saveData(['referralCode' => 'MYCODE']));
+
+        $this->assertHttpStatus($response, 200)
+            ->assertJson(['status' => true])
+            ->assertJsonPath('data.referral_code', 'MYCODE');
+    }
+
     public function test_save_returns_error_for_unknown_reference_id(): void
     {
         $response = $this->postJson(
@@ -567,6 +577,21 @@ class ListingApplicationTest extends TestCase
             ->assertJsonPath('data.name', 'Changed Name');
     }
 
+    public function test_edit_updates_referral_code(): void
+    {
+        $application = $this->makeApplication(['referral_code' => 'OLD']);
+
+        $response = $this->withToken($this->makeJwt())
+            ->patchJson(
+                '/api/v1/listing-application/edit',
+                $this->editData($application->id, ['referralCode' => 'NEWCODE'])
+            );
+
+        $this->assertHttpStatus($response, 200)
+            ->assertJson(['status' => true])
+            ->assertJsonPath('data.referral_code', 'NEWCODE');
+    }
+
     public function test_edit_returns_error_when_application_not_owned_by_user(): void
     {
         $application = $this->makeApplication(['user_id' => null]);
@@ -677,6 +702,22 @@ class ListingApplicationTest extends TestCase
 
         $this->assertHttpStatus($response, 422)
             ->assertJson(['status' => false]);
+    }
+
+    public function test_submit_transfers_referral_code_to_property(): void
+    {
+        $application = $this->makeFullApplication(['referral_code' => 'PROMOABC']);
+
+        $this->mockPaymentAndSheetsOnly();
+
+        $response = $this->postJson(
+            '/api/v1/listing-application/submit',
+            $this->submitData($application->reference_id)
+        );
+
+        $this->assertHttpStatus($response, 200)
+            ->assertJson(['status' => true])
+            ->assertJsonPath('data.referral_code', 'PROMOABC');
     }
 
     public function test_submit_creates_property_and_removes_application(): void

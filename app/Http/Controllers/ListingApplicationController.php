@@ -28,7 +28,7 @@ use Illuminate\Support\Facades\Validator;
 class ListingApplicationController extends Controller
 {
     // ---------------------------------------------------------------
-    // POST – validate step 2: name, surname, email, phone, terms
+    // POST – validate step 2: name, surname, email, phone, referralCode, terms
     // ---------------------------------------------------------------
 
     /**
@@ -43,8 +43,9 @@ class ListingApplicationController extends Controller
      *             @OA\Property(property="name",    type="string",  example="John"),
      *             @OA\Property(property="surname", type="string",  example="Doe"),
      *             @OA\Property(property="email",   type="string",  format="email", example="john@example.com"),
-     *             @OA\Property(property="phone",   type="string",  example="+31612345678"),
-     *             @OA\Property(property="terms",   type="object",  description="Required only for certain domains (contact/legals accepted)",
+     *             @OA\Property(property="phone",        type="string",  example="+31612345678"),
+     *             @OA\Property(property="referralCode", type="string",  nullable=true, example="PROMO2026", description="Optional referral code"),
+     *             @OA\Property(property="terms",        type="object",  description="Required only for certain domains (contact/legals accepted)",
      *                 @OA\Property(property="contact", type="boolean", example=true),
      *                 @OA\Property(property="legals",  type="boolean", example=true)
      *             )
@@ -240,8 +241,9 @@ class ListingApplicationController extends Controller
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             @OA\Property(property="referenceId", type="string", format="uuid", description="Existing application reference ID to update (omit to create new)"),
-     *             @OA\Property(property="step", type="integer", example=1, description="Current step number (1–5)")
+     *             @OA\Property(property="referenceId",  type="string", format="uuid", description="Existing application reference ID to update (omit to create new)"),
+     *             @OA\Property(property="step",         type="integer", example=1, description="Current step number (1–5)"),
+     *             @OA\Property(property="referralCode", type="string",  nullable=true, example="PROMO2026", description="Optional referral code")
      *         )
      *     ),
      *     @OA\Response(response=200, description="Draft saved", @OA\JsonContent(@OA\Property(property="status", type="boolean", example=true), @OA\Property(property="data", type="object"))),
@@ -377,6 +379,7 @@ class ListingApplicationController extends Controller
                     'created_by'      => $userId,
                     'last_updated_by' => $userId,
                     'interface'       => 'web',
+                    'referral_code'   => $application->referral_code,
                 ]);
 
                 PersonalData::create([

@@ -43,6 +43,7 @@ class ListingApplication extends Model
         'toilets',
         'amenities',
         'deposit',
+        'referral_code',
     ];
 
     protected $casts = [
