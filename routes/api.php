@@ -111,6 +111,9 @@ Route::prefix('v1')->group(function () {
         Route::delete('/delete', [ListingApplicationController::class, 'destroy'])->middleware('auth.role');
     });
 
+    Route::get('/referral-bonus/my-list', [ReferralBonusController::class, 'myList'])
+        ->middleware('auth.role');
+
     Route::prefix('referral-bonus')->middleware('auth.role:admin')->group(function () {
         Route::get('/list',      [ReferralBonusController::class, 'list']);
         Route::get('/{id}',      [ReferralBonusController::class, 'show'])->where('id', '[0-9]+');

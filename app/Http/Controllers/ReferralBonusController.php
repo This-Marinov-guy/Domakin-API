@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Classes\ApiResponseClass;
 use App\Models\ReferralBonus;
+use App\Services\UserService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -52,7 +53,51 @@ class ReferralBonusController extends Controller
             $query->where('user_id', $request->get('user_id'));
         }
 
-        $paginator = $query->orderBy('created_at', 'desc')
+        $allowed   = ['id', 'created_at', 'amount', 'status', 'type'];
+        $sortBy    = in_array($request->get('sort_by'), $allowed, true) ? $request->get('sort_by') : 'created_at';
+        $sortDir   = strtolower($request->get('sort_dir', 'desc')) === 'asc' ? 'asc' : 'desc';
+
+        $paginator = $query->orderBy($sortBy, $sortDir)
+            ->paginate($perPage, ['*'], 'page', $page);
+
+        return ApiResponseClass::sendSuccess([
+            'data'         => $paginator->items(),
+            'current_page' => $paginator->currentPage(),
+            'last_page'    => $paginator->lastPage(),
+            'per_page'     => $paginator->perPage(),
+            'total'        => $paginator->total(),
+        ]);
+    }
+
+    // ---------------------------------------------------------------
+    // GET – list own referral bonuses (agent / any authenticated user)
+    // ---------------------------------------------------------------
+
+    /**
+     * @OA\Get(
+     *     path="/api/v1/referral-bonus/my-list",
+     *     summary="List the current user's referral bonuses",
+     *     tags={"Referral Bonuses"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="page",     in="query", @OA\Schema(type="integer", default=1)),
+     *     @OA\Parameter(name="per_page", in="query", @OA\Schema(type="integer", default=15)),
+     *     @OA\Response(response=200, description="Success"),
+     *     @OA\Response(response=401, description="Unauthorized")
+     * )
+     */
+    public function myList(Request $request, UserService $userService): JsonResponse
+    {
+        $userId = $userService->extractIdFromRequest($request);
+
+        if (!$userId) {
+            return ApiResponseClass::sendError('Unauthorized', null, 401);
+        }
+
+        $perPage = max(1, min(100, (int) $request->get('per_page', 15)));
+        $page    = max(1, (int) $request->get('page', 1));
+
+        $paginator = ReferralBonus::where('user_id', $userId)
+            ->orderBy('created_at', 'desc')
             ->paginate($perPage, ['*'], 'page', $page);
 
         return ApiResponseClass::sendSuccess([
