@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ReferralBonus extends Model
 {
@@ -17,7 +16,6 @@ class ReferralBonus extends Model
     public const TYPE_RENTING = 3;
 
     protected $fillable = [
-        'user_id',
         'referral_code',
         'amount',
         'status',
@@ -34,9 +32,4 @@ class ReferralBonus extends Model
         'type'     => 'integer',
         'metadata' => 'array',
     ];
-
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
-    }
 }

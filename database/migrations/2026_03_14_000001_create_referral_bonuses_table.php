@@ -10,7 +10,6 @@ return new class extends Migration
     {
         Schema::create('referral_bonuses', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->uuid('user_id')->nullable()->index();
             $table->string('referral_code');
             $table->integer('amount')->default(100);
             $table->smallInteger('status')->default(1)->comment('1=waiting_approval, 2=pending, 3=completed, 4=rejected');
