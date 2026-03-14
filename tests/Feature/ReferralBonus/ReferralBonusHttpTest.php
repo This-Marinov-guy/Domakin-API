@@ -234,8 +234,9 @@ class ReferralBonusHttpTest extends TestCase
     public function test_my_list_returns_200_for_authenticated_user(): void
     {
         $user = $this->createUser();
-        $this->createBonus(['user_id' => $user->id, 'reference_id' => '9100']);
-        $this->createBonus(['user_id' => $user->id, 'reference_id' => '9101']);
+        // my-list filters by referral_code = user->referral_code (not user_id)
+        $this->createBonus(['referral_code' => $user->referral_code, 'reference_id' => '9100']);
+        $this->createBonus(['referral_code' => $user->referral_code, 'reference_id' => '9101']);
 
         $this->withToken($this->makeJwt($user->id))
             ->getJson('/api/v1/referral-bonus/my-list')
@@ -247,7 +248,7 @@ class ReferralBonusHttpTest extends TestCase
     public function test_my_list_returns_200_for_admin_user(): void
     {
         $user = $this->createUser();
-        $this->createBonus(['user_id' => $user->id, 'reference_id' => '9200']);
+        $this->createBonus(['referral_code' => $user->referral_code, 'reference_id' => '9200']);
 
         $this->withToken($this->makeJwt($user->id, admin: true))
             ->getJson('/api/v1/referral-bonus/my-list')

@@ -66,7 +66,6 @@ class ReferralBonusObserverTest extends TestCase
             'referral_code' => 'PROP-REF',
             'reference_id'  => (string) $property->id,
             'type'          => ReferralBonus::TYPE_LISTING,
-            'user_id'       => (string) $owner->id,
             'amount'        => 100,
             'status'        => ReferralBonus::STATUS_WAITING_APPROVAL,
         ]);
@@ -100,7 +99,6 @@ class ReferralBonusObserverTest extends TestCase
 
         $bonus->refresh();
         $this->assertSame('PROP-NEW', $bonus->referral_code);
-        $this->assertSame((string) $newOwner->id, (string) $bonus->user_id);
 
         // Change is recorded in metadata
         $this->assertSame('PROP-OLD', $bonus->metadata['changes'][0]['old_referral_code']);
@@ -149,7 +147,6 @@ class ReferralBonusObserverTest extends TestCase
             'referral_code' => 'VIEW-REF',
             'reference_id'  => (string) $viewing->id,
             'type'          => ReferralBonus::TYPE_VIEWING,
-            'user_id'       => (string) $owner->id,
         ]);
     }
 
@@ -197,7 +194,6 @@ class ReferralBonusObserverTest extends TestCase
             ->firstOrFail();
 
         $this->assertSame('VIEW-NEW', $bonus->referral_code);
-        $this->assertSame((string) $newOwner->id, (string) $bonus->user_id);
     }
 
     // ---------------------------------------------------------------
@@ -222,7 +218,6 @@ class ReferralBonusObserverTest extends TestCase
             'referral_code' => 'RENT-REF',
             'reference_id'  => (string) $renting->id,
             'type'          => ReferralBonus::TYPE_RENTING,
-            'user_id'       => (string) $owner->id,
         ]);
     }
 
@@ -266,6 +261,5 @@ class ReferralBonusObserverTest extends TestCase
             ->firstOrFail();
 
         $this->assertSame('RENT-NEW', $bonus->referral_code);
-        $this->assertSame((string) $newOwner->id, (string) $bonus->user_id);
     }
 }
