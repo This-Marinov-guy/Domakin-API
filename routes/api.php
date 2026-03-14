@@ -138,6 +138,15 @@ Route::prefix('v1')->group(function () {
 
         Route::patch('/notification-settings', [UserController::class, 'updateNotificationSettings'])
             ->middleware('auth.role');
+
+        Route::get('/list-agents', [UserController::class, 'listAgents'])
+            ->middleware('auth.role:admin');
+
+        Route::get('/list-all', [UserController::class, 'listAll'])
+            ->middleware('auth.role:admin');
+
+        Route::patch('/roles', [UserController::class, 'updateRoles'])
+            ->middleware('auth.role:admin');
     });
 });
 
