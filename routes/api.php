@@ -15,6 +15,7 @@ use App\Http\Controllers\Integration\WordPressController;
 use App\Http\Controllers\Webhook\StripeWebhookController;
 use App\Http\Controllers\Webhook\ViewingWebhookController;
 use App\Http\Controllers\ListingApplicationController;
+use App\Http\Controllers\ReferralBonusController;
 use App\Http\Controllers\ReminderController;
 use App\Http\Controllers\Test;
 use App\Http\Controllers\UserController;
@@ -110,6 +111,17 @@ Route::prefix('v1')->group(function () {
         Route::delete('/delete', [ListingApplicationController::class, 'destroy'])->middleware('auth.role');
     });
 
+    Route::get('/referral-bonus/my-list', [ReferralBonusController::class, 'myList'])
+        ->middleware('auth.role');
+
+    Route::prefix('referral-bonus')->middleware('auth.role:admin')->group(function () {
+        Route::get('/list',      [ReferralBonusController::class, 'list']);
+        Route::get('/{id}',      [ReferralBonusController::class, 'show'])->where('id', '[0-9]+');
+        Route::post('/create',   [ReferralBonusController::class, 'create']);
+        Route::patch('/edit',    [ReferralBonusController::class, 'edit']);
+        Route::delete('/delete', [ReferralBonusController::class, 'destroy']);
+    });
+
     Route::prefix('reminder')->group(function () {
         Route::post('/listing', [ReminderController::class, 'sendListingReminder']);
     });
@@ -138,6 +150,15 @@ Route::prefix('v1')->group(function () {
 
         Route::patch('/notification-settings', [UserController::class, 'updateNotificationSettings'])
             ->middleware('auth.role');
+
+        Route::get('/list-agents', [UserController::class, 'listAgents'])
+            ->middleware('auth.role:admin');
+
+        Route::get('/list-all', [UserController::class, 'listAll'])
+            ->middleware('auth.role:admin');
+
+        Route::patch('/roles', [UserController::class, 'updateRoles'])
+            ->middleware('auth.role:admin');
     });
 });
 

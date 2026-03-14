@@ -151,6 +151,10 @@ class ProfileController extends Controller
                 $user->profile_image = $profileImageUrl;
             }
 
+            if ($request->has('iban')) {
+                $user->iban = $request->input('iban') ?: null;
+            }
+
             $user->save();
 
             return ApiResponseClass::sendSuccess([

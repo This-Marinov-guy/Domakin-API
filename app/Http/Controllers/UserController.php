@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Classes\ApiResponseClass;
+use App\Enums\Roles;
 use App\Models\UserSettings;
 use App\Services\UserService;
 use Illuminate\Http\Request;
@@ -147,6 +148,90 @@ class UserController extends Controller
      *     @OA\Response(response=422, description="Validation error")
      * )
      */
+    /**
+     * @OA\Get(
+     *     path="/api/v1/user/list-agents",
+     *     summary="List users with agent role (admin only)",
+     *     tags={"User"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="search", in="query", required=false, @OA\Schema(type="string")),
+     *     @OA\Parameter(name="page", in="query", required=false, @OA\Schema(type="integer")),
+     *     @OA\Parameter(name="per_page", in="query", required=false, @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Paginated list of agents"),
+     *     @OA\Response(response=403, description="Forbidden")
+     * )
+     */
+    public function listAgents(Request $request, UserService $userService): JsonResponse
+    {
+        $result = $userService->listUsers($request, $request->input('search'), agentsOnly: true);
+
+        return ApiResponseClass::sendSuccess($result);
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/api/v1/user/list-all",
+     *     summary="List all users (admin only)",
+     *     tags={"User"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="search", in="query", required=false, @OA\Schema(type="string")),
+     *     @OA\Parameter(name="page", in="query", required=false, @OA\Schema(type="integer")),
+     *     @OA\Parameter(name="per_page", in="query", required=false, @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Paginated list of users"),
+     *     @OA\Response(response=403, description="Forbidden")
+     * )
+     */
+    public function listAll(Request $request, UserService $userService): JsonResponse
+    {
+        $result = $userService->listUsers($request, $request->input('search'), agentsOnly: false);
+
+        return ApiResponseClass::sendSuccess($result);
+    }
+
+    /**
+     * @OA\Patch(
+     *     path="/api/v1/user/roles",
+     *     summary="Bulk add or remove a role from users (admin only)",
+     *     tags={"User"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"user_ids","role","action"},
+     *             @OA\Property(property="user_ids", type="array", @OA\Items(type="string")),
+     *             @OA\Property(property="role", type="string", example="agent"),
+     *             @OA\Property(property="action", type="string", enum={"add","remove"})
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Roles updated"),
+     *     @OA\Response(response=403, description="Forbidden"),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
+     */
+    public function updateRoles(Request $request, UserService $userService): JsonResponse
+    {
+        $allowedRoles = collect(Roles::cases())->map(fn($r) => $r->value)->implode(',');
+
+        $validator = Validator::make($request->all(), [
+            'user_ids'   => 'required|array|min:1',
+            'user_ids.*' => 'required|string',
+            'role'       => 'required|string|in:' . $allowedRoles,
+            'action'     => 'required|string|in:add,remove',
+        ]);
+
+        if ($validator->fails()) {
+            return ApiResponseClass::sendError('Validation failed', 422, 422);
+        }
+
+        $userService->updateUserRoles(
+            $request->input('user_ids'),
+            $request->input('role'),
+            $request->input('action')
+        );
+
+        return ApiResponseClass::sendSuccess();
+    }
+
     public function updateNotificationSettings(Request $request, UserService $userService): JsonResponse
     {
         $userId = $userService->extractIdFromRequest($request);
