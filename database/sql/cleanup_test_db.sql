@@ -127,3 +127,11 @@ WHERE user_id NOT IN (
     ORDER BY created_at DESC
     LIMIT 5
 );
+
+-- referral_bonuses
+DELETE FROM referral_bonuses
+WHERE id NOT IN (
+    SELECT id FROM referral_bonuses
+    ORDER BY created_at DESC, id DESC
+    LIMIT 5
+);

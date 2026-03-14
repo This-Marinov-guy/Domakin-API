@@ -15,6 +15,7 @@ use App\Http\Controllers\Integration\WordPressController;
 use App\Http\Controllers\Webhook\StripeWebhookController;
 use App\Http\Controllers\Webhook\ViewingWebhookController;
 use App\Http\Controllers\ListingApplicationController;
+use App\Http\Controllers\ReferralBonusController;
 use App\Http\Controllers\ReminderController;
 use App\Http\Controllers\Test;
 use App\Http\Controllers\UserController;
@@ -108,6 +109,14 @@ Route::prefix('v1')->group(function () {
         // Mutate (auth required)
         Route::patch('/edit',    [ListingApplicationController::class, 'edit'])->middleware('auth.role');
         Route::delete('/delete', [ListingApplicationController::class, 'destroy'])->middleware('auth.role');
+    });
+
+    Route::prefix('referral-bonus')->middleware('auth.role:admin')->group(function () {
+        Route::get('/list',      [ReferralBonusController::class, 'list']);
+        Route::get('/{id}',      [ReferralBonusController::class, 'show'])->where('id', '[0-9]+');
+        Route::post('/create',   [ReferralBonusController::class, 'create']);
+        Route::patch('/edit',    [ReferralBonusController::class, 'edit']);
+        Route::delete('/delete', [ReferralBonusController::class, 'destroy']);
     });
 
     Route::prefix('reminder')->group(function () {

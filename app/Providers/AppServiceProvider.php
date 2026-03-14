@@ -3,6 +3,12 @@
 namespace App\Providers;
 
 use App\Listeners\TrackJobStatus;
+use App\Models\Property;
+use App\Models\Renting;
+use App\Models\Viewing;
+use App\Observers\PropertyObserver;
+use App\Observers\RentingObserver;
+use App\Observers\ViewingObserver;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\RateLimiter;
@@ -43,6 +49,11 @@ class AppServiceProvider extends ServiceProvider
             return \Illuminate\Cache\RateLimiting\Limit::perMinute(config('rate_limits.login_per_minute'))
                 ->by($email.$request->ip());
         });
+
+        // Register model observers for referral bonus tracking
+        Property::observe(PropertyObserver::class);
+        Viewing::observe(ViewingObserver::class);
+        Renting::observe(RentingObserver::class);
 
         // Register job tracking event listeners
         Event::listen(JobProcessing::class, [TrackJobStatus::class, 'handleJobProcessing']);

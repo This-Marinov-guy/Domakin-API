@@ -33,6 +33,7 @@ class User extends Authenticatable
         'phone',
         'profile_image',
         'referral_code',
+        'iban',
     ];
 
     /**

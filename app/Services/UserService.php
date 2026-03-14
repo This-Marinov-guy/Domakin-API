@@ -86,6 +86,7 @@ class UserService
                 'referral_code' => $u->referral_code,
                 'roles'         => $u->roles,
                 'profile_image' => $u->profile_image,
+                'iban'          => $u->iban,
             ], $paginator->items()),
             'pagination' => [
                 'current_page' => $paginator->currentPage(),
