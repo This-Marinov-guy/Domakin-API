@@ -72,11 +72,11 @@ class RegisteredUserController extends Controller
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             required={"email", "password", "firstName", "lastName"},
+     *             required={"email", "password", "name", "surname"},
      *             @OA\Property(property="email", type="string", format="email", example="user@example.com"),
      *             @OA\Property(property="password", type="string", example="password123"),
-     *             @OA\Property(property="firstName", type="string", example="John"),
-     *             @OA\Property(property="lastName", type="string", example="Doe"),
+     *             @OA\Property(property="name", type="string", example="John"),
+     *             @OA\Property(property="surname", type="string", example="Doe"),
      *             @OA\Property(property="phone", type="string", example="+31 6 12345678"),
      *             @OA\Property(property="isSSO", type="boolean", example=false)
      *         )
@@ -116,6 +116,7 @@ class RegisteredUserController extends Controller
     public function store(Request $request, GoogleSheetsService $sheetsService): JsonResponse
     {
         $isSSO = $request->boolean(key: 'isSSO') ?? false;
+        $email = $request->get('email');
 
         if (!$isSSO) {
             $validator = Validator::make($request->all(), User::rules(), User::messages());
@@ -125,10 +126,15 @@ class RegisteredUserController extends Controller
             }
         }
 
+        // SSO returning user — already in users table, nothing to create
+        if ($isSSO && User::where('email', $email)->exists()) {
+            return ApiResponseClass::sendSuccess(['user_created' => false]);
+        }
+
         // Trim and split CamelCase (e.g. EluminaVision → Elumina Vision) for name parts
-        $name = static::normalizeNamePart((string) ($request->get('firstName') ?? ''));
-        $surname = static::normalizeNamePart((string) ($request->get('lastName') ?? ''));
-        
+        $name = static::normalizeNamePart((string) ($request->get('name') ?? ''));
+        $surname = static::normalizeNamePart((string) ($request->get('surname') ?? ''));
+
         $profileImage = trim((string) ($request->get('profile_image') ?? '')) ?: '/assets/img/dashboard/avatar_0' . mt_rand(1, 5) . '.jpg';
 
         // TODO: move to background task
@@ -138,22 +144,26 @@ class RegisteredUserController extends Controller
             $referral_code = Str::slug($name) . '-' . Str::random(6);
         } while (User::where('referral_code', $referral_code)->exists());
 
-        // Get user ID from Supabase auth.users table by email, or use the one from request if not found
-        $email = $request->get('email');
+        // For SSO: resolve the Supabase auth user ID — required to link rows
         $userId = null;
 
-        try {
-            $existingUser = DB::connection('pgsql')
-                ->table('auth.users')
-                ->where('email', $email)
-                ->first();
+        if ($isSSO) {
+            try {
+                $authUser = DB::connection('pgsql')
+                    ->table('auth.users')
+                    ->where('email', $email)
+                    ->first();
 
-            if ($existingUser && isset($existingUser->id)) {
-                $userId = $existingUser->id;
+                if ($authUser && isset($authUser->id)) {
+                    $userId = $authUser->id;
+                } else {
+                    Log::warning('SSO register: no auth.users row found for ' . $email);
+                    return ApiResponseClass::sendError();
+                }
+            } catch (\Exception $e) {
+                Log::warning('Failed to query auth.users: ' . $e->getMessage());
+                return ApiResponseClass::sendError();
             }
-        } catch (\Exception $e) {
-            // If auth.users table doesn't exist or connection fails, log and continue with request ID
-            Log::warning('Failed to query auth.users table: ' . $e->getMessage());
         }
 
         try {
@@ -165,25 +175,13 @@ class RegisteredUserController extends Controller
                 'profile_image' => $profileImage,
                 'phone' => $request->get('phone'),
                 'password' => $request->get('password'),
-                'referral_code' => $referral_code
+                'referral_code' => $referral_code,
             ]);
 
-            $sheetsService->exportModelToSpreadsheet(
-                User::class,
-                'Users'
-            );
+            $sheetsService->exportModelToSpreadsheet(User::class, 'Users');
         } catch (\Exception $error) {
             Log::error($error->getMessage());
-
-            if ($isSSO) {
-                $sheetsService->exportModelToSpreadsheet(
-                    User::class,
-                    'Users'
-                );
-                return ApiResponseClass::sendSuccess(['user_created' => false]);
-            } else {
-                return ApiResponseClass::sendError();
-            }
+            return ApiResponseClass::sendError();
         }
 
         return ApiResponseClass::sendSuccess(['user_created' => true]);

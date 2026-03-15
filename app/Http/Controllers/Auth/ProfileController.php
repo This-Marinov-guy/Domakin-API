@@ -31,8 +31,8 @@ class ProfileController extends Controller
      *         @OA\MediaType(
      *             mediaType="multipart/form-data",
      *             @OA\Schema(
-     *                 @OA\Property(property="firstName", type="string", example="John"),
-     *                 @OA\Property(property="lastName", type="string", example="Doe"),
+     *                 @OA\Property(property="name", type="string", example="John"),
+     *                 @OA\Property(property="surname", type="string", example="Doe"),
      *                 @OA\Property(property="email", type="string", format="email", example="user@example.com"),
      *                 @OA\Property(property="phone", type="string", example="+31 6 12345678"),
      *                 @OA\Property(property="password", type="string", description="New password (optional)"),
@@ -97,13 +97,13 @@ class ProfileController extends Controller
         }
 
         try {
-            // Combine firstName and lastName into name
-            $firstName = $request->get('firstName');
-            $lastName = $request->get('lastName');
-            $name = null;
-            
-            if ($firstName || $lastName) {
-                $name = trim(($firstName ?? '') . ' ' . ($lastName ?? ''));
+            // Combine name and surname into name
+            $name = $request->get('name');
+            $surname = $request->get('surname');
+            $fullName = null;
+
+            if ($name || $surname) {
+                $fullName = trim(($name ?? '') . ' ' . ($surname ?? ''));
             }
 
             $supabaseUpdateData = [];
@@ -116,8 +116,8 @@ class ProfileController extends Controller
                 $supabaseUpdateData['phone'] = $request->phone;
             }
 
-            if ($name && $name !== $user->name) {
-                $supabaseUpdateData['user_metadata']['display_name'] = $name;
+            if ($fullName) {
+                $supabaseUpdateData['user_metadata']['display_name'] = $fullName;
             }
 
             if ($request->password) {
@@ -134,16 +134,15 @@ class ProfileController extends Controller
                     'Content-Type' => 'application/json',
                     'apikey' => config('supabase.service_role_key'),
                 ])->put(rtrim(config('supabase.url'), '/') . '/auth/v1/admin/users/' . $user->id, $supabaseUpdateData);
-    
-    
+
+
                 if (!$response->successful()) {
                     throw new \Exception('Supabase update failed: ' . $response->body());
                 }
 
                 $updateData = ['email' => $request->email, 'phone' => $request->phone];
-                if ($name) {
-                    $updateData['name'] = $name;
-                }
+                $updateData['name'] = $name;
+                $updateData['surname'] = $surname;
                 $user->fill($updateData);
             }
 
@@ -156,9 +155,10 @@ class ProfileController extends Controller
             }
 
             $user->save();
+            $user->refresh();
 
             return ApiResponseClass::sendSuccess([
-                'user' => $user,
+                'user' => $user->toArray(),
             ]);
         } catch (\Exception $e) {
             return ApiResponseClass::sendError('Failed to update profile: ' . $e->getMessage(), 500);

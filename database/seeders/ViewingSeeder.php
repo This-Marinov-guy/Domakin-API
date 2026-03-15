@@ -18,8 +18,8 @@ class ViewingSeeder extends Seeder
         $faker = Faker::create();
         
         Viewing::create([
-            'name' => $faker->firstName,
-            'surname' => $faker->lastName,
+            'name' => $faker->name,
+            'surname' => $faker->surname,
             'phone' => $faker->phoneNumber,
             'email' => $faker->unique()->safeEmail,
             'city' => $faker->city,

@@ -17,8 +17,8 @@ class RegisteredUserControllerDirectTest extends TestCase
     private function validRegistrationData(array $overrides = []): array
     {
         return array_merge([
-            'firstName'             => 'John',
-            'lastName'              => 'Doe',
+            'name'             => 'John',
+            'surname'              => 'Doe',
             'email'                 => 'user-' . Str::random(8) . '@example.com',
             'phone'                 => '+316' . mt_rand(10000000, 99999999),
             'password'              => 'P@ssword1!',
@@ -134,8 +134,8 @@ class RegisteredUserControllerDirectTest extends TestCase
             [
                 'isSSO'     => true,
                 'email'     => 'sso-user-' . Str::random(6) . '@example.com',
-                'firstName' => 'John',
-                'lastName'  => 'Doe',
+                'name' => 'John',
+                'surname'  => 'Doe',
             ]
         );
         $controller = app(RegisteredUserController::class);
@@ -171,7 +171,7 @@ class RegisteredUserControllerDirectTest extends TestCase
     }
 
     /**
-     * Store normalizes firstName/lastName: trim and split CamelCase (e.g. EluminaVision → Elumina Vision).
+     * Store normalizes name/surname: trim and split CamelCase (e.g. EluminaVision → Elumina Vision).
      */
     public function test_store_normalizes_name_parts_trim_and_camel_case(): void
     {
