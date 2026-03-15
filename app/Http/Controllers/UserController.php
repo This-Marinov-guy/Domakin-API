@@ -232,6 +232,24 @@ class UserController extends Controller
         return ApiResponseClass::sendSuccess();
     }
 
+    public function updateIban(Request $request, string $id, UserService $userService): JsonResponse
+    {
+        $request->validate([
+            'iban' => 'nullable|string|max:34',
+        ]);
+
+        $user = \App\Models\User::find($id);
+
+        if (!$user) {
+            return ApiResponseClass::sendError('User not found', 404, 404);
+        }
+
+        $user->iban = $request->input('iban') ?: null;
+        $user->save();
+
+        return ApiResponseClass::sendSuccess(['iban' => $user->iban]);
+    }
+
     public function updateNotificationSettings(Request $request, UserService $userService): JsonResponse
     {
         $userId = $userService->extractIdFromRequest($request);

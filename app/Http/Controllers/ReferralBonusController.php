@@ -40,23 +40,28 @@ class ReferralBonusController extends Controller
         $perPage = max(1, min(100, (int) $request->get('per_page', 15)));
         $page    = max(1, (int) $request->get('page', 1));
 
-        $query = ReferralBonus::query();
+        $query = ReferralBonus::query()
+            ->leftJoin('users', 'users.referral_code', '=', 'referral_bonuses.referral_code')
+            ->select('referral_bonuses.*', 'users.id as user_id', 'users.name as user_name');
 
         if ($request->filled('status')) {
-            $query->where('status', (int) $request->get('status'));
+            $query->where('referral_bonuses.status', (int) $request->get('status'));
         }
         if ($request->filled('type')) {
-            $query->where('type', (int) $request->get('type'));
+            $query->where('referral_bonuses.type', (int) $request->get('type'));
         }
         if ($request->filled('referral_code')) {
-            $query->where('referral_code', 'ILIKE', '%' . trim($request->get('referral_code')) . '%');
+            $query->where('referral_bonuses.referral_code', 'ILIKE', '%' . trim($request->get('referral_code')) . '%');
+        }
+        if ($request->filled('user_id')) {
+            $query->where('users.id', $request->get('user_id'));
         }
 
         $allowed = ['id', 'created_at', 'amount', 'status', 'type'];
         $sortBy  = in_array($request->get('sort_by'), $allowed, true) ? $request->get('sort_by') : 'created_at';
         $sortDir = strtolower($request->get('sort_dir', 'desc')) === 'asc' ? 'asc' : 'desc';
 
-        $paginator = $query->orderBy($sortBy, $sortDir)
+        $paginator = $query->orderBy('referral_bonuses.' . $sortBy, $sortDir)
             ->paginate($perPage, ['*'], 'page', $page);
 
         return ApiResponseClass::sendSuccess([

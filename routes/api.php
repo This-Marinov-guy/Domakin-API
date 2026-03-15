@@ -159,6 +159,9 @@ Route::prefix('v1')->group(function () {
 
         Route::patch('/roles', [UserController::class, 'updateRoles'])
             ->middleware('auth.role:admin');
+
+        Route::patch('/{id}/iban', [UserController::class, 'updateIban'])
+            ->middleware('auth.role:admin');
     });
 });
 
