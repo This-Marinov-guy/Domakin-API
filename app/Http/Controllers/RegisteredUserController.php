@@ -10,6 +10,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Classes\ApiResponseClass;
 use App\Services\GoogleServices\GoogleSheetsService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
@@ -144,24 +145,37 @@ class RegisteredUserController extends Controller
             $referral_code = Str::slug($name) . '-' . Str::random(6);
         } while (User::where('referral_code', $referral_code)->exists());
 
-        // Resolve id from auth.users by email so public.users and auth.users id stay in sync
+        // Resolve the auth user ID from auth.users so public.users and auth.users stay in sync
         $userId = null;
         try {
-            $authUser = DB::connection('pgsql')
-                ->table('auth.users')
-                ->where('email', $email)
-                ->first();
-
+            $authUser = DB::table('auth.users')->where('email', $email)->first();
             if ($authUser && isset($authUser->id)) {
                 $userId = $authUser->id;
             }
         } catch (\Exception $e) {
-            Log::warning('Register: could not read auth.users: ' . $e->getMessage());
+            Log::warning('Register: could not read auth.users for ' . $email . ': ' . $e->getMessage());
         }
 
+        // If not found in auth.users, create the user via the Supabase Admin API
         if ($userId === null) {
-            Log::warning('Register: no auth.users row found for ' . $email . ' — user must be created in Supabase Auth first.');
-            return ApiResponseClass::sendError('User not found in authentication. Please sign up via the app first.', 400);
+            $payload = [
+                'email'         => $email,
+                'email_confirm' => true,
+            ];
+
+            if (!$isSSO && $request->get('password')) {
+                $payload['password'] = $request->get('password');
+            }
+
+            $response = Http::withToken(config('supabase.service_role_key'))
+                ->post(config('supabase.url') . '/auth/v1/admin/users', $payload);
+
+            if ($response->successful() && isset($response->json()['id'])) {
+                $userId = $response->json()['id'];
+            } else {
+                Log::error('Register: failed to create auth user for ' . $email . ': ' . $response->body());
+                return ApiResponseClass::sendError();
+            }
         }
 
         try {
