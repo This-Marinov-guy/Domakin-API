@@ -28,11 +28,11 @@
                         "multipart/form-data": {
                             "schema": {
                                 "properties": {
-                                    "firstName": {
+                                    "name": {
                                         "type": "string",
                                         "example": "John"
                                     },
-                                    "lastName": {
+                                    "surname": {
                                         "type": "string",
                                         "example": "Doe"
                                     },
@@ -1773,8 +1773,8 @@
                                 "required": [
                                     "email",
                                     "password",
-                                    "firstName",
-                                    "lastName"
+                                    "name",
+                                    "surname"
                                 ],
                                 "properties": {
                                     "email": {
@@ -1786,11 +1786,11 @@
                                         "type": "string",
                                         "example": "password123"
                                     },
-                                    "firstName": {
+                                    "name": {
                                         "type": "string",
                                         "example": "John"
                                     },
-                                    "lastName": {
+                                    "surname": {
                                         "type": "string",
                                         "example": "Doe"
                                     },
