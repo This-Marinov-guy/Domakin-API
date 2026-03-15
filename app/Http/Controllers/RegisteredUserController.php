@@ -165,7 +165,8 @@ class RegisteredUserController extends Controller
         }
 
         try {
-            $attributes = [
+            User::create([
+                'id' => $userId,
                 'name' => $name,
                 'surname' => $surname,
                 'email' => $email,
@@ -173,11 +174,7 @@ class RegisteredUserController extends Controller
                 'phone' => $request->get('phone'),
                 'password' => $request->get('password'),
                 'referral_code' => $referral_code,
-            ];
-            if ($userId !== null) {
-                $attributes['id'] = $userId;
-            }
-            User::create($attributes);
+            ]);
 
             $sheetsService->exportModelToSpreadsheet(User::class, 'Users');
         } catch (\Exception $error) {
