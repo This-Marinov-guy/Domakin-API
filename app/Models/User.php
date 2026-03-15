@@ -13,13 +13,13 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable;
 
-    public function __construct(array $attributes = [])
-    {
-        parent::__construct($attributes);
+    // public function __construct(array $attributes = [])
+    // {
+    //     parent::__construct($attributes);
 
-        // Set the random profile image
-        $this->attributes['profile_image'] = '/assets/img/dashboard/avatar_0' . mt_rand(1, 5) . '.jpg';
-    }
+    //     // Set the random profile image
+    //     $this->attributes['profile_image'] = '/assets/img/dashboard/avatar_0' . mt_rand(1, 5) . '.jpg';
+    // }
 
     /**
      * The attributes that are mass assignable.

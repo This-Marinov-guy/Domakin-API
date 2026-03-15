@@ -126,7 +126,8 @@ class RegisteredUserController extends Controller
         }
 
         // Combine firstName and lastName into name
-        $name = trim(($request->get('firstName') ?? '') . ' ' . ($request->get('lastName') ?? ''));
+        $name = trim(($request->get('name') ?? '') . ' ' . ($request->get('surname') ?? ''));
+        $profileImage = $request->get('profile_image') ?? '/assets/img/dashboard/avatar_0' . mt_rand(1, 5) . '.jpg';
 
         // TODO: move to background task
         $referral_code = '';
@@ -138,13 +139,13 @@ class RegisteredUserController extends Controller
         // Get user ID from Supabase auth.users table by email, or use the one from request if not found
         $email = $request->get('email');
         $userId = null;
-        
+
         try {
             $existingUser = DB::connection('pgsql')
                 ->table('auth.users')
                 ->where('email', $email)
                 ->first();
-            
+
             if ($existingUser && isset($existingUser->id)) {
                 $userId = $existingUser->id;
             }
@@ -158,6 +159,7 @@ class RegisteredUserController extends Controller
                 'id' => $userId,
                 'name' => $name,
                 'email' => $email,
+                'profile_image' => $profileImage,
                 'phone' => $request->get('phone'),
                 'password' => $request->get('password'),
                 'referral_code' => $referral_code
