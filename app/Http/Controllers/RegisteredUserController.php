@@ -9,8 +9,8 @@ use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Classes\ApiResponseClass;
 use App\Services\GoogleServices\GoogleSheetsService;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 /**
@@ -144,26 +144,24 @@ class RegisteredUserController extends Controller
             $referral_code = Str::slug($name) . '-' . Str::random(6);
         } while (User::where('referral_code', $referral_code)->exists());
 
-        // For SSO: resolve the Supabase auth user ID — required to link rows
+        // Resolve id from auth.users by email so public.users and auth.users id stay in sync
         $userId = null;
+        try {
+            $authUser = DB::connection('pgsql')
+                ->table('auth.users')
+                ->where('email', $email)
+                ->first();
 
-        if ($isSSO) {
-            try {
-                $authUser = DB::connection('pgsql')
-                    ->table('auth.users')
-                    ->where('email', $email)
-                    ->first();
-
-                if ($authUser && isset($authUser->id)) {
-                    $userId = $authUser->id;
-                } else {
-                    Log::warning('SSO register: no auth.users row found for ' . $email);
-                    return ApiResponseClass::sendError();
-                }
-            } catch (\Exception $e) {
-                Log::warning('Failed to query auth.users: ' . $e->getMessage());
-                return ApiResponseClass::sendError();
+            if ($authUser && isset($authUser->id)) {
+                $userId = $authUser->id;
             }
+        } catch (\Exception $e) {
+            Log::warning('Register: could not read auth.users: ' . $e->getMessage());
+        }
+
+        if ($userId === null) {
+            Log::warning('Register: no auth.users row found for ' . $email . ' — user must be created in Supabase Auth first.');
+            return ApiResponseClass::sendError('User not found in authentication. Please sign up via the app first.', 400);
         }
 
         try {
