@@ -167,8 +167,11 @@ class RegisteredUserController extends Controller
                 $payload['password'] = $request->get('password');
             }
 
-            $response = Http::withToken(config('supabase.service_role_key'))
-                ->post(config('supabase.url') . '/auth/v1/admin/users', $payload);
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . config('supabase.service_role_key'),
+                'Content-Type' => 'application/json',
+                'apikey' => config('supabase.service_role_key'),
+            ])->post(rtrim(config('supabase.url'), '/') . '/auth/v1/admin/users', $payload);
 
             if ($response->successful() && isset($response->json()['id'])) {
                 $userId = $response->json()['id'];
