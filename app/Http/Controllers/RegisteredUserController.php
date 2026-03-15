@@ -125,9 +125,11 @@ class RegisteredUserController extends Controller
             }
         }
 
-        // Combine firstName and lastName into name
-        $name = trim(($request->get('name') ?? '') . ' ' . ($request->get('surname') ?? ''));
-        $profileImage = $request->get('profile_image') ?? '/assets/img/dashboard/avatar_0' . mt_rand(1, 5) . '.jpg';
+        // Trim and split CamelCase (e.g. EluminaVision → Elumina Vision) for name parts
+        $name = static::normalizeNamePart((string) ($request->get('firstName') ?? ''));
+        $surname = static::normalizeNamePart((string) ($request->get('lastName') ?? ''));
+        
+        $profileImage = trim((string) ($request->get('profile_image') ?? '')) ?: '/assets/img/dashboard/avatar_0' . mt_rand(1, 5) . '.jpg';
 
         // TODO: move to background task
         $referral_code = '';
@@ -158,6 +160,7 @@ class RegisteredUserController extends Controller
             User::create([
                 'id' => $userId,
                 'name' => $name,
+                'surname' => $surname,
                 'email' => $email,
                 'profile_image' => $profileImage,
                 'phone' => $request->get('phone'),
@@ -184,5 +187,17 @@ class RegisteredUserController extends Controller
         }
 
         return ApiResponseClass::sendSuccess(['user_created' => true]);
+    }
+
+    /**
+     * Trim and split CamelCase: "EluminaVision" → "Elumina Vision".
+     */
+    private static function normalizeNamePart(string $value): string
+    {
+        $value = trim($value);
+        if ($value === '') {
+            return '';
+        }
+        return trim(preg_replace('/([a-z])([A-Z])/', '$1 $2', $value));
     }
 }

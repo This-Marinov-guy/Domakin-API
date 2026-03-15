@@ -169,4 +169,20 @@ class RegisteredUserControllerDirectTest extends TestCase
         $payload = json_decode($response->getContent(), true);
         $this->assertArrayHasKey('status', $payload);
     }
+
+    /**
+     * Store normalizes firstName/lastName: trim and split CamelCase (e.g. EluminaVision → Elumina Vision).
+     */
+    public function test_store_normalizes_name_parts_trim_and_camel_case(): void
+    {
+        $normalize = new \ReflectionMethod(RegisteredUserController::class, 'normalizeNamePart');
+        $normalize->setAccessible(true);
+
+        $this->assertSame('Elumina Vision', $normalize->invoke(null, 'EluminaVision'));
+        $this->assertSame('Elumina Vision', $normalize->invoke(null, '  EluminaVision  '));
+        $this->assertSame('Doe', $normalize->invoke(null, '  Doe  '));
+        $this->assertSame('John', $normalize->invoke(null, 'John'));
+        $this->assertSame('', $normalize->invoke(null, '   '));
+        $this->assertSame('', $normalize->invoke(null, ''));
+    }
 }
