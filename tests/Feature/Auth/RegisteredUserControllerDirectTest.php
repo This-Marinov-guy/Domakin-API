@@ -102,10 +102,6 @@ class RegisteredUserControllerDirectTest extends TestCase
 
     public function test_store_returns_422_when_validation_fails_for_non_sso(): void
     {
-        $this->mock(GoogleSheetsService::class, fn ($m) =>
-            $m->shouldReceive('exportModelToSpreadsheet')->never()
-        );
-
         $request = Request::create(
             '/api/v1/authentication/register',
             'POST',
@@ -149,12 +145,6 @@ class RegisteredUserControllerDirectTest extends TestCase
 
     public function test_store_returns_error_for_non_sso_when_user_creation_fails(): void
     {
-        // When auth.users is not available in the test environment, $userId is null,
-        // causing User::create to fail — the controller returns a 400 error for non-SSO.
-        $this->mock(GoogleSheetsService::class, fn ($m) =>
-            $m->shouldReceive('exportModelToSpreadsheet')->never()
-        );
-
         $request = Request::create(
             '/api/v1/authentication/register',
             'POST',
