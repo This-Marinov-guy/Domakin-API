@@ -8,6 +8,23 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property int         $id
+ * @property int|null    $property_id
+ * @property string|null $property
+ * @property string      $name
+ * @property string      $surname
+ * @property string      $phone
+ * @property string      $email
+ * @property string|null $letter
+ * @property string|null $note
+ * @property string|null $referral_code
+ * @property string      $interface
+ * @property string|null $status
+ * @property string|null $internal_note
+ * @property \Carbon\Carbon|null $internal_updated_at
+ * @property string|null $internal_updated_by
+ */
 class Renting extends Model
 {
     use HasFactory, HasDomainBasedTermsValidation;

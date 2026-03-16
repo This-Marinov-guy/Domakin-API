@@ -56,14 +56,15 @@ class ReferralBonusServiceTest extends TestCase
     {
         $owner = $this->createUser(['referral_code' => 'MYOWNCODE']);
 
-        // Simulate the owner making the request. Current implementation creates the bonus regardless.
         $this->mock(UserService::class, fn ($m) =>
             $m->shouldReceive('extractIdFromRequest')->andReturn((string) $owner->id)
         );
 
+        $countBefore = ReferralBonus::count();
         $this->service()->createBonus('MYOWNCODE', '999', ReferralBonus::TYPE_LISTING);
 
-        $this->assertDatabaseHas('referral_bonuses', [
+        $this->assertSame($countBefore, ReferralBonus::count());
+        $this->assertDatabaseMissing('referral_bonuses', [
             'referral_code' => 'MYOWNCODE',
             'reference_id'  => '999',
         ]);

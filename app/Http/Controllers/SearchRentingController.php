@@ -6,6 +6,8 @@ use App\Classes\ApiResponseClass;
 use App\Files\CloudinaryService;
 use App\Http\Controllers\Controller;
 use App\Mail\Notification;
+use App\Models\Property;
+use App\Models\Renting;
 use App\Models\SearchRenting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -123,6 +125,68 @@ class SearchRentingController extends Controller
             );
         } catch (Exception $error) {
             Log::error($error->getMessage());
+        }
+
+        return ApiResponseClass::sendSuccess();
+    }
+
+    public function listByCity(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->query(), [
+            'city' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return ApiResponseClass::sendInvalidFields($validator->errors()->toArray());
+        }
+
+        $city = $request->get('city');
+
+        $searchers = SearchRenting::query()
+            ->whereRaw('LOWER(city) = ?', [strtolower($city)])
+            ->orderByDesc('created_at')
+            ->get();
+
+        return ApiResponseClass::sendSuccess($searchers);
+    }
+
+    public function promote(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'search_renting_id' => 'required|integer|exists:search_rentings,id',
+            'property_id'       => 'required|integer|exists:properties,id',
+        ]);
+
+        if ($validator->fails()) {
+            return ApiResponseClass::sendInvalidFields($validator->errors()->toArray());
+        }
+
+        $searchRenting = SearchRenting::findOrFail($request->get('search_renting_id'));
+        $propertyId    = (int) $request->get('property_id');
+
+        $alreadyExists = Renting::where('property_id', $propertyId)
+            ->where('email', $searchRenting->email)
+            ->exists();
+
+        if ($alreadyExists) {
+            return ApiResponseClass::sendError('This searcher is already an applicant for this property.', 422);
+        }
+
+        try {
+            Renting::create([
+                'property_id'  => $propertyId,
+                'property'     => (string) ($propertyId + \App\Constants\Properties::FRONTEND_PROPERTY_ID_INDEXING),
+                'name'         => $searchRenting->name,
+                'surname'      => $searchRenting->surname,
+                'phone'        => $searchRenting->phone,
+                'email'        => $searchRenting->email,
+                'note'         => $searchRenting->note,
+                'referral_code' => $searchRenting->referral_code,
+                'interface'    => $searchRenting->interface ?? 'web',
+                'letter'       => $searchRenting->letter,
+            ]);
+        } catch (Exception $error) {
+            return ApiResponseClass::sendError($error->getMessage());
         }
 
         return ApiResponseClass::sendSuccess();

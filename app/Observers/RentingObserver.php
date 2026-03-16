@@ -14,24 +14,25 @@ class RentingObserver
 
     public function created(Renting $renting): void
     {
-        if ($renting->referral_code) {
-            $this->referralBonusService->createBonus(
-                $renting->referral_code,
-                (string) $renting->id,
-                ReferralBonus::TYPE_RENTING
-            );
-        }
+        // if ($renting->referral_code) {
+        //     $this->referralBonusService->createBonus(
+        //         $renting->referral_code,
+        //         (string) $renting->id,
+        //         ReferralBonus::TYPE_RENTING,
+        //         25
+        //     );
+        // }
     }
 
     public function updated(Renting $renting): void
     {
-        if ($renting->wasChanged('referral_code')) {
-            $this->referralBonusService->updateBonus(
-                $renting->getOriginal('referral_code'),
-                $renting->referral_code,
-                (string) $renting->id,
-                ReferralBonus::TYPE_RENTING
-            );
-        }
+        // if ($renting->wasChanged('referral_code')) {
+        //     $this->referralBonusService->updateBonus(
+        //         $renting->getOriginal('referral_code'),
+        //         $renting->referral_code,
+        //         (string) $renting->id,
+        //         ReferralBonus::TYPE_RENTING
+        //     );
+        // }
     }
 }

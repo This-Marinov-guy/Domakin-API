@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Files\CloudinaryService;
 use App\Models\ListingApplication;
+use App\Models\ReferralBonus;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 
@@ -13,7 +14,8 @@ class ListingApplicationService
 
     public function __construct(
         private UserService $userService,
-        private CloudinaryService $cloudinary
+        private CloudinaryService $cloudinary,
+        private ReferralBonusService $referralBonusService
     ) {
     }
 
@@ -144,6 +146,31 @@ class ListingApplicationService
         $application = ListingApplication::create($data);
         $application->refresh(); // load DB-generated reference_id (and other defaults)
 
+        $this->maybeCreateReferralBonus($application);
+
         return $application;
+    }
+
+    private function maybeCreateReferralBonus(ListingApplication $application): void
+    {
+        $referralCode = $application->referral_code;
+        if (!$referralCode) {
+            return;
+        }
+
+        $alreadyExists = ReferralBonus::where('reference_id', $application->reference_id)
+            ->where('type', ReferralBonus::TYPE_APPLICATION)
+            ->exists();
+
+        if ($alreadyExists) {
+            return;
+        }
+
+        $this->referralBonusService->createBonus(
+            $referralCode,
+            (string) $application->reference_id,
+            ReferralBonus::TYPE_APPLICATION,
+            25
+        );
     }
 }

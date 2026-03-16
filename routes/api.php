@@ -59,6 +59,8 @@ Route::prefix('v1')->group(function () {
 
     Route::prefix('renting')->group(function () {
         Route::post('/searching/create', [SearchRentingController::class, 'create']);
+        Route::get('/searching/list-by-city', [SearchRentingController::class, 'listByCity'])->middleware('auth.role:admin');
+        Route::post('/searching/promote', [SearchRentingController::class, 'promote'])->middleware('auth.role:admin');
         Route::post('/create', [RentingController::class, 'create'])->middleware('domain.whitelist');
         Route::get('/list', [RentingController::class, 'list'])->middleware('auth.role:admin');
         Route::get('/list-by-property/{id}', [RentingController::class, 'show'])->middleware('auth.role:admin');

@@ -15,10 +15,14 @@ class PropertyObserver
     public function created(Property $property): void
     {
         if ($property->referral_code) {
+            $rent   = (int) ($property->property_data['rent'] ?? 0);
+            $amount = 75 + (int) round($rent * 0.10);
+
             $this->referralBonusService->createBonus(
                 $property->referral_code,
                 (string) $property->id,
-                ReferralBonus::TYPE_LISTING
+                ReferralBonus::TYPE_LISTING,
+                $amount
             );
         }
     }

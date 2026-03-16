@@ -11,9 +11,10 @@ class ReferralBonus extends Model
     public const STATUS_COMPLETED        = 3;
     public const STATUS_REJECTED         = 4;
 
-    public const TYPE_LISTING = 1;
-    public const TYPE_VIEWING = 2;
-    public const TYPE_RENTING = 3;
+    public const TYPE_LISTING     = 1;
+    public const TYPE_VIEWING     = 2;
+    public const TYPE_RENTING     = 3;
+    public const TYPE_APPLICATION = 4;
 
     protected $fillable = [
         'referral_code',

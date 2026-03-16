@@ -3,19 +3,57 @@
 namespace App\Services;
 
 use App\Models\ReferralBonus;
+use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class ReferralBonusService
 {
+    public function __construct(
+        private UserService $userService,
+        private Request $request
+    ) {}
+
+    /**
+     * Returns true if the requesting user is the owner of the given referral code.
+     * Used to prevent self-referral bonuses.
+     */
+    private function isSelfReferral(string $referralCode): bool
+    {
+        $requestUserId = $this->userService->extractIdFromRequest($this->request);
+
+        if (!$requestUserId) {
+            return false;
+        }
+
+        $owner = User::where('referral_code', $referralCode)->first();
+
+        if (!$owner) {
+            return false;
+        }
+
+        return (string) $requestUserId === (string) $owner->id;
+    }
+
     /**
      * Create a referral bonus for a newly created object that carries a referral code.
+     * Skips creation if the requesting user is the referral code owner (self-referral).
      */
-    public function createBonus(string $referralCode, string $referenceId, int $type): void
+    public function createBonus(string $referralCode, string $referenceId, int $type, int $amount = 100): void
     {
+        if ($this->isSelfReferral($referralCode)) {
+            Log::info('ReferralBonusService::createBonus skipped (self-referral)', [
+                'referral_code' => $referralCode,
+                'reference_id'  => $referenceId,
+                'type'          => $type,
+            ]);
+            return;
+        }
+
         try {
             ReferralBonus::create([
                 'referral_code' => $referralCode,
-                'amount'        => 100,
+                'amount'        => $amount,
                 'status'        => ReferralBonus::STATUS_WAITING_APPROVAL,
                 'type'          => $type,
                 'reference_id'  => $referenceId,
