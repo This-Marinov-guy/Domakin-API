@@ -588,6 +588,7 @@ class ListingApplicationController extends Controller
      */
     public function show(string $referenceId): JsonResponse
     {
+
         $application = ListingApplication::where('reference_id', $referenceId)
             ->first();
 
