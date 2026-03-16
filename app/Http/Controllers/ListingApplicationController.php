@@ -581,18 +581,14 @@ class ListingApplicationController extends Controller
      *     path="/api/v1/listing-application/{referenceId}",
      *     summary="Get a listing application by reference ID",
      *     tags={"Listing Applications"},
-     *     security={{"bearerAuth":{}}},
      *     @OA\Parameter(name="referenceId", in="path", required=true, description="Application reference ID (UUID)", @OA\Schema(type="string", format="uuid")),
      *     @OA\Response(response=200, description="Success"),
      *     @OA\Response(response=400, description="Not found")
      * )
      */
-    public function show(Request $request, string $referenceId, UserService $user): JsonResponse
+    public function show(string $referenceId): JsonResponse
     {
-        $userId = $user->extractIdFromRequest($request);
-
         $application = ListingApplication::where('reference_id', $referenceId)
-            ->when($userId !== null, fn ($q) => $q->where('user_id', $userId))
             ->first();
 
         if (!$application) {
