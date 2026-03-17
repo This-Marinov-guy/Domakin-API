@@ -23,12 +23,14 @@ class Property extends Model
         'release_timestamp',
         'referral_code',
         'interface',
-        'is_signal'
+        'is_signal',
+        'modifications',
     ];
 
     protected $casts = [
         'personal_data' => 'array',
-        'property_data' => 'array'
+        'property_data' => 'array',
+        'modifications' => 'array',
     ];
 
     /**
@@ -38,7 +40,8 @@ class Property extends Model
      */
     protected $attributes = [
         'approved' => false,
-        'status' => 1
+        'status' => 1,
+        'modifications' => '[]',
     ];
 
     public function personalData()

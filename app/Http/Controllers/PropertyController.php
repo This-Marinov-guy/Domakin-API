@@ -15,6 +15,7 @@ use App\Http\Controllers\Controller;
 use App\Mail\Notification;
 use Illuminate\Support\Carbon;
 use App\Models\Property;
+use App\Models\User;
 use App\Services\UserService;
 use Illuminate\Support\Facades\Log;
 use App\Services\GoogleServices\GoogleSheetsService;
@@ -28,6 +29,7 @@ use App\Services\PropertyService;
 use App\Services\ListingMailerService;
 use App\Services\Payment\PaymentLinkService;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Exception;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -541,6 +543,8 @@ class PropertyController extends Controller
                 'last_updated_by' => $data['last_updated_by'],
             ]);
 
+            $this->appendModification($property, 'Property created', $data['created_by']);
+
             PersonalData::create([
                 'property_id' => $property->id,
                 ...$data['personalData'],
@@ -784,6 +788,8 @@ class PropertyController extends Controller
             $property->propertyData->update($data['propertyData']);
 
             $property->save();
+
+            $this->appendModification($property, 'Property updated', $data['last_updated_by']);
         } catch (Exception $error) {
             return ApiResponseClass::sendError($error->getMessage());
         }
@@ -845,6 +851,7 @@ class PropertyController extends Controller
         }
 
         // Soft delete: sets deleted_at so the property can be restored later.
+        $this->appendModification($property, 'Property deleted', null);
         $property->delete();
 
         return ApiResponseClass::sendSuccess(['message' => 'Property deleted successfully']);
@@ -1017,5 +1024,112 @@ class PropertyController extends Controller
         } catch (Exception $error) {
             return ApiResponseClass::sendError($error->getMessage());
         }
+    }
+
+    // ---------------------------------------------------------------
+    // Modifications
+    // ---------------------------------------------------------------
+
+    private function buildModification(string $content, ?string $userId): array
+    {
+        return [
+            'id'        => (string) Str::uuid(),
+            'userId'    => $userId,
+            'timestamp' => now()->toIso8601String(),
+            'content'   => $content,
+        ];
+    }
+
+    private function withUserData(array $modifications): array
+    {
+        $userIds = array_values(array_unique(array_filter(
+            array_column($modifications, 'userId')
+        )));
+
+        $users = empty($userIds)
+            ? collect()
+            : User::whereIn('id', $userIds)->get(['id', 'name', 'surname', 'profile_image'])->keyBy('id');
+
+        return array_map(function (array $mod) use ($users) {
+            $user = isset($mod['userId']) ? $users->get($mod['userId']) : null;
+            $mod['userName']         = $user ? trim($user->name . ' ' . $user->surname) : null;
+            $mod['userProfileImage'] = $user?->profile_image ?? null;
+            return $mod;
+        }, $modifications);
+    }
+
+    private function appendModification(Property $property, string $content, ?string $userId): void
+    {
+        $modifications   = $property->modifications ?? [];
+        $modifications[] = $this->buildModification($content, $userId);
+        $property->modifications = $modifications;
+        $property->saveQuietly();
+    }
+
+    /** GET /api/v1/property/modifications/{id} */
+    public function getModifications(Request $request, int $id): JsonResponse
+    {
+        $property = Property::withTrashed()->find($id);
+
+        if (!$property) {
+            return ApiResponseClass::sendError('Property not found');
+        }
+
+        return ApiResponseClass::sendSuccess($this->withUserData($property->modifications ?? []));
+    }
+
+    /** POST /api/v1/property/modifications/add */
+    public function addModification(Request $request, UserService $user): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'propertyId' => 'required|integer',
+            'content'    => 'required|string|max:2000',
+        ]);
+
+        if ($validator->fails()) {
+            return ApiResponseClass::sendInvalidFields($validator->errors()->toArray());
+        }
+
+        $property = Property::withTrashed()->find($request->get('propertyId'));
+
+        if (!$property) {
+            return ApiResponseClass::sendError('Property not found');
+        }
+
+        $userId = $user->extractIdFromRequest($request);
+        $this->appendModification($property, $request->get('content'), $userId);
+
+        return ApiResponseClass::sendSuccess($this->withUserData($property->fresh()->modifications ?? []));
+    }
+
+    /** DELETE /api/v1/property/modifications/delete */
+    public function deleteModification(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'propertyId'     => 'required|integer',
+            'modificationId' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return ApiResponseClass::sendInvalidFields($validator->errors()->toArray());
+        }
+
+        $property = Property::withTrashed()->find($request->get('propertyId'));
+
+        if (!$property) {
+            return ApiResponseClass::sendError('Property not found');
+        }
+
+        $modifications = array_values(
+            array_filter(
+                $property->modifications ?? [],
+                fn($m) => ($m['id'] ?? null) !== $request->get('modificationId')
+            )
+        );
+
+        $property->modifications = $modifications;
+        $property->saveQuietly();
+
+        return ApiResponseClass::sendSuccess($this->withUserData($property->fresh()->modifications ?? []));
     }
 }

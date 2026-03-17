@@ -91,6 +91,10 @@ Route::prefix('v1')->group(function () {
 
         // Route::match(methods: ['GET', 'POST', 'OPTIONS'], '/signal-test', [PropertyController::class, 'testSignalIntegration']);
         Route::post('/payment/create-link', [PropertyController::class, 'createPaymentLink'])->middleware('auth.role:admin');
+
+        Route::get('/modifications/{id}', [PropertyController::class, 'getModifications'])->middleware('auth.role');
+        Route::post('/modifications/add', [PropertyController::class, 'addModification'])->middleware('auth.role');
+        Route::delete('/modifications/delete', [PropertyController::class, 'deleteModification'])->middleware('auth.role:admin');
     });
 
     Route::prefix('listing-application')->group(function () {
