@@ -1030,10 +1030,24 @@ class PropertyController extends Controller
     // Modifications
     // ---------------------------------------------------------------
 
-    private function buildModification(string $content, ?string $userId): array
+    private function nextModificationId(array $modifications): int
+    {
+        $max = 0;
+        foreach ($modifications as $mod) {
+            $id = $mod['id'] ?? null;
+            if (is_int($id)) {
+                $max = max($max, $id);
+            } elseif (is_string($id) && ctype_digit($id)) {
+                $max = max($max, (int) $id);
+            }
+        }
+        return $max + 1;
+    }
+
+    private function buildModification(int $id, string $content, ?string $userId): array
     {
         return [
-            'id'        => (string) Str::uuid(),
+            'id'        => $id,
             'userId'    => $userId,
             'timestamp' => now()->toIso8601String(),
             'content'   => $content,
@@ -1061,7 +1075,11 @@ class PropertyController extends Controller
     private function appendModification(Property $property, string $content, ?string $userId): void
     {
         $modifications   = $property->modifications ?? [];
-        $modifications[] = $this->buildModification($content, $userId);
+        $modifications[] = $this->buildModification(
+            $this->nextModificationId($modifications),
+            $content,
+            $userId
+        );
         $property->modifications = $modifications;
         $property->saveQuietly();
     }
@@ -1123,7 +1141,7 @@ class PropertyController extends Controller
         $modifications = array_values(
             array_filter(
                 $property->modifications ?? [],
-                fn($m) => ($m['id'] ?? null) !== $request->get('modificationId')
+                fn($m) => (string) ($m['id'] ?? '') !== (string) $request->get('modificationId')
             )
         );
 
