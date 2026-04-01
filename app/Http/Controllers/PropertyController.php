@@ -997,6 +997,8 @@ class PropertyController extends Controller
     {
         $propertyId = $request->get('id');
         $name = $request->get('name');
+        $customTitle = $request->get('custom_title');
+        $customAmount = $request->get('custom_amount');
 
         $property = Property::with('propertyData')->find($propertyId);
 
@@ -1005,18 +1007,27 @@ class PropertyController extends Controller
         }
 
         $rent = (float)($property->propertyData->rent ?? 0);
-        if ($rent <= 0) {
+
+        $amount = ($customAmount !== null && (float)$customAmount > 0)
+            ? (float)$customAmount
+            : $rent;
+
+        if ($amount <= 0) {
             return ApiResponseClass::sendError('Property rent must be greater than 0');
         }
 
         $address = $property->propertyData->address ?? '';
-        $title = $name
-            ? "One time Domakin Comission - {$name} | {$address}"
-            : "One time Domakin Comission - {$address}";
+        if ($customTitle) {
+            $title = $customTitle;
+        } else {
+            $title = $name
+                ? "One time Domakin Comission - {$name} | {$address}"
+                : "One time Domakin Comission - {$address}";
+        }
 
         try {
             $mainImage = explode(',', $property->propertyData->images)[0];
-            $paymentLink = $paymentLinks->createPropertyFeeLink($rent, $title, imageSrc: $mainImage);
+            $paymentLink = $paymentLinks->createPropertyFeeLink($amount, $title, imageSrc: $mainImage);
 
             return ApiResponseClass::sendSuccess([
                 'payment_link' => $paymentLink
