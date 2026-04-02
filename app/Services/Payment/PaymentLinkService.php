@@ -24,7 +24,6 @@ class PaymentLinkService
         }
         
         try {
-            $amountEur = ceil($amountEur);
             $unitAmount = (int)($amountEur * 100);
             
             // Check for existing links with the same parameters
