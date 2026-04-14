@@ -649,7 +649,7 @@ class PropertyController extends Controller
      * )
      * Edits a property
      */
-    public function edit(Request $request, PropertyService $propertyService, UserService $user, PaymentLinkService $paymentLinks, CloudinaryService $cloudinary, SignalIntegrationService $signalIntegrationService): JsonResponse
+    public function edit(Request $request, PropertyService $propertyService, UserService $user, PaymentLinkService $paymentLinks, CloudinaryService $cloudinary, SignalIntegrationService $signalIntegrationService, ListingMailerService $listingMailer): JsonResponse
     {
         // Normalize releaseTimestamp: "undefined" or empty = do not update; "null" = clear (set to null); else = value
         $releaseTimestamp = $request->get('releaseTimestamp');
@@ -680,11 +680,13 @@ class PropertyController extends Controller
             'last_updated_by' => $user->extractIdFromRequest($request),
         ];
 
-        $property = Property::find(id: $request->get('id'));
+        $property = Property::with(['personalData', 'propertyData'])->find($request->get('id'));
 
         if (!$property) {
             return ApiResponseClass::sendError('Property not found');
         }
+
+        $previousStatus = (int) $property->status;
 
         $validator = Validator::make($data, Property::editRules());
 
@@ -792,6 +794,16 @@ class PropertyController extends Controller
             $this->appendModification($property, 'Property updated', $data['last_updated_by']);
         } catch (Exception $error) {
             return ApiResponseClass::sendError($error->getMessage());
+        }
+
+        $newStatus = (int) $property->status;
+        if ($previousStatus !== $newStatus) {
+            if ($newStatus === 2) {
+                $listingMailer->sendApprovedListing($property);
+            } elseif ($newStatus === 4) {
+                $declineReason = $request->get('decline_reason', '');
+                $listingMailer->sendRejectedListing($property, $declineReason);
+            }
         }
 
         return ApiResponseClass::sendSuccess(['message' => 'Property updated successfully', 'warning' => $signalRequestSuccess ? null : 'Signal request failed']);

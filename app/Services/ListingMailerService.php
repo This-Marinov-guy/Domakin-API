@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Constants\Emails;
 use App\Models\ListingApplication;
+use App\Models\Property;
 use Exception;
 use Illuminate\Support\Facades\Log;
 
@@ -57,6 +58,47 @@ class ListingMailerService
             ]);
         } catch (Exception $e) {
             Log::error('Mailer send-submitted-listing failed', ['error' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Notify mailer to send "approved listing" email.
+     * Logs errors and does not throw.
+     */
+    public function sendApprovedListing(Property $property): void
+    {
+        try {
+            $personal = $property->personalData;
+            $this->mailerApi->post('/listing/send-approved-listing', [
+                'email'   => $personal->email ?? '',
+                'id'      => $property->id,
+                'name'    => trim(($personal->name ?? '') . ' ' . ($personal->surname ?? '')),
+                'address' => $property->propertyData->address ?? '',
+                'city'    => $property->propertyData->city ?? '',
+            ]);
+        } catch (Exception $e) {
+            Log::error('Mailer send-approved-listing failed', ['error' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Notify mailer to send "rejected listing" email with a reason.
+     * Logs errors and does not throw.
+     */
+    public function sendRejectedListing(Property $property, string $reason): void
+    {
+        try {
+            $personal = $property->personalData;
+            $this->mailerApi->post('/listing/send-reject-listing', [
+                'email'   => $personal->email ?? '',
+                'id'      => $property->id,
+                'name'    => trim(($personal->name ?? '') . ' ' . ($personal->surname ?? '')),
+                'address' => $property->propertyData->address ?? '',
+                'city'    => $property->propertyData->city ?? '',
+                'reason'  => $reason,
+            ]);
+        } catch (Exception $e) {
+            Log::error('Mailer send-reject-listing failed', ['error' => $e->getMessage()]);
         }
     }
 }
