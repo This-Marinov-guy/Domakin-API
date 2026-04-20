@@ -6,6 +6,7 @@ use App\Files\CloudinaryService;
 use App\Enums\PropertyType;
 use App\Http\Controllers\PropertyController;
 use App\Jobs\ReformatPropertyDescriptionJob;
+use App\Jobs\SendRoomCityCampaignJob;
 use App\Models\Property;
 use App\Services\GoogleServices\GoogleSheetsService;
 use App\Services\Integrations\SignalIntegrationService;
@@ -428,31 +429,55 @@ class PropertyControllerDirectTest extends TestCase
 
         $controller = app(PropertyController::class);
 
-        $response = $controller->sendRoomCityCampaign($request, app(ListingMailerService::class));
+        $response = $controller->sendRoomCityCampaign($request);
 
         $payload = $this->assertJsonStatus($response, 422);
         $this->assertFalse($payload['status']);
         $this->assertSame('Only room properties can be advertised with this template.', $payload['message']);
     }
 
-    public function test_send_room_city_campaign_direct_returns_mailer_result_for_room_property(): void
+    public function test_preview_room_city_campaign_direct_returns_mailer_preview_for_room_property(): void
     {
         $property = $this->createPropertyWithRelations();
         $property->forceFill(['link' => 'https://www.domakin.nl/en/services/renting/property/test-room'])->save();
 
         $this->mock(ListingMailerService::class, function ($mock) {
-            $mock->shouldReceive('sendNewRoomsForCriteriaCampaign')
+            $mock->shouldReceive('previewNewRoomsForCriteriaCampaign')
                 ->once()
                 ->andReturn([
                     'ok' => true,
                     'data' => [
-                        'sent' => 3,
-                        'errors' => [],
+                        'total_recipients' => 3,
                         'city' => 'Amsterdam',
                         'room_link' => 'https://www.domakin.nl/en/services/renting/property/test-room',
+                        'includes_internal_recipient' => true,
                     ],
                 ]);
         });
+
+        $request = Request::create(
+            '/api/v1/property/send-room-city-campaign-preview',
+            'POST',
+            ['id' => $property->id, 'language' => 'en']
+        );
+
+        $controller = app(PropertyController::class);
+
+        $response = $controller->previewRoomCityCampaign($request, app(ListingMailerService::class));
+
+        $payload = $this->assertJsonStatus($response, 200);
+        $this->assertTrue($payload['status']);
+        $this->assertSame(3, $payload['data']['total_recipients']);
+        $this->assertSame('Amsterdam', $payload['data']['city']);
+        $this->assertTrue($payload['data']['includes_internal_recipient']);
+    }
+
+    public function test_send_room_city_campaign_direct_queues_job_for_room_property(): void
+    {
+        Queue::fake();
+
+        $property = $this->createPropertyWithRelations();
+        $property->forceFill(['link' => 'https://www.domakin.nl/en/services/renting/property/test-room'])->save();
 
         $request = Request::create(
             '/api/v1/property/send-room-city-campaign',
@@ -462,12 +487,16 @@ class PropertyControllerDirectTest extends TestCase
 
         $controller = app(PropertyController::class);
 
-        $response = $controller->sendRoomCityCampaign($request, app(ListingMailerService::class));
+        $response = $controller->sendRoomCityCampaign($request);
 
-        $payload = $this->assertJsonStatus($response, 200);
+        $payload = $this->assertJsonStatus($response, 202);
         $this->assertTrue($payload['status']);
-        $this->assertSame(3, $payload['data']['sent']);
+        $this->assertTrue($payload['data']['queued']);
         $this->assertSame('Amsterdam', $payload['data']['city']);
+
+        Queue::assertPushed(SendRoomCityCampaignJob::class, function (SendRoomCityCampaignJob $job) use ($property) {
+            return $job->propertyId === $property->id && $job->language === 'en';
+        });
     }
 
     public function test_create_payment_link_direct_returns_error_for_zero_rent(): void

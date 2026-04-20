@@ -115,4 +115,18 @@ class ListingMailerService
             'language' => $language,
         ]);
     }
+
+    /**
+     * Fetch the recipient preview for the "new room" campaign of a single property.
+     *
+     * @return array<string,mixed>
+     * @throws Exception
+     */
+    public function previewNewRoomsForCriteriaCampaign(Property $property, string $language = 'en'): array
+    {
+        return $this->mailerApi->post('/room/preview-new-room-city-campaign', [
+            'property_id' => $property->id,
+            'language' => $language,
+        ]);
+    }
 }

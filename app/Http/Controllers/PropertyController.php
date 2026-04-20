@@ -24,6 +24,7 @@ use App\Models\PersonalData;
 use App\Models\PropertyData;
 use App\Services\Helpers;
 use App\Jobs\ReformatPropertyDescriptionJob;
+use App\Jobs\SendRoomCityCampaignJob;
 use App\Services\Integrations\SignalIntegrationService;
 use App\Services\PropertyService;
 use App\Services\ListingMailerService;
@@ -1050,10 +1051,62 @@ class PropertyController extends Controller
     }
 
     /**
+     * Preview the NEW_ROOMS_FOR_CRITERIA_TEMPLATE campaign for one room property
+     * and return how many emails will be sent.
+     */
+    public function previewRoomCityCampaign(Request $request, ListingMailerService $listingMailer): JsonResponse
+    {
+        $property = $this->resolveRoomCityCampaignProperty($request);
+        if ($property instanceof JsonResponse) {
+            return $property;
+        }
+
+        try {
+            $mailerResponse = $listingMailer->previewNewRoomsForCriteriaCampaign(
+                $property,
+                (string) $request->get('language', 'en')
+            );
+        } catch (Exception $error) {
+            return ApiResponseClass::sendError($error->getMessage());
+        }
+
+        $mailerData = is_array($mailerResponse['data'] ?? null)
+            ? $mailerResponse['data']
+            : $mailerResponse;
+
+        return ApiResponseClass::sendSuccess([
+            'total_recipients' => (int) ($mailerData['total_recipients'] ?? 0),
+            'city' => $mailerData['city'] ?? $property->propertyData->city,
+            'room_link' => $mailerData['room_link'] ?? $property->link,
+            'includes_internal_recipient' => (bool) ($mailerData['includes_internal_recipient'] ?? true),
+        ]);
+    }
+
+    /**
      * Send the NEW_ROOMS_FOR_CRITERIA_TEMPLATE campaign for one room property
      * to newsletter and search_renting subscribers in the same city.
      */
-    public function sendRoomCityCampaign(Request $request, ListingMailerService $listingMailer): JsonResponse
+    public function sendRoomCityCampaign(Request $request): JsonResponse
+    {
+        $property = $this->resolveRoomCityCampaignProperty($request);
+        if ($property instanceof JsonResponse) {
+            return $property;
+        }
+
+        SendRoomCityCampaignJob::dispatch(
+            $property->id,
+            (string) $request->get('language', 'en')
+        );
+
+        return ApiResponseClass::sendSuccess([
+            'queued' => true,
+            'property_id' => $property->id,
+            'city' => $property->propertyData->city,
+            'room_link' => $property->link,
+        ], 'Campaign queued successfully.', '', 202);
+    }
+
+    private function resolveRoomCityCampaignProperty(Request $request): Property|JsonResponse
     {
         $validator = Validator::make($request->all(), [
             'id' => 'required|integer|exists:properties,id',
@@ -1091,25 +1144,7 @@ class PropertyController extends Controller
             );
         }
 
-        try {
-            $mailerResponse = $listingMailer->sendNewRoomsForCriteriaCampaign(
-                $property,
-                (string) $request->get('language', 'en')
-            );
-        } catch (Exception $error) {
-            return ApiResponseClass::sendError($error->getMessage());
-        }
-
-        $mailerData = is_array($mailerResponse['data'] ?? null)
-            ? $mailerResponse['data']
-            : $mailerResponse;
-
-        return ApiResponseClass::sendSuccess([
-            'sent' => (int) ($mailerData['sent'] ?? 0),
-            'errors' => $mailerData['errors'] ?? [],
-            'city' => $mailerData['city'] ?? $property->propertyData->city,
-            'room_link' => $mailerData['room_link'] ?? $property->link,
-        ]);
+        return $property;
     }
 
     // ---------------------------------------------------------------

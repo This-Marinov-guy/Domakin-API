@@ -91,6 +91,7 @@ Route::prefix('v1')->group(function () {
 
         // Route::match(methods: ['GET', 'POST', 'OPTIONS'], '/signal-test', [PropertyController::class, 'testSignalIntegration']);
         Route::post('/payment/create-link', [PropertyController::class, 'createPaymentLink'])->middleware('auth.role:admin');
+        Route::post('/send-room-city-campaign-preview', [PropertyController::class, 'previewRoomCityCampaign'])->middleware('auth.role:admin');
         Route::post('/send-room-city-campaign', [PropertyController::class, 'sendRoomCityCampaign'])->middleware('auth.role:admin');
 
         Route::get('/modifications/{id}', [PropertyController::class, 'getModifications'])->middleware('auth.role');
