@@ -101,4 +101,18 @@ class ListingMailerService
             Log::error('Mailer send-reject-listing failed', ['error' => $e->getMessage()]);
         }
     }
+
+    /**
+     * Trigger the "new room" campaign for a single room property.
+     *
+     * @return array<string,mixed>
+     * @throws Exception
+     */
+    public function sendNewRoomsForCriteriaCampaign(Property $property, string $language = 'en'): array
+    {
+        return $this->mailerApi->post('/room/send-new-room-city-campaign', [
+            'property_id' => $property->id,
+            'language' => $language,
+        ]);
+    }
 }

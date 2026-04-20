@@ -3,6 +3,7 @@
 namespace Tests\Feature\Property;
 
 use App\Files\CloudinaryService;
+use App\Enums\PropertyType;
 use App\Http\Controllers\PropertyController;
 use App\Jobs\ReformatPropertyDescriptionJob;
 use App\Models\Property;
@@ -205,7 +206,8 @@ class PropertyControllerDirectTest extends TestCase
             app(UserService::class),
             app(PaymentLinkService::class),
             app(CloudinaryService::class),
-            app(SignalIntegrationService::class)
+            app(SignalIntegrationService::class),
+            app(ListingMailerService::class)
         );
 
         $payload = $this->assertJsonStatus($response, 400);
@@ -236,7 +238,8 @@ class PropertyControllerDirectTest extends TestCase
             app(UserService::class),
             app(PaymentLinkService::class),
             app(CloudinaryService::class),
-            app(SignalIntegrationService::class)
+            app(SignalIntegrationService::class),
+            app(ListingMailerService::class)
         );
 
         $payload = $this->assertJsonStatus($response, 422);
@@ -263,7 +266,8 @@ class PropertyControllerDirectTest extends TestCase
             app(UserService::class),
             app(PaymentLinkService::class),
             app(CloudinaryService::class),
-            app(SignalIntegrationService::class)
+            app(SignalIntegrationService::class),
+            app(ListingMailerService::class)
         );
 
         $payload = $this->assertJsonStatus($response, 200);
@@ -409,6 +413,61 @@ class PropertyControllerDirectTest extends TestCase
 
         $payload = $this->assertJsonStatus($response, 400);
         $this->assertFalse($payload['status']);
+    }
+
+    public function test_send_room_city_campaign_direct_returns_422_for_non_room_property(): void
+    {
+        $property = $this->createPropertyWithRelations();
+        $property->propertyData->update(['type' => PropertyType::Studio->value]);
+
+        $request = Request::create(
+            '/api/v1/property/send-room-city-campaign',
+            'POST',
+            ['id' => $property->id, 'language' => 'en']
+        );
+
+        $controller = app(PropertyController::class);
+
+        $response = $controller->sendRoomCityCampaign($request, app(ListingMailerService::class));
+
+        $payload = $this->assertJsonStatus($response, 422);
+        $this->assertFalse($payload['status']);
+        $this->assertSame('Only room properties can be advertised with this template.', $payload['message']);
+    }
+
+    public function test_send_room_city_campaign_direct_returns_mailer_result_for_room_property(): void
+    {
+        $property = $this->createPropertyWithRelations();
+        $property->forceFill(['link' => 'https://www.domakin.nl/en/services/renting/property/test-room'])->save();
+
+        $this->mock(ListingMailerService::class, function ($mock) {
+            $mock->shouldReceive('sendNewRoomsForCriteriaCampaign')
+                ->once()
+                ->andReturn([
+                    'ok' => true,
+                    'data' => [
+                        'sent' => 3,
+                        'errors' => [],
+                        'city' => 'Amsterdam',
+                        'room_link' => 'https://www.domakin.nl/en/services/renting/property/test-room',
+                    ],
+                ]);
+        });
+
+        $request = Request::create(
+            '/api/v1/property/send-room-city-campaign',
+            'POST',
+            ['id' => $property->id, 'language' => 'en']
+        );
+
+        $controller = app(PropertyController::class);
+
+        $response = $controller->sendRoomCityCampaign($request, app(ListingMailerService::class));
+
+        $payload = $this->assertJsonStatus($response, 200);
+        $this->assertTrue($payload['status']);
+        $this->assertSame(3, $payload['data']['sent']);
+        $this->assertSame('Amsterdam', $payload['data']['city']);
     }
 
     public function test_create_payment_link_direct_returns_error_for_zero_rent(): void

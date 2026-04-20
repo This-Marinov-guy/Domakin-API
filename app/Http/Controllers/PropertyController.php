@@ -1049,6 +1049,69 @@ class PropertyController extends Controller
         }
     }
 
+    /**
+     * Send the NEW_ROOMS_FOR_CRITERIA_TEMPLATE campaign for one room property
+     * to newsletter and search_renting subscribers in the same city.
+     */
+    public function sendRoomCityCampaign(Request $request, ListingMailerService $listingMailer): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|integer|exists:properties,id',
+            'language' => 'nullable|string',
+        ]);
+
+        if ($validator->fails()) {
+            return ApiResponseClass::sendInvalidFields($validator->errors()->toArray());
+        }
+
+        $property = Property::with('propertyData')->find($request->integer('id'));
+
+        if (!$property || !$property->propertyData) {
+            return ApiResponseClass::sendError('Property not found');
+        }
+
+        if ((int) $property->propertyData->type !== PropertyType::RoomInSharedProperty->value) {
+            return ApiResponseClass::sendError(
+                message: 'Only room properties can be advertised with this template.',
+                code: 422
+            );
+        }
+
+        if (empty($property->propertyData->city)) {
+            return ApiResponseClass::sendError(
+                message: 'Property city is required before sending this campaign.',
+                code: 422
+            );
+        }
+
+        if (empty($property->link)) {
+            return ApiResponseClass::sendError(
+                message: 'Property link is required before sending this campaign.',
+                code: 422
+            );
+        }
+
+        try {
+            $mailerResponse = $listingMailer->sendNewRoomsForCriteriaCampaign(
+                $property,
+                (string) $request->get('language', 'en')
+            );
+        } catch (Exception $error) {
+            return ApiResponseClass::sendError($error->getMessage());
+        }
+
+        $mailerData = is_array($mailerResponse['data'] ?? null)
+            ? $mailerResponse['data']
+            : $mailerResponse;
+
+        return ApiResponseClass::sendSuccess([
+            'sent' => (int) ($mailerData['sent'] ?? 0),
+            'errors' => $mailerData['errors'] ?? [],
+            'city' => $mailerData['city'] ?? $property->propertyData->city,
+            'room_link' => $mailerData['room_link'] ?? $property->link,
+        ]);
+    }
+
     // ---------------------------------------------------------------
     // Modifications
     // ---------------------------------------------------------------
