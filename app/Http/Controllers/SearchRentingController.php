@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Classes\ApiResponseClass;
+use App\Constants\Properties;
 use App\Files\CloudinaryService;
 use App\Http\Controllers\Controller;
 use App\Mail\Notification;
@@ -40,6 +41,7 @@ class SearchRentingController extends Controller
      *                 @OA\Property(property="registration", type="boolean", example=true),
      *                 @OA\Property(property="budget", type="number", example=1200),
      *                 @OA\Property(property="city", type="string", example="Amsterdam"),
+     *                 @OA\Property(property="property_id", type="integer", nullable=true, example=42, description="Optional related property ID from the properties table"),
      *                 @OA\Property(property="note", type="string"),
      *                 @OA\Property(property="referralCode", type="string"),
      *                 @OA\Property(property="letter", type="string", format="binary", description="Optional motivational letter"),
@@ -77,7 +79,19 @@ class SearchRentingController extends Controller
      */
     public function create(Request $request, CloudinaryService $cloudinary, GoogleSheetsService $sheetsService): JsonResponse
     {
+        $rawPropertyId = $request->get('property_id') ?? $request->get('propertyId');
+        $propertyId = null;
+
+        if ($rawPropertyId !== null && $rawPropertyId !== '') {
+            $propertyId = (int) $rawPropertyId;
+
+            if ($propertyId >= Properties::FRONTEND_PROPERTY_ID_INDEXING) {
+                $propertyId -= Properties::FRONTEND_PROPERTY_ID_INDEXING;
+            }
+        }
+
         $data = [
+            'property_id' => $propertyId,
             'name' => $request->get('name'),
             'surname' => $request->get('surname'),
             'phone' => $request->get('phone'),

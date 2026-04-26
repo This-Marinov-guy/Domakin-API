@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Mail\Notification;
 use App\Models\Property;
 use App\Models\Renting;
+use App\Models\SearchRenting;
 use Illuminate\Http\Request;
 use App\Services\GoogleServices\GoogleSheetsService;
 use App\Services\RentingService;
@@ -203,7 +204,30 @@ class RentingController extends Controller
 
         $rentings->each->makeHidden('property');
 
-        return ApiResponseClass::sendSuccess($rentings);
+        $searchRentings = SearchRenting::query()
+            ->where('property_id', $id)
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(function (SearchRenting $entry) {
+                return array_merge($entry->toArray(), [
+                    'entry_type' => 'search_renting',
+                    'read_only' => true,
+                ]);
+            });
+
+        $rentingEntries = $rentings->map(function (Renting $entry) {
+            return array_merge($entry->toArray(), [
+                'entry_type' => 'renting',
+                'read_only' => false,
+            ]);
+        });
+
+        $entries = $rentingEntries
+            ->concat($searchRentings)
+            ->sortByDesc('created_at')
+            ->values();
+
+        return ApiResponseClass::sendSuccess($entries);
     }
 
     /**

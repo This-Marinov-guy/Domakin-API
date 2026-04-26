@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Concerns\HasDomainBasedTermsValidation;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class SearchRenting extends Model
 {
@@ -13,6 +14,7 @@ class SearchRenting extends Model
     protected $table = 'search_rentings';
 
     protected $fillable = [
+        'property_id',
         'name',
         'surname',
         'phone',
@@ -30,9 +32,15 @@ class SearchRenting extends Model
         'interface',
     ];
 
+    public function property(): BelongsTo
+    {
+        return $this->belongsTo(Property::class, 'property_id');
+    }
+
     public static function rules($request = null): array
     {
         $rules = [
+            'property_id' => 'nullable|integer|exists:properties,id',
             'name' => 'required|string',
             'surname' => 'required|string',
             'phone' => 'required|string|min:6',

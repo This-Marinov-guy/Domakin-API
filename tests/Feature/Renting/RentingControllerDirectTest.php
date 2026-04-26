@@ -4,6 +4,7 @@ namespace Tests\Feature\Renting;
 
 use App\Files\CloudinaryService;
 use App\Http\Controllers\RentingController;
+use App\Models\SearchRenting;
 use App\Services\GoogleServices\GoogleSheetsService;
 use App\Services\RentingService;
 use App\Services\UserService;
@@ -167,6 +168,43 @@ class RentingControllerDirectTest extends TestCase
         $payload = $this->assertJsonStatus($response, 200);
         $this->assertTrue($payload['status']);
         $this->assertCount(2, $payload['data']);
+    }
+
+    public function test_show_also_returns_search_rentings_linked_to_property(): void
+    {
+        $property = $this->createProperty();
+        $this->createRenting($property->id);
+
+        SearchRenting::create([
+            'property_id' => $property->id,
+            'name' => 'Jane',
+            'surname' => 'Smith',
+            'phone' => '+31698765432',
+            'email' => 'jane@example.com',
+            'people' => 2,
+            'type' => 'room',
+            'move_in' => '2027-06-01',
+            'period' => '12 months',
+            'registration' => 'true',
+            'budget' => 1200,
+            'city' => 'Amsterdam',
+            'interface' => 'web',
+        ]);
+
+        $controller = app(RentingController::class);
+
+        $response = $controller->show($property->id);
+
+        $payload = $this->assertJsonStatus($response, 200);
+        $this->assertTrue($payload['status']);
+        $this->assertCount(2, $payload['data']);
+        $entryTypes = collect($payload['data'])->pluck('entry_type')->all();
+        $this->assertContains('renting', $entryTypes);
+        $this->assertContains('search_renting', $entryTypes);
+
+        $searchEntry = collect($payload['data'])->firstWhere('entry_type', 'search_renting');
+        $this->assertNotNull($searchEntry);
+        $this->assertTrue($searchEntry['read_only']);
     }
 
     // ---------------------------------------------------------------
