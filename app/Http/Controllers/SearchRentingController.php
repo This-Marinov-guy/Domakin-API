@@ -81,12 +81,17 @@ class SearchRentingController extends Controller
     {
         $rawPropertyId = $request->get('property_id') ?? $request->get('propertyId');
         $propertyId = null;
+        $property = null;
 
         if ($rawPropertyId !== null && $rawPropertyId !== '') {
             $propertyId = (int) $rawPropertyId;
 
             if ($propertyId >= Properties::FRONTEND_PROPERTY_ID_INDEXING) {
                 $propertyId -= Properties::FRONTEND_PROPERTY_ID_INDEXING;
+            }
+
+            if ($propertyId > 0) {
+                $property = Property::with('propertyData')->find($propertyId);
             }
         }
 
@@ -131,7 +136,26 @@ class SearchRentingController extends Controller
         }
 
         try {
-            (new Notification('New searching for Renting', 'search_renting', $data))->sendNotification();
+            $notificationData = $data;
+            $notificationSubject = 'New searching for Renting';
+            $notificationTemplate = 'search_renting';
+
+            if ($property) {
+                $propertyData = $property->propertyData;
+                $address = trim(implode(', ', array_filter([
+                    $propertyData?->address,
+                    $propertyData?->city,
+                ])));
+
+                $notificationData['property'] =
+                    $propertyData?->title
+                    ?? (string) ($property->id + Properties::FRONTEND_PROPERTY_ID_INDEXING);
+                $notificationData['address'] = $address;
+                $notificationSubject = 'New renting request';
+                $notificationTemplate = 'renting';
+            }
+
+            (new Notification($notificationSubject, $notificationTemplate, $notificationData))->sendNotification();
 
             $sheetsService->exportModelToSpreadsheet(
                 SearchRenting::class,
