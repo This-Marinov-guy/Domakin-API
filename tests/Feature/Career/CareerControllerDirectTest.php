@@ -4,11 +4,12 @@ namespace Tests\Feature\Career;
 
 use App\Files\CloudinaryService;
 use App\Http\Controllers\CareerController;
+use App\Jobs\SendInternalNotificationJob;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 class CareerControllerDirectTest extends TestCase
@@ -102,7 +103,7 @@ class CareerControllerDirectTest extends TestCase
 
     public function test_apply_returns_200_with_valid_data_and_no_resume(): void
     {
-        Mail::fake();
+        Queue::fake();
 
         $request = Request::create(
             '/api/v1/career/apply',
@@ -120,11 +121,16 @@ class CareerControllerDirectTest extends TestCase
             'position' => 'viewing_agent',
             'resume'   => null,
         ]);
+        Queue::assertPushed(SendInternalNotificationJob::class, function (SendInternalNotificationJob $job) {
+            return $job->templateUuid === 'career'
+                && $job->subjectLine === 'New career application'
+                && ($job->data['email'] ?? null) === 'john.doe@example.com';
+        });
     }
 
     public function test_apply_returns_200_with_valid_data_and_resume(): void
     {
-        Mail::fake();
+        Queue::fake();
 
         $request = Request::create('/api/v1/career/apply', 'POST', $this->validCareerData());
         $request->files->set('resume', UploadedFile::fake()->create('cv.pdf', 100, 'application/pdf'));
@@ -139,6 +145,7 @@ class CareerControllerDirectTest extends TestCase
             'email'  => 'john.doe@example.com',
             'resume' => 'https://res.cloudinary.com/test/careers/cvs/resume.pdf',
         ]);
+        Queue::assertPushed(SendInternalNotificationJob::class);
     }
 
     public function test_apply_returns_400_when_resume_upload_fails(): void

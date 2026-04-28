@@ -54,6 +54,15 @@ trait ViewingControllerData
         ], $overrides);
     }
 
+    protected function viewingEditData(int $id, array $overrides = []): array
+    {
+        return array_merge([
+            'id' => $id,
+            'status' => 2,
+            'internal_note' => 'Confirmed by admin',
+        ], $overrides);
+    }
+
     // ---------------------------------------------------------------
     // Helper: remove keys from a payload (for missing-field tests)
     // ---------------------------------------------------------------

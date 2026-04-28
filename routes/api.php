@@ -52,9 +52,10 @@ Route::prefix('v1')->group(function () {
 
     // Service
     Route::prefix('viewing')->group(function () {
-        Route::get('/list', [ViewingController::class, 'list']);
-        Route::get('/details/{id}', [ViewingController::class, 'details']);
+        Route::get('/list', [ViewingController::class, 'list'])->middleware('auth.role:admin');
+        Route::get('/details/{id}', [ViewingController::class, 'details'])->middleware('auth.role:admin');
         Route::post('/create', [ViewingController::class, 'create']);
+        Route::patch('/edit', [ViewingController::class, 'edit'])->middleware('auth.role:admin');
     });
 
     Route::prefix('renting')->group(function () {

@@ -4,13 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Classes\ApiResponseClass;
 use App\Http\Controllers\Controller;
-use App\Mail\Notification;
+use App\Jobs\SendInternalNotificationJob;
 use App\Services\GoogleServices\GoogleSheetsService;
 use App\Services\GoogleServices\GoogleCalendarService;
 use App\Constants\Sheets;
 use App\Constants\Payments;
 use App\Models\Viewing;
 use App\Services\Helpers;
+use App\Services\UserService;
+use App\Services\ViewingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
@@ -27,24 +29,76 @@ class ViewingController extends Controller
     /**
      * @OA\Get(
      *     path="/api/v1/viewing/list",
-     *     summary="List all viewings",
+     *     summary="List all viewings (admin)",
      *     tags={"Viewing"},
+     *     security={{"sanctum": {}}},
      *     @OA\Response(
      *         response=200,
      *         description="Success",
      *         @OA\JsonContent(
      *             @OA\Property(property="status", type="boolean", example=true),
-     *             @OA\Property(property="data", type="array", @OA\Items(type="object"))
+     *             @OA\Property(property="data", type="object")
      *         )
      *     )
      * )
      */
-    public function list(): JsonResponse
+    public function list(Request $request): JsonResponse
     {
-        $viewings = Viewing::all()->toArray();
-        //viewings = $query->get()->toArray();
+        $validator = Validator::make($request->query(), [
+            'city' => 'nullable|string',
+            'search' => 'nullable|string',
+            'reference_id' => 'nullable|string',
+            'status' => 'nullable|integer',
+            'per_page' => 'nullable|integer|min:1|max:100',
+            'page' => 'nullable|integer|min:1',
+        ]);
 
-        return ApiResponseClass::sendSuccess($viewings);
+        if ($validator->fails()) {
+            return ApiResponseClass::sendInvalidFields($validator->errors()->toArray());
+        }
+
+        $perPage = (int) $request->get('per_page', 15);
+        $page = (int) $request->get('page', 1);
+
+        $query = Viewing::query()->with('internalUpdatedBy')->orderByDesc('created_at');
+
+        if ($request->filled('city')) {
+            $city = (string) $request->string('city')->trim();
+            $query->where('city', 'ILIKE', '%' . $city . '%');
+        }
+
+        if ($request->filled('search')) {
+            $search = (string) $request->string('search')->trim();
+            $query->where(function ($subQuery) use ($search) {
+                $subQuery
+                    ->where('name', 'ILIKE', '%' . $search . '%')
+                    ->orWhere('surname', 'ILIKE', '%' . $search . '%')
+                    ->orWhere('email', 'ILIKE', '%' . $search . '%');
+            });
+        }
+
+        if ($request->filled('reference_id')) {
+            $referenceId = trim((string) $request->get('reference_id'));
+            if (ctype_digit($referenceId)) {
+                $query->whereKey((int) $referenceId);
+            } else {
+                $query->whereRaw('1 = 0');
+            }
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', (int) $request->get('status'));
+        }
+
+        $paginator = $query->paginate($perPage, ['*'], 'page', $page);
+
+        return ApiResponseClass::sendSuccess([
+            'viewings' => $paginator->items(),
+            'current_page' => $paginator->currentPage(),
+            'last_page' => $paginator->lastPage(),
+            'per_page' => $paginator->perPage(),
+            'total' => $paginator->total(),
+        ]);
     }
 
     /**
@@ -80,13 +134,13 @@ class ViewingController extends Controller
      */
     public function details($id)
     {
-        $viewing = Viewing::find($id);
+        $viewing = Viewing::with('internalUpdatedBy')->find($id);
 
         if (!$viewing) {
             return ApiResponseClass::sendError('Viewing not found');
         }
 
-        return ApiResponseClass::sendSuccess($viewing->toArray());
+        return ApiResponseClass::sendSuccess($viewing);
     }
 
     /**
@@ -246,11 +300,52 @@ class ViewingController extends Controller
         }
 
         try {
-            (new Notification('New viewing request', 'viewing', $data))->sendNotification();
+            SendInternalNotificationJob::dispatch('New viewing request', 'viewing', $data);
         } catch (Exception $error) {
             Log::error($error->getMessage());
         }
 
         return ApiResponseClass::sendSuccess();
+    }
+
+    /**
+     * @OA\Patch(
+     *     path="/api/v1/viewing/edit",
+     *     summary="Update viewing status and internal note (admin)",
+     *     tags={"Viewing"},
+     *     security={{"sanctum": {}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"id"},
+     *             @OA\Property(property="id", type="integer", example=1),
+     *             @OA\Property(property="status", type="integer", example=2),
+     *             @OA\Property(property="internal_note", type="string", example="Confirmed by phone")
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Updated successfully"),
+     *     @OA\Response(response=404, description="Viewing not found"),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
+     */
+    public function edit(Request $request, ViewingService $viewingService, UserService $userService): JsonResponse
+    {
+        $validator = ViewingService::validateEdit($request->all());
+
+        if ($validator->fails()) {
+            return ApiResponseClass::sendInvalidFields($validator->errors()->toArray());
+        }
+
+        $internalUpdatedBy = $userService->extractIdFromRequest($request);
+        $viewing = $viewingService->updateViewing(
+            $request->only(['id', 'status', 'internal_note']),
+            $internalUpdatedBy
+        );
+
+        if (!$viewing) {
+            return ApiResponseClass::sendError('Viewing not found', 404);
+        }
+
+        return ApiResponseClass::sendSuccess($viewing);
     }
 }

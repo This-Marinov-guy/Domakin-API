@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Classes\ApiResponseClass;
+use App\Jobs\ExportModelToSpreadsheetJob;
 use App\Jobs\ReformatPropertyDescriptionJob;
-use App\Mail\Notification;
+use App\Jobs\SendInternalNotificationJob;
+use App\Jobs\SendListingMailerJob;
 use App\Models\ListingApplication;
 use App\Models\PersonalData;
 use App\Models\Property;
@@ -261,7 +263,13 @@ class ListingApplicationController extends Controller
             return ApiResponseClass::sendError($e->getMessage());
         }
 
-        $listingMailer->sendFinishApplication($application);
+        try {
+            SendListingMailerJob::dispatch(SendListingMailerJob::ACTION_FINISH_APPLICATION, [
+                'listing_application_id' => $application->id,
+            ]);
+        } catch (Exception $error) {
+            Log::error($error->getMessage());
+        }
 
         return ApiResponseClass::sendSuccess(
             array_merge($application->toArray(), ['referenceId' => $application->reference_id])
@@ -422,24 +430,24 @@ class ListingApplicationController extends Controller
         }
 
         $property->load(['personalData', 'propertyData']);
-        $listingMailer->sendSubmittedListing(
-            $property->id,
-            $property->personalData->email ?? '',
-            trim(($property->personalData->name ?? '') . ' ' . ($property->personalData->surname ?? '')),
-            $property->propertyData->address ?? '',
-            $property->propertyData->city ?? ''
-        );
+        try {
+            SendListingMailerJob::dispatch(SendListingMailerJob::ACTION_SUBMITTED_LISTING, [
+                'id' => $property->id,
+                'email' => $property->personalData->email ?? '',
+                'name' => trim(($property->personalData->name ?? '') . ' ' . ($property->personalData->surname ?? '')),
+                'address' => $property->propertyData->address ?? '',
+                'city' => $property->propertyData->city ?? '',
+            ]);
+        } catch (Exception $error) {
+            Log::error($error->getMessage());
+        }
 
         try {
-            (new Notification('New property uploaded', 'property', [
+            SendInternalNotificationJob::dispatch('New property uploaded', 'property', [
                 'personalData' => $property->personalData?->toArray() ?? [],
                 'propertyData' => $property->propertyData?->toArray() ?? [],
-            ]))->sendNotification();
-
-            $sheetsService->exportModelToSpreadsheet(
-                Property::class,
-                'Properties'
-            );
+            ]);
+            ExportModelToSpreadsheetJob::dispatch(Property::class, 'Properties');
         } catch (Exception $error) {
             Log::error($error->getMessage());
         }

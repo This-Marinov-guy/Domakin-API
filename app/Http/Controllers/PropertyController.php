@@ -12,7 +12,7 @@ use App\Enums\PropertyType;
 use App\Enums\SharedSpace;
 use App\Files\CloudinaryService;
 use App\Http\Controllers\Controller;
-use App\Mail\Notification;
+use App\Jobs\ExportModelToSpreadsheetJob;
 use Illuminate\Support\Carbon;
 use App\Models\Property;
 use App\Models\User;
@@ -24,6 +24,8 @@ use App\Models\PersonalData;
 use App\Models\PropertyData;
 use App\Services\Helpers;
 use App\Jobs\ReformatPropertyDescriptionJob;
+use App\Jobs\SendInternalNotificationJob;
+use App\Jobs\SendListingMailerJob;
 use App\Jobs\SendRoomCityCampaignJob;
 use App\Services\Integrations\SignalIntegrationService;
 use App\Services\PropertyService;
@@ -576,21 +578,21 @@ class PropertyController extends Controller
             Log::error($error->getMessage());
         }
 
-        $listingMailer->sendSubmittedListing(
-            $property->id,
-            $data['personalData']['email'] ?? '',
-            trim(($data['personalData']['name'] ?? '') . ' ' . ($data['personalData']['surname'] ?? '')),
-            $data['propertyData']['address'] ?? '',
-            $data['propertyData']['city'] ?? ''
-        );
+        try {
+            SendListingMailerJob::dispatch(SendListingMailerJob::ACTION_SUBMITTED_LISTING, [
+                'id' => $property->id,
+                'email' => $data['personalData']['email'] ?? '',
+                'name' => trim(($data['personalData']['name'] ?? '') . ' ' . ($data['personalData']['surname'] ?? '')),
+                'address' => $data['propertyData']['address'] ?? '',
+                'city' => $data['propertyData']['city'] ?? '',
+            ]);
+        } catch (Exception $error) {
+            Log::error($error->getMessage());
+        }
 
         try {
-            (new Notification('New property uploaded', 'property', $data))->sendNotification();
-
-            $sheetsService->exportModelToSpreadsheet(
-                Property::class,
-                'Properties'
-            );
+            SendInternalNotificationJob::dispatch('New property uploaded', 'property', $data);
+            ExportModelToSpreadsheetJob::dispatch(Property::class, 'Properties');
         } catch (Exception $error) {
             Log::error($error->getMessage());
         }
@@ -799,11 +801,20 @@ class PropertyController extends Controller
 
         $newStatus = (int) $property->status;
         if ($previousStatus !== $newStatus) {
-            if ($newStatus === 2) {
-                $listingMailer->sendApprovedListing($property);
-            } elseif ($newStatus === 4) {
-                $declineReason = $request->get('decline_reason', '');
-                $listingMailer->sendRejectedListing($property, $declineReason);
+            try {
+                if ($newStatus === 2) {
+                    SendListingMailerJob::dispatch(SendListingMailerJob::ACTION_APPROVED_LISTING, [
+                        'property_id' => $property->id,
+                    ]);
+                } elseif ($newStatus === 4) {
+                    $declineReason = $request->get('decline_reason', '');
+                    SendListingMailerJob::dispatch(SendListingMailerJob::ACTION_REJECTED_LISTING, [
+                        'property_id' => $property->id,
+                        'reason' => $declineReason,
+                    ]);
+                }
+            } catch (Exception $error) {
+                Log::error($error->getMessage());
             }
         }
 

@@ -69,12 +69,14 @@ class ListingMailerService
     {
         try {
             $personal = $property->personalData;
+            $propertyData = $property->propertyData;
+
             $this->mailerApi->post('/listing/send-approved-listing', [
-                'email'   => $personal->email ?? '',
+                'email'   => $personal?->email ?? '',
                 'id'      => $property->id,
-                'name'    => trim(($personal->name ?? '') . ' ' . ($personal->surname ?? '')),
-                'address' => $property->propertyData->address ?? '',
-                'city'    => $property->propertyData->city ?? '',
+                'name'    => trim(($personal?->name ?? '') . ' ' . ($personal?->surname ?? '')),
+                'address' => $propertyData?->address ?? '',
+                'city'    => $propertyData?->city ?? '',
             ]);
         } catch (Exception $e) {
             Log::error('Mailer send-approved-listing failed', ['error' => $e->getMessage()]);
@@ -89,12 +91,14 @@ class ListingMailerService
     {
         try {
             $personal = $property->personalData;
+            $propertyData = $property->propertyData;
+
             $this->mailerApi->post('/listing/send-reject-listing', [
-                'email'   => $personal->email ?? '',
+                'email'   => $personal?->email ?? '',
                 'id'      => $property->id,
-                'name'    => trim(($personal->name ?? '') . ' ' . ($personal->surname ?? '')),
-                'address' => $property->propertyData->address ?? '',
-                'city'    => $property->propertyData->city ?? '',
+                'name'    => trim(($personal?->name ?? '') . ' ' . ($personal?->surname ?? '')),
+                'address' => $propertyData?->address ?? '',
+                'city'    => $propertyData?->city ?? '',
                 'reason'  => $reason,
             ]);
         } catch (Exception $e) {

@@ -4,9 +4,17 @@ namespace Tests\Feature\Viewing;
 
 use App\Services\GoogleServices\GoogleCalendarService;
 use App\Services\GoogleServices\GoogleSheetsService;
+use App\Services\UserService;
 
 trait MocksViewingServices
 {
+    protected function mockUserService(?string $userId = null): void
+    {
+        $this->mock(UserService::class, function ($mock) use ($userId) {
+            $mock->shouldReceive('extractIdFromRequest')->andReturn($userId)->byDefault();
+        });
+    }
+
     protected function mockGoogleSheetsService(): void
     {
         $this->mock(GoogleSheetsService::class, function ($mock) {

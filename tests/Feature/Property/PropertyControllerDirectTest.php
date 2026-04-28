@@ -5,7 +5,10 @@ namespace Tests\Feature\Property;
 use App\Files\CloudinaryService;
 use App\Enums\PropertyType;
 use App\Http\Controllers\PropertyController;
+use App\Jobs\ExportModelToSpreadsheetJob;
 use App\Jobs\ReformatPropertyDescriptionJob;
+use App\Jobs\SendInternalNotificationJob;
+use App\Jobs\SendListingMailerJob;
 use App\Jobs\SendRoomCityCampaignJob;
 use App\Models\Property;
 use App\Services\GoogleServices\GoogleSheetsService;
@@ -183,6 +186,17 @@ class PropertyControllerDirectTest extends TestCase
         $this->assertTrue($payload['status']);
 
         Queue::assertPushed(ReformatPropertyDescriptionJob::class);
+        Queue::assertPushed(SendListingMailerJob::class, function (SendListingMailerJob $job) {
+            return $job->action === SendListingMailerJob::ACTION_SUBMITTED_LISTING;
+        });
+        Queue::assertPushed(SendInternalNotificationJob::class, function (SendInternalNotificationJob $job) {
+            return $job->templateUuid === 'property'
+                && $job->subjectLine === 'New property uploaded';
+        });
+        Queue::assertPushed(ExportModelToSpreadsheetJob::class, function (ExportModelToSpreadsheetJob $job) {
+            return $job->modelClass === \App\Models\Property::class
+                && $job->sheetName === 'Properties';
+        });
     }
 
     // ---------------------------------------------------------------
@@ -249,6 +263,7 @@ class PropertyControllerDirectTest extends TestCase
 
     public function test_edit_direct_updates_property_with_valid_data(): void
     {
+        Queue::fake();
         $property = $this->createPropertyWithRelations();
 
         $this->mockEditServices();
@@ -274,6 +289,40 @@ class PropertyControllerDirectTest extends TestCase
         $payload = $this->assertJsonStatus($response, 200);
         $this->assertTrue($payload['status']);
         $this->assertSame('Property updated successfully', $payload['data']['message']);
+        Queue::assertNotPushed(SendListingMailerJob::class);
+    }
+
+    public function test_edit_direct_queues_approved_listing_mail_when_status_changes_to_rent(): void
+    {
+        Queue::fake();
+        $property = $this->createPropertyWithRelations(['status' => 1]);
+
+        $this->mockEditServices();
+
+        $request = Request::create(
+            '/api/v1/property/edit',
+            'POST',
+            $this->editRequestData($property->id, ['status' => 2])
+        );
+
+        $controller = app(PropertyController::class);
+
+        $response = $controller->edit(
+            $request,
+            app(PropertyService::class),
+            app(UserService::class),
+            app(PaymentLinkService::class),
+            app(CloudinaryService::class),
+            app(SignalIntegrationService::class),
+            app(ListingMailerService::class)
+        );
+
+        $payload = $this->assertJsonStatus($response, 200);
+        $this->assertTrue($payload['status']);
+        Queue::assertPushed(SendListingMailerJob::class, function (SendListingMailerJob $job) use ($property) {
+            return $job->action === SendListingMailerJob::ACTION_APPROVED_LISTING
+                && ($job->payload['property_id'] ?? null) === $property->id;
+        });
     }
 
     // ---------------------------------------------------------------

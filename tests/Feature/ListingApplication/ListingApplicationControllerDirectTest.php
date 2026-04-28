@@ -4,6 +4,9 @@ namespace Tests\Feature\ListingApplication;
 
 use App\Http\Controllers\ListingApplicationController;
 use App\Jobs\ReformatPropertyDescriptionJob;
+use App\Jobs\ExportModelToSpreadsheetJob;
+use App\Jobs\SendInternalNotificationJob;
+use App\Jobs\SendListingMailerJob;
 use App\Models\ListingApplication;
 use App\Services\GoogleServices\GoogleSheetsService;
 use App\Services\ListingApplicationService;
@@ -234,6 +237,7 @@ class ListingApplicationControllerDirectTest extends TestCase
 
     public function test_save_direct_creates_new_application(): void
     {
+        Queue::fake();
         $this->mockMailerService();
 
         $request = Request::create(
@@ -254,6 +258,10 @@ class ListingApplicationControllerDirectTest extends TestCase
         $this->assertTrue($payload['status']);
         $this->assertSame('vlady1002@abv.bg', $payload['data']['email']);
         $this->assertArrayHasKey('referenceId', $payload['data']);
+        Queue::assertPushed(SendListingMailerJob::class, function (SendListingMailerJob $job) {
+            return $job->action === SendListingMailerJob::ACTION_FINISH_APPLICATION
+                && isset($job->payload['listing_application_id']);
+        });
     }
 
     public function test_save_direct_stores_referral_code(): void
@@ -452,6 +460,9 @@ class ListingApplicationControllerDirectTest extends TestCase
         $payload = $this->assertJsonStatus($response, 200);
         $this->assertTrue($payload['status']);
         $this->assertSame('REFCODE123', $payload['data']['referral_code']);
+        Queue::assertPushed(SendListingMailerJob::class, function (SendListingMailerJob $job) {
+            return $job->action === SendListingMailerJob::ACTION_SUBMITTED_LISTING;
+        });
     }
 
     public function test_submit_direct_creates_property_and_removes_application(): void
@@ -488,6 +499,16 @@ class ListingApplicationControllerDirectTest extends TestCase
         );
 
         Queue::assertPushed(ReformatPropertyDescriptionJob::class);
+        Queue::assertPushed(SendListingMailerJob::class, function (SendListingMailerJob $job) {
+            return $job->action === SendListingMailerJob::ACTION_SUBMITTED_LISTING;
+        });
+        Queue::assertPushed(SendInternalNotificationJob::class, function (SendInternalNotificationJob $job) {
+            return $job->templateUuid === 'property'
+                && $job->subjectLine === 'New property uploaded';
+        });
+        Queue::assertPushed(ExportModelToSpreadsheetJob::class, function (ExportModelToSpreadsheetJob $job) {
+            return $job->modelClass === \App\Models\Property::class
+                && $job->sheetName === 'Properties';
+        });
     }
 }
-

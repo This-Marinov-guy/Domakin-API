@@ -5,7 +5,8 @@ namespace Tests\Feature\Renting;
 use App\Constants\Properties;
 use App\Files\CloudinaryService;
 use App\Http\Controllers\SearchRentingController;
-use App\Mail\Notification as NotificationMail;
+use App\Jobs\ExportModelToSpreadsheetJob;
+use App\Jobs\SendInternalNotificationJob;
 use App\Models\Property;
 use App\Models\PropertyData;
 use App\Services\GoogleServices\GoogleSheetsService;
@@ -13,7 +14,7 @@ use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 class SearchRentingControllerDirectTest extends TestCase
@@ -63,7 +64,7 @@ class SearchRentingControllerDirectTest extends TestCase
         } catch (\Throwable) {
         }
         parent::setUp();
-        Mail::fake();
+        Queue::fake();
     }
 
     protected function tearDown(): void
@@ -259,7 +260,6 @@ class SearchRentingControllerDirectTest extends TestCase
 
     public function test_create_sends_renting_notification_when_linked_property_exists(): void
     {
-        Mail::fake();
         $this->mockRentingCreateServices();
         $property = $this->createPropertyWithData();
 
@@ -282,17 +282,21 @@ class SearchRentingControllerDirectTest extends TestCase
         $payload = $this->assertJsonStatus($response, 200);
         $this->assertTrue($payload['status']);
 
-        Mail::assertSent(NotificationMail::class, function (NotificationMail $mail) use ($property) {
-            return $mail->templateUuid === 'renting'
-                && $mail->subject === 'New renting request'
-                && ($mail->data['property_id'] ?? null) === $property->id
-                && ($mail->data['address'] ?? null) === 'Keizersgracht 1, Amsterdam';
+        Queue::assertPushed(SendInternalNotificationJob::class, function (SendInternalNotificationJob $job) use ($property) {
+            return $job->templateUuid === 'renting'
+                && $job->subjectLine === 'New renting request'
+                && ($job->data['property_id'] ?? null) === $property->id
+                && ($job->data['address'] ?? null) === 'Keizersgracht 1, Amsterdam';
+        });
+
+        Queue::assertPushed(ExportModelToSpreadsheetJob::class, function (ExportModelToSpreadsheetJob $job) {
+            return $job->modelClass === \App\Models\SearchRenting::class
+                && $job->sheetName === 'Search Rentings';
         });
     }
 
     public function test_create_sends_search_renting_notification_when_no_linked_property_is_provided(): void
     {
-        Mail::fake();
         $this->mockRentingCreateServices();
 
         $request = Request::create(
@@ -312,11 +316,11 @@ class SearchRentingControllerDirectTest extends TestCase
         $payload = $this->assertJsonStatus($response, 200);
         $this->assertTrue($payload['status']);
 
-        Mail::assertSent(NotificationMail::class, function (NotificationMail $mail) {
-            return $mail->templateUuid === 'search_renting'
-                && $mail->subject === 'New searching for Renting'
-                && !array_key_exists('property', $mail->data)
-                && !array_key_exists('address', $mail->data);
+        Queue::assertPushed(SendInternalNotificationJob::class, function (SendInternalNotificationJob $job) {
+            return $job->templateUuid === 'search_renting'
+                && $job->subjectLine === 'New searching for Renting'
+                && !array_key_exists('property', $job->data)
+                && !array_key_exists('address', $job->data);
         });
     }
 }

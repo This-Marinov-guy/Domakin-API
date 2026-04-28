@@ -4,6 +4,8 @@ namespace Tests\Feature\Renting;
 
 use App\Files\CloudinaryService;
 use App\Http\Controllers\RentingController;
+use App\Jobs\ExportModelToSpreadsheetJob;
+use App\Jobs\SendInternalNotificationJob;
 use App\Models\SearchRenting;
 use App\Services\GoogleServices\GoogleSheetsService;
 use App\Services\RentingService;
@@ -11,6 +13,7 @@ use App\Services\UserService;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 class RentingControllerDirectTest extends TestCase
@@ -112,6 +115,7 @@ class RentingControllerDirectTest extends TestCase
 
     public function test_create_creates_renting_with_valid_data(): void
     {
+        Queue::fake();
         $this->mockRentingCreateServices();
 
         $property = $this->createProperty();
@@ -137,6 +141,15 @@ class RentingControllerDirectTest extends TestCase
             'property_id' => $property->id,
             'email'       => 'john@example.com',
         ]);
+        Queue::assertPushed(SendInternalNotificationJob::class, function (SendInternalNotificationJob $job) {
+            return $job->templateUuid === 'renting'
+                && $job->subjectLine === 'New renting request'
+                && ($job->data['email'] ?? null) === 'john@example.com';
+        });
+        Queue::assertPushed(ExportModelToSpreadsheetJob::class, function (ExportModelToSpreadsheetJob $job) {
+            return $job->modelClass === \App\Models\Renting::class
+                && $job->sheetName === 'Rentings';
+        });
     }
 
     // ---------------------------------------------------------------

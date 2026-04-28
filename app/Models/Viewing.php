@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasDomainBasedTermsValidation;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -11,6 +12,10 @@ class Viewing extends Model
     use HasFactory, HasDomainBasedTermsValidation;
 
     protected $table = 'viewings';
+
+    protected $appends = [
+        'internal_updated_by_user',
+    ];
 
     protected $fillable = [
         'name',
@@ -26,11 +31,68 @@ class Viewing extends Model
         'google_calendar_id',
         'payment_link',
         'interface',
+        'status',
+        'internal_note',
+        'internal_updated_at',
+        'internal_updated_by',
     ];
 
     protected $attributes = [
         'status' => 1
     ];
+
+    protected $casts = [
+        'internal_updated_at' => 'datetime',
+    ];
+
+    protected $hidden = [
+        'internalUpdatedBy',
+    ];
+
+    public function internalUpdatedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'internal_updated_by');
+    }
+
+    protected function getInternalUpdatedByUser(): ?User
+    {
+        if (!$this->hasValidInternalUpdatedByUuid()) {
+            return null;
+        }
+
+        $user = $this->getRelationValue('internalUpdatedBy');
+        if ($user === null) {
+            $user = $this->internalUpdatedBy()->first();
+        }
+
+        return $user instanceof User ? $user : null;
+    }
+
+    public function getInternalUpdatedByUserAttribute(): ?array
+    {
+        $user = $this->getInternalUpdatedByUser();
+        if (!$user) {
+            return null;
+        }
+
+        return [
+            'id' => $user->id,
+            'name' => $user->name ?? null,
+        ];
+    }
+
+    protected function hasValidInternalUpdatedByUuid(): bool
+    {
+        $value = $this->attributes['internal_updated_by'] ?? null;
+        if ($value === null || $value === '' || $value === 0 || $value === '0') {
+            return false;
+        }
+
+        return (bool) preg_match(
+            '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i',
+            (string) $value
+        );
+    }
 
     public static function rules($request = null): array
     {
@@ -70,5 +132,4 @@ class Viewing extends Model
             ],
         ];
     }
-    
 }

@@ -6,7 +6,8 @@ use App\Classes\ApiResponseClass;
 use App\Constants\Properties;
 use App\Files\CloudinaryService;
 use App\Http\Controllers\Controller;
-use App\Mail\Notification;
+use App\Jobs\ExportModelToSpreadsheetJob;
+use App\Jobs\SendInternalNotificationJob;
 use App\Models\Property;
 use App\Models\Renting;
 use App\Models\SearchRenting;
@@ -167,12 +168,8 @@ class RentingController extends Controller
         }
 
         try {
-            (new Notification('New renting request', 'renting', $data))->sendNotification();
-
-            $sheetsService->exportModelToSpreadsheet(
-                Renting::class,
-                'Rentings'
-            );
+            SendInternalNotificationJob::dispatch('New renting request', 'renting', $data);
+            ExportModelToSpreadsheetJob::dispatch(Renting::class, 'Rentings');
         } catch (Exception $error) {
             Log::error($error->getMessage());
         }

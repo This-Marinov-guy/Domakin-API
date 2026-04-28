@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Classes\ApiResponseClass;
 use App\Files\CloudinaryService;
 use App\Http\Controllers\Controller;
-use App\Mail\Notification;
+use App\Jobs\SendInternalNotificationJob;
 use App\Models\Career;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -113,7 +113,7 @@ class CareerController extends Controller
 
         // Send email notification
         try {
-            (new Notification('New career application', 'career', $data))->sendNotification();
+            SendInternalNotificationJob::dispatch('New career application', 'career', $data);
         } catch (Exception $error) {
             Log::error('Career notification email failed: ' . $error->getMessage());
         }

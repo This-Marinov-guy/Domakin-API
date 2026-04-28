@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Classes\ApiResponseClass;
+use App\Jobs\ExportModelToSpreadsheetJob;
 use App\Http\Controllers\Controller;
 use App\Models\Newsletter;
 use Illuminate\Http\Request;
@@ -81,10 +82,7 @@ class NewsletterController extends Controller
         }
 
         try {
-            $sheetsService->exportModelToSpreadsheet(
-                Newsletter::class,
-                'Newsletter emails'
-            );
+            ExportModelToSpreadsheetJob::dispatch(Newsletter::class, 'Newsletter emails');
         } catch (Exception $error) {
             //do nothing        
         }

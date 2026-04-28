@@ -3,10 +3,12 @@
 namespace Tests\Feature\Auth;
 
 use App\Http\Controllers\RegisteredUserController;
+use App\Jobs\ExportModelToSpreadsheetJob;
 use App\Services\GoogleServices\GoogleSheetsService;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
@@ -120,9 +122,7 @@ class RegisteredUserControllerDirectTest extends TestCase
         // SSO bypasses credential validation. User creation may fail if the
         // auth.users table is unavailable in this test environment, which is
         // handled gracefully — the response is still 200 with user_created set.
-        $this->mock(GoogleSheetsService::class, fn ($m) =>
-            $m->shouldReceive('exportModelToSpreadsheet')->once()->andReturn(null)
-        );
+        Queue::fake();
 
         $request = Request::create(
             '/api/v1/authentication/register',
@@ -141,6 +141,13 @@ class RegisteredUserControllerDirectTest extends TestCase
         $payload = $this->assertJsonStatus($response, 200);
         $this->assertTrue($payload['status']);
         $this->assertArrayHasKey('user_created', $payload['data']);
+
+        if (($payload['data']['user_created'] ?? false) === true) {
+            Queue::assertPushed(ExportModelToSpreadsheetJob::class, function (ExportModelToSpreadsheetJob $job) {
+                return $job->modelClass === \App\Models\User::class
+                    && $job->sheetName === 'Users';
+            });
+        }
     }
 
     public function test_store_returns_error_for_non_sso_when_user_creation_fails(): void

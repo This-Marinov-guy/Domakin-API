@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\ExportModelToSpreadsheetJob;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -193,7 +194,7 @@ class RegisteredUserController extends Controller
                 'referral_code' => $referral_code,
             ]);
 
-            $sheetsService->exportModelToSpreadsheet(User::class, 'Users');
+            ExportModelToSpreadsheetJob::dispatch(User::class, 'Users');
         } catch (\Exception $error) {
             Log::error($error->getMessage());
             return ApiResponseClass::sendError();
