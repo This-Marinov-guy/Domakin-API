@@ -25,6 +25,7 @@ class ListingMailerService
             $this->mailerApi->post('/room/send-finish-application', [
                 'email'   => $application->email,
                 'id'      => $application->id,
+                'reference_id' => $application->reference_id,
                 'name'    => trim(($application->name ?? '') . ' ' . ($application->surname ?? '')),
                 'address' => $application->address ?? '',
                 'city'    => $application->city ?? '',

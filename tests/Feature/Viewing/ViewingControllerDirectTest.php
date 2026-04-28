@@ -266,4 +266,30 @@ class ViewingControllerDirectTest extends TestCase
         $this->assertSame(2, $payload['data']['status']);
         $this->assertSame('Confirmed by admin', $payload['data']['internal_note']);
     }
+
+    public function test_edit_ignores_malformed_internal_updater_id(): void
+    {
+        $this->mockUserService('0');
+        $viewing = $this->createViewing();
+
+        $request = Request::create(
+            '/api/v1/viewing/edit',
+            'PATCH',
+            $this->viewingEditData($viewing->id)
+        );
+
+        $controller = app(ViewingController::class);
+
+        $response = $controller->edit(
+            $request,
+            app(ViewingService::class),
+            app(UserService::class)
+        );
+
+        $payload = $this->assertJsonStatus($response, 200);
+        $this->assertTrue($payload['status']);
+        $this->assertSame(2, $payload['data']['status']);
+        $this->assertSame('Confirmed by admin', $payload['data']['internal_note']);
+        $this->assertNull($payload['data']['internal_updated_by_user']);
+    }
 }

@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Validator as ValidatorFacade;
 
 class ViewingService
 {
+    private const UUID_PATTERN = '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i';
+
     /**
      * Validation rules for editing a viewing (status, internal_note).
      *
@@ -44,7 +46,7 @@ class ViewingService
         $hasInternalUpdatedBy = Schema::hasColumn('viewings', 'internal_updated_by');
         $validUpdaterId = null;
 
-        if ($hasInternalUpdatedBy && $updatedByUserId) {
+        if ($hasInternalUpdatedBy && $this->isUuid($updatedByUserId)) {
             $validUpdaterId = User::query()->whereKey($updatedByUserId)->value('id');
         }
 
@@ -66,6 +68,13 @@ class ViewingService
             $viewing->update($updates);
         }
 
-        return $viewing->fresh(['internalUpdatedBy']);
+        // Avoid eager-loading the updater relation here because older production
+        // rows may still contain non-UUID values such as 0.
+        return $viewing->fresh();
+    }
+
+    private function isUuid(?string $value): bool
+    {
+        return is_string($value) && preg_match(self::UUID_PATTERN, $value) === 1;
     }
 }
