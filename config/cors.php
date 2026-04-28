@@ -1,5 +1,14 @@
 <?php
 
+$isDev = env('APP_ENV') === 'dev';
+$devOrigins = array_values(array_filter([
+    env('FRONTEND_URL'),
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'https://localhost:3000',
+    'https://127.0.0.1:3000',
+]));
+
 return [
 
     /*
@@ -19,7 +28,7 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => env("APP_ENV") === 'dev' ? ['*'] : [
+    'allowed_origins' => $isDev ? $devOrigins : [
         env('FRONTEND_URL', ''),
         'https://domakin.nl',
         'https://demo.domakin.nl',

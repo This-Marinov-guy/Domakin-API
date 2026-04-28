@@ -22,6 +22,10 @@ class VerifyCsrfToken extends Middleware
      */
     protected function inExceptArray($request): bool
     {
+        if ($this->isDevEnvironment()) {
+            return true;
+        }
+
         $path = $request->path();
         $excludedPatterns = config('firewall.csrf_excluded', []);
 
@@ -32,6 +36,11 @@ class VerifyCsrfToken extends Middleware
         }
 
         return parent::inExceptArray($request);
+    }
+
+    private function isDevEnvironment(): bool
+    {
+        return config('app.env') === 'dev';
     }
 
     /**

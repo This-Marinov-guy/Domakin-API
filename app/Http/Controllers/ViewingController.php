@@ -48,7 +48,7 @@ class ViewingController extends Controller
             'city' => 'nullable|string',
             'search' => 'nullable|string',
             'reference_id' => 'nullable|string',
-            'status' => 'nullable|integer',
+            'status' => 'nullable',
             'per_page' => 'nullable|integer|min:1|max:100',
             'page' => 'nullable|integer|min:1',
         ]);
@@ -60,7 +60,9 @@ class ViewingController extends Controller
         $perPage = (int) $request->get('per_page', 15);
         $page = (int) $request->get('page', 1);
 
-        $query = Viewing::query()->with('internalUpdatedBy')->orderByDesc('created_at');
+        $query = Viewing::query()
+            ->orderByDesc('created_at')
+            ->orderByDesc('id');
 
         if ($request->filled('city')) {
             $city = (string) $request->string('city')->trim();
@@ -87,7 +89,10 @@ class ViewingController extends Controller
         }
 
         if ($request->filled('status')) {
-            $query->where('status', (int) $request->get('status'));
+            $status = trim((string) $request->get('status'));
+            if (ctype_digit($status)) {
+                $query->whereRaw('COALESCE(status, 1) = ?', [(int) $status]);
+            }
         }
 
         $paginator = $query->paginate($perPage, ['*'], 'page', $page);
@@ -134,7 +139,7 @@ class ViewingController extends Controller
      */
     public function details($id)
     {
-        $viewing = Viewing::with('internalUpdatedBy')->find($id);
+        $viewing = Viewing::find($id);
 
         if (!$viewing) {
             return ApiResponseClass::sendError('Viewing not found');

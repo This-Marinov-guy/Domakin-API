@@ -2,8 +2,10 @@
 
 namespace App\Services;
 
+use App\Models\User;
 use App\Models\Viewing;
 use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Validator as ValidatorFacade;
 
 class ViewingService
@@ -37,17 +39,30 @@ class ViewingService
             return null;
         }
 
+        $hasInternalNote = Schema::hasColumn('viewings', 'internal_note');
+        $hasInternalUpdatedAt = Schema::hasColumn('viewings', 'internal_updated_at');
+        $hasInternalUpdatedBy = Schema::hasColumn('viewings', 'internal_updated_by');
+        $validUpdaterId = null;
+
+        if ($hasInternalUpdatedBy && $updatedByUserId) {
+            $validUpdaterId = User::query()->whereKey($updatedByUserId)->value('id');
+        }
+
         $updates = [];
         if (array_key_exists('status', $data)) {
             $updates['status'] = $data['status'];
         }
-        if (array_key_exists('internal_note', $data)) {
+        if ($hasInternalNote && array_key_exists('internal_note', $data)) {
             $updates['internal_note'] = $data['internal_note'];
         }
 
         if ($updates !== []) {
-            $updates['internal_updated_at'] = now();
-            $updates['internal_updated_by'] = $updatedByUserId;
+            if ($hasInternalUpdatedAt) {
+                $updates['internal_updated_at'] = now();
+            }
+            if ($hasInternalUpdatedBy) {
+                $updates['internal_updated_by'] = $validUpdaterId;
+            }
             $viewing->update($updates);
         }
 

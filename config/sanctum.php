@@ -2,6 +2,14 @@
 
 use Laravel\Sanctum\Sanctum;
 
+$statefulDomains = array_values(array_unique(array_filter([
+    env('FRONTEND_URL', 'localhost:3000'),
+    'localhost:3000',
+    '127.0.0.1:3000',
+    'release.domakin.nl',
+    'domakin.nl',
+])));
+
 return [
 
     /*
@@ -15,11 +23,7 @@ return [
     |
     */
 
-    'stateful' => [
-        env('FRONTEND_URL', 'localhost:3000'),
-        'release.domakin.nl',
-        'domakin.nl',
-    ],
+    'stateful' => $statefulDomains,
 
     /*
     |--------------------------------------------------------------------------

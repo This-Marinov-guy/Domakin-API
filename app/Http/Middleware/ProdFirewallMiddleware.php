@@ -10,6 +10,10 @@ class ProdFirewallMiddleware
 {
     public function handle(Request $request, Closure $next): Response
     {
+        if ($this->isDevEnvironment()) {
+            return $next($request);
+        }
+
         $allowedDomains = config('domains.allowed_domains', []);
 
         // Add dev domains if in development/local environment
@@ -45,6 +49,11 @@ class ProdFirewallMiddleware
     {
         $env = env('APP_ENV');
         return $env === 'dev' || $env === 'local' || $env === 'testing';
+    }
+
+    private function isDevEnvironment(): bool
+    {
+        return config('app.env') === 'dev';
     }
 
     private function extractHost(?string $url): ?string
