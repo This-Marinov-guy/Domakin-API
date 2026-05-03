@@ -13,6 +13,7 @@ use App\Models\Renting;
 use App\Models\SearchRenting;
 use Illuminate\Http\Request;
 use App\Services\GoogleServices\GoogleSheetsService;
+use App\Services\Helpers;
 use App\Services\RentingService;
 use App\Services\UserService;
 use Illuminate\Support\Facades\Validator;
@@ -167,6 +168,8 @@ class RentingController extends Controller
             return ApiResponseClass::sendError($error->getMessage());
         }
 
+        $data['property'] = $this->resolvePropertyLabel($data['property_id'], $data['property']);
+
         try {
             SendInternalNotificationJob::dispatch('New renting request', 'renting', $data);
             ExportModelToSpreadsheetJob::dispatch(Renting::class, 'Rentings');
@@ -312,5 +315,43 @@ class RentingController extends Controller
         }
 
         return ApiResponseClass::sendSuccess($renting);
+    }
+
+    /**
+     * Build a clean "<id> | <english title> | <location>" label, replacing the
+     * multilingual JSON title segment the frontend sends with its English value.
+     */
+    private function resolvePropertyLabel(?int $propertyId, ?string $original): ?string
+    {
+        $property = $propertyId ? Property::with('propertyData')->find($propertyId) : null;
+        $title = $property?->propertyData?->title ?? null;
+
+        if (is_string($title)) {
+            $decoded = json_decode($title, true);
+            if (is_array($decoded)) {
+                $title = $decoded;
+            }
+        }
+
+        $englishTitle = is_array($title)
+            ? (string) Helpers::getTranslatedValue($title, 'en', true, '')
+            : (string) ($title ?? '');
+
+        if ($englishTitle === '') {
+            return $original;
+        }
+
+        $location = $property?->propertyData?->address ?? null;
+        $displayId = $propertyId !== null
+            ? $propertyId + Properties::FRONTEND_PROPERTY_ID_INDEXING
+            : null;
+
+        $segments = array_filter([
+            $displayId,
+            $englishTitle,
+            $location,
+        ], fn ($segment) => $segment !== null && $segment !== '');
+
+        return implode(' | ', $segments);
     }
 }
