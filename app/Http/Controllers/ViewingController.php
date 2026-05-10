@@ -232,7 +232,6 @@ class ViewingController extends Controller
                         $data['time'],
                         $data['address'] . ' ' . $data['city'],
                         $typeValue,
-                        '', // Went (leave unchecked)
                         $paymentLink,
                         '', // Paid (leave unchecked)
                     ]);
