@@ -156,11 +156,8 @@ class ProfileController extends Controller
                 $user->iban = $request->input('iban') ?: null;
             }
 
-            if ($request->password) {
-                // Keep the local users row in sync with Supabase. The model's
-                // 'password' => 'hashed' cast hashes this on save.
-                $user->password = $request->password;
-            }
+            // Note: passwords are stored only in Supabase auth, not in the local
+            // users table (there is no password column), so nothing to set here.
 
             $user->save();
             $user->refresh();
@@ -169,7 +166,13 @@ class ProfileController extends Controller
                 'user' => $user->toArray(),
             ]);
         } catch (\Exception $e) {
-            return ApiResponseClass::sendError('Failed to update profile: ' . $e->getMessage(), 500);
+            // Log the real cause for debugging, but never expose it to the user.
+            Log::error('Failed to update profile: ' . $e->getMessage(), [
+                'user_id' => $user->id ?? null,
+                'exception' => $e,
+            ]);
+
+            return ApiResponseClass::sendError();
         }
     }
 }
