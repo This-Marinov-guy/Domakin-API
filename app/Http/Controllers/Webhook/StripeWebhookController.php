@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Webhook;
 
+use App\Constants\Payments;
+use App\Constants\Sheets;
 use App\Http\Controllers\Controller;
 use App\Services\GoogleServices\GoogleSheetsService;
 use Illuminate\Http\Request;
@@ -52,26 +54,43 @@ class StripeWebhookController extends Controller
             return response('Invalid signature', 400);
         }
 
-        $type = $event->type ?? ($event->type ?? null);
+        $type = $event->type ?? null;
 
         try {
-            if ($type === 'checkout.session.completed') {
+            if (in_array($type, ['checkout.session.completed', 'checkout.session.async_payment_succeeded'], true)) {
                 $session = $event->data->object;
+                $paymentStatus = $session->payment_status ?? null;
+
+                if ($type === 'checkout.session.completed' && $paymentStatus !== 'paid') {
+                    return response('OK', 200);
+                }
+
                 $paymentLinkId = $session->payment_link ?? null;
-                $referenceViewingId = $session->client_reference_id ?? ($session->client_reference_id ?? null);
+                $referenceViewingId = $session->client_reference_id ?? null;
 
                 if ($referenceViewingId && config('sheets.export_enabled', true)) {
-                    $sheetId = \App\Constants\Sheets::VIEWINGS_SHEET_ID;
-                    $sheets->markPaidByViewingId($sheetId, \App\Constants\Sheets::VIEWINGS_TAB, (string)$referenceViewingId);
+                    $sheets->markPaidByViewingId(
+                        Sheets::VIEWINGS_SHEET_ID,
+                        Sheets::VIEWINGS_TAB,
+                        (string) $referenceViewingId,
+                        Sheets::VIEWINGS_PAID_COLUMN
+                    );
                 } elseif ($paymentLinkId) {
                     $client = new StripeClient(env('STRIPE_SECRET_KEY') ?: env('STRIPE_SECRET'));
                     $plink = $client->paymentLinks->retrieve($paymentLinkId, []);
                     $paymentLinkUrl = $plink->url ?? null;
                     $checkoutType = $plink->metadata['checkout_type'] ?? null;
+                    $isViewingLink = $checkoutType === 'viewing'
+                        || $paymentLinkUrl === Payments::STRIPE_VIEWING_EXPRESS_LINK
+                        || $paymentLinkUrl === Payments::STRIPE_VIEWING_STANDARD_LINK;
 
-                    if ($paymentLinkUrl && $checkoutType === 'viewing' && config('sheets.export_enabled', true)) {
-                        $sheetId = \App\Constants\Sheets::VIEWINGS_SHEET_ID;
-                        $sheets->markPaidByPaymentLink($sheetId, \App\Constants\Sheets::VIEWINGS_TAB, $paymentLinkUrl);
+                    if ($paymentLinkUrl && $isViewingLink && config('sheets.export_enabled', true)) {
+                        $sheets->markPaidByPaymentLink(
+                            Sheets::VIEWINGS_SHEET_ID,
+                            Sheets::VIEWINGS_TAB,
+                            $paymentLinkUrl,
+                            Sheets::VIEWINGS_PAID_COLUMN
+                        );
                     }
                 }
             }

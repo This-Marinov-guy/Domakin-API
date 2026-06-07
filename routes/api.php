@@ -186,6 +186,10 @@ Route::prefix('webhook')->middleware('axiom.webhook.logger')->group(function () 
         ->middleware('webhook.secret');
 });
 
+Route::prefix('webhooks')->middleware('axiom.webhook.logger')->group(function () {
+    Route::post('/stripe/checkout', [StripeWebhookController::class, 'handle']);
+});
+
 /*
 |--------------------------------------------------------------------------
 | Future API Versions

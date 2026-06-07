@@ -2,6 +2,7 @@
 
 namespace App\Services\GoogleServices;
 
+use App\Constants\Sheets as DomakinSheets;
 use Google\Client;
 use Google\Service\Sheets;
 use Google\Service\Sheets\SheetProperties;
@@ -76,14 +77,19 @@ class GoogleSheetsService
 
     /**
      * Mark the Paid checkbox to TRUE for the row that contains the given payment link URL.
-     * Assumes the Paid column is immediately after the Payment Link column in the row we append.
      *
      * @param string $spreadsheetId
      * @param string $sheetName
      * @param string $paymentLinkUrl
+     * @param string|null $paidColumnLetter
      * @return bool
      */
-    public function markPaidByPaymentLink(string $spreadsheetId, string $sheetName, string $paymentLinkUrl): bool
+    public function markPaidByPaymentLink(
+        string $spreadsheetId,
+        string $sheetName,
+        string $paymentLinkUrl,
+        ?string $paidColumnLetter = null
+    ): bool
     {
         try {
             $response = $this->service->spreadsheets_values->get($spreadsheetId, $sheetName);
@@ -92,12 +98,17 @@ class GoogleSheetsService
                 return false;
             }
 
+            $paidColumnLetter = $paidColumnLetter ?: DomakinSheets::VIEWINGS_PAID_COLUMN;
+            $paidColIndex = self::columnLetterToIndex($paidColumnLetter) - 1; // zero-based
+            $normalizedPaymentLinkUrl = strtok($paymentLinkUrl, '?') ?: $paymentLinkUrl;
+
             // Find the row and column index of the payment link
             foreach ($values as $rowIndex => $row) {
-                foreach ($row as $colIndex => $cell) {
-                    if ($cell === $paymentLinkUrl) {
-                        // Paid column is the next column
-                        $paidColIndex = $colIndex + 1; // zero-based
+                foreach ($row as $cell) {
+                    $cellValue = (string) $cell;
+                    $normalizedCellValue = strtok($cellValue, '?') ?: $cellValue;
+
+                    if ($cellValue === $paymentLinkUrl || $normalizedCellValue === $normalizedPaymentLinkUrl) {
                         $a1Notation = $sheetName.'!'.self::columnIndexToLetter($paidColIndex + 1).($rowIndex + 1);
                         $valueRange = new \Google\Service\Sheets\ValueRange([
                             'values' => [[true]]
@@ -122,7 +133,12 @@ class GoogleSheetsService
     /**
      * Mark the Paid checkbox to TRUE for the row with the given viewing ID in column A.
      */
-    public function markPaidByViewingId(string $spreadsheetId, string $sheetName, string $viewingId): bool
+    public function markPaidByViewingId(
+        string $spreadsheetId,
+        string $sheetName,
+        string $viewingId,
+        ?string $paidColumnLetter = null
+    ): bool
     {
         try {
             $response = $this->service->spreadsheets_values->get($spreadsheetId, $sheetName);
@@ -137,16 +153,8 @@ class GoogleSheetsService
                 }
                 $idCell = $row[0] ?? '';
                 if ((string)$idCell === (string)$viewingId) {
-                    // Paid column index: find header row and column name 'Paid?' else assume I (9th)
-                    $paidColIndex = 9 - 1; // default I column (index 8)
-                    if (!empty($values[0])) {
-                        foreach ($values[0] as $headerIndex => $header) {
-                            if (stripos((string)$header, 'paid') !== false) {
-                                $paidColIndex = $headerIndex;
-                                break;
-                            }
-                        }
-                    }
+                    $paidColumnLetter = $paidColumnLetter ?: DomakinSheets::VIEWINGS_PAID_COLUMN;
+                    $paidColIndex = self::columnLetterToIndex($paidColumnLetter) - 1; // zero-based
                     $a1Notation = $sheetName.'!'.self::columnIndexToLetter($paidColIndex + 1).($rowIndex + 1);
                     $valueRange = new \Google\Service\Sheets\ValueRange([
                         'values' => [[true]]
@@ -235,6 +243,22 @@ class GoogleSheetsService
             $colNumber = (int)(($colNumber - $temp - 1) / 26);
         }
         return $letter;
+    }
+
+    protected static function columnLetterToIndex(string $columnLetter): int
+    {
+        $columnLetter = strtoupper(trim($columnLetter));
+        $number = 0;
+
+        foreach (str_split($columnLetter) as $letter) {
+            if ($letter < 'A' || $letter > 'Z') {
+                throw new \InvalidArgumentException("Invalid spreadsheet column letter: {$columnLetter}");
+            }
+
+            $number = ($number * 26) + (ord($letter) - 64);
+        }
+
+        return $number;
     }
 
     /**
