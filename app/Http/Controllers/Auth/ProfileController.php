@@ -7,7 +7,6 @@ use App\Models\User;
 use App\Files\CloudinaryService;
 use App\Services\UserService;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Classes\ApiResponseClass;
@@ -121,7 +120,10 @@ class ProfileController extends Controller
             }
 
             if ($request->password) {
-                $supabaseUpdateData['password'] = Hash::make($request->password);
+                // Supabase's admin API hashes the password itself, so send it as
+                // plaintext (same as registration). Hashing here would double-hash
+                // it and lock the user out.
+                $supabaseUpdateData['password'] = $request->password;
             }
 
             $profileImageUrl = $request->hasFile('profileImage') ? $cloudinary->singleUpload($request->file('profileImage'), [
@@ -152,6 +154,12 @@ class ProfileController extends Controller
 
             if ($request->has('iban')) {
                 $user->iban = $request->input('iban') ?: null;
+            }
+
+            if ($request->password) {
+                // Keep the local users row in sync with Supabase. The model's
+                // 'password' => 'hashed' cast hashes this on save.
+                $user->password = $request->password;
             }
 
             $user->save();
