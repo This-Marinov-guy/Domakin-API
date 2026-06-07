@@ -83,21 +83,30 @@ class AxiomWebhookLoggerMiddleware
         return $headers;
     }
 
+    /**
+     * Field names whose values must never be logged in plaintext. Matched
+     * case-insensitively against keys at any depth of the request/response body.
+     */
+    private const SENSITIVE_FIELDS = [
+        'password',
+        'password_confirmation',
+        'current_password',
+        'new_password',
+        'secret',
+        'token',
+        'api_key',
+        'credit_card',
+        'card_number',
+        'cvv',
+    ];
+
+    private const MASK = '****';
+
     private function sanitizeRequestBody(Request $request): array|string
     {
-        $sensitiveFields = [
-            'password', 'password_confirmation', 'current_password',
-            'secret', 'token', 'api_key', 'credit_card', 'card_number', 'cvv',
-        ];
         $input = $request->input();
-        if (is_array($input)) {
-            foreach ($sensitiveFields as $field) {
-                if (isset($input[$field])) {
-                    $input[$field] = '[REDACTED]';
-                }
-            }
-        }
-        return $input;
+
+        return is_array($input) ? $this->redactSensitive($input) : $input;
     }
 
     private function sanitizeResponseBody(?string $content): array|string
@@ -112,11 +121,31 @@ class AxiomWebhookLoggerMiddleware
                 if (strlen($content) > $maxSize) {
                     return ['_truncated' => true, 'size' => strlen($content)];
                 }
-                return $decoded;
+                return is_array($decoded) ? $this->redactSensitive($decoded) : $decoded;
             }
             return strlen($content) > 1000 ? substr($content, 0, 1000) . '... [truncated]' : $content;
         } catch (\Throwable) {
             return 'Failed to parse response body';
         }
+    }
+
+    /**
+     * Recursively replace the values of sensitive keys with a mask, so secrets
+     * (e.g. passwords, plaintext or hashed) are never sent to Axiom.
+     */
+    private function redactSensitive(array $data): array
+    {
+        foreach ($data as $key => $value) {
+            if (is_string($key) && in_array(strtolower($key), self::SENSITIVE_FIELDS, true)) {
+                $data[$key] = self::MASK;
+                continue;
+            }
+
+            if (is_array($value)) {
+                $data[$key] = $this->redactSensitive($value);
+            }
+        }
+
+        return $data;
     }
 }
