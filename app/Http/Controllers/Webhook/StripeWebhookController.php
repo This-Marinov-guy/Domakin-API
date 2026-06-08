@@ -66,7 +66,8 @@ class StripeWebhookController extends Controller
                 }
 
                 $paymentLinkId = $session->payment_link ?? null;
-                $referenceViewingId = $session->client_reference_id ?? null;
+                $clientReferenceId = $session->client_reference_id ?? null;
+                $referenceViewingId = $this->viewingIdFromClientReference($clientReferenceId);
 
                 if ($referenceViewingId && config('sheets.export_enabled', true)) {
                     $sheets->markPaidByViewingId(
@@ -100,6 +101,21 @@ class StripeWebhookController extends Controller
         }
 
         return response('OK', 200);
+    }
+
+    private function viewingIdFromClientReference(?string $clientReferenceId): ?string
+    {
+        if (!$clientReferenceId) {
+            return null;
+        }
+
+        if (str_starts_with($clientReferenceId, Payments::VIEWING_CLIENT_REFERENCE_PREFIX)) {
+            $viewingId = substr($clientReferenceId, strlen(Payments::VIEWING_CLIENT_REFERENCE_PREFIX));
+
+            return $viewingId !== '' ? $viewingId : null;
+        }
+
+        return ctype_digit($clientReferenceId) ? $clientReferenceId : null;
     }
 }
 

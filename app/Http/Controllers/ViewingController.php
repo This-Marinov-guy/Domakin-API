@@ -216,8 +216,12 @@ class ViewingController extends Controller
             $nowNl = Carbon::now('Europe/Amsterdam');
             $isStandard = $viewingDateTime->gt($nowNl->copy()->addDay());
             $baseLink = $isStandard ? Payments::STRIPE_VIEWING_STANDARD_LINK : Payments::STRIPE_VIEWING_EXPRESS_LINK;
-            // Attach viewing id so webhook can identify the row via client_reference_id
-            $paymentLink = $baseLink . (str_contains($baseLink, '?') ? '&' : '?') . 'client_reference_id=' . $viewing->id;
+            // Attach the source and viewing id so Stripe sends both back in the checkout webhook.
+            $paymentLink = $baseLink
+                . (str_contains($baseLink, '?') ? '&' : '?')
+                . http_build_query([
+                    'client_reference_id' => Payments::VIEWING_CLIENT_REFERENCE_PREFIX . $viewing->id,
+                ]);
             if ($paymentLink) {
                 $viewing->update(['payment_link' => $paymentLink]);
                 // Append to the specified Google Sheet (skip on demo)
