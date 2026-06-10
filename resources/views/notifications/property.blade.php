@@ -6,6 +6,7 @@
 </head>
 
 <body>
+    <span style="display:inline-block;background-color:#4f46e5;color:#ffffff;font-size:11px;font-weight:600;letter-spacing:.05em;padding:3px 10px;border-radius:12px;font-family:sans-serif;">Automation</span>
     <h1>New Property Upload</h1>
 
     <h2>Client Information</h2>

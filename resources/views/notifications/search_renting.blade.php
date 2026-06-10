@@ -6,6 +6,7 @@
 </head>
 
 <body>
+    <span style="display:inline-block;background-color:#4f46e5;color:#ffffff;font-size:11px;font-weight:600;letter-spacing:.05em;padding:3px 10px;border-radius:12px;font-family:sans-serif;">Automation</span>
     <h1>New Searching for Renting from {{ $data['name'] }} in {{ $data['city'] }}</h1>
     <p>Name: {{ $data['name'] }}</p>
     <p>Surname: {{ $data['surname'] }}</p>

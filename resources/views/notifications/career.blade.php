@@ -6,6 +6,7 @@
 </head>
 
 <body>
+    <span style="display:inline-block;background-color:#4f46e5;color:#ffffff;font-size:11px;font-weight:600;letter-spacing:.05em;padding:3px 10px;border-radius:12px;font-family:sans-serif;">Automation</span>
     <h1>New Career Application from {{ $data['name'] }}</h1>
     <p><strong>Name:</strong> {{ $data['name'] }}</p>
     <p><strong>Email:</strong> {{ $data['email'] }}</p>
