@@ -156,13 +156,14 @@ class ViewingController extends Controller
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             required={"property_id", "name", "email", "phone", "date", "time", "interface"},
+     *             required={"property_id", "name", "email", "phone", "date", "time", "note", "interface"},
      *             @OA\Property(property="property_id", type="integer", example=1),
      *             @OA\Property(property="name", type="string", example="John Doe"),
      *             @OA\Property(property="email", type="string", format="email", example="john@example.com"),
      *             @OA\Property(property="phone", type="string", example="+31 6 12345678"),
      *             @OA\Property(property="date", type="string", format="date", example="2025-12-10"),
      *             @OA\Property(property="time", type="string", example="14:00"),
+     *             @OA\Property(property="note", type="string", example="Questions for the agent to ask during the viewing"),
      *             @OA\Property(property="interface", type="string", enum={"web", "mobile", "signal"}, example="web", description="Interface source")
      *         )
      *     ),
@@ -272,9 +273,7 @@ class ViewingController extends Controller
             $description .= "Phone: " . $data['phone'] . "\n";
             $description .= "Email: " . $data['email'] . "\n";
             
-            if (!empty($data['note'])) {
-                $description .= "Note: " . $data['note'];
-            }
+            $description .= "Questions: " . $data['note'];
 
             // Create calendar event
             $eventId = $calendarService->createEvent(

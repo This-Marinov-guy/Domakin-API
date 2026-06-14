@@ -105,6 +105,7 @@ class Viewing extends Model
             'address' => 'required|string|max:50',
             'date' => 'required|string',
             'time' => 'required|string',
+            'note' => 'required|string',
             'interface' => 'required|string|in:web,mobile,signal',
         ];
 
@@ -123,6 +124,9 @@ class Viewing extends Model
             ],
             'phone.min' => [
                 'tag' => 'account:authentication.errors.phone_invalid',
+            ],
+            'note.required' => [
+                'tag' => 'viewing.errors.questions_required',
             ],
             'terms.contact.accepted' => [
                 'tag' => 'account:authentication.errors.terms_must_be_accepted',

@@ -161,6 +161,29 @@ class ViewingControllerDirectTest extends TestCase
         $this->assertFalse($payload['status']);
     }
 
+    public function test_create_fails_when_note_is_missing(): void
+    {
+        $this->mockViewingCreateServices();
+
+        $request = Request::create(
+            '/api/v1/viewing/create',
+            'POST',
+            $this->without($this->viewingCreateData(), 'note')
+        );
+
+        $controller = app(ViewingController::class);
+
+        $response = $controller->create(
+            $request,
+            app(GoogleSheetsService::class),
+            app(GoogleCalendarService::class)
+        );
+
+        $payload = $this->assertJsonStatus($response, 422);
+        $this->assertFalse($payload['status']);
+        $this->assertContains('note', $payload['invalid_fields']);
+    }
+
     public function test_create_creates_viewing_with_valid_data(): void
     {
         Queue::fake();
@@ -200,6 +223,10 @@ class ViewingControllerDirectTest extends TestCase
         $this->mock(GoogleCalendarService::class, function ($mock) {
             $mock->shouldReceive('createEvent')
                 ->once()
+                ->withArgs(function ($date, $time, $description) {
+                    return str_contains($description, 'Questions: Please ask if registration is possible.')
+                        && !str_contains($description, 'Note:');
+                })
                 ->andReturn('cal-event-abc123');
         });
 

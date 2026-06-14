@@ -22,6 +22,7 @@ trait ViewingControllerData
             'address'   => 'Herengracht 1',
             'date'      => '01-06-2027',
             'time'      => '14:00',
+            'note'      => 'Please ask if registration is possible.',
             'interface' => 'web',
         ], $overrides));
     }
@@ -47,6 +48,7 @@ trait ViewingControllerData
             'address'   => 'Herengracht 1',
             'date'      => '01-06-2027',  // d-m-Y — required by Carbon::createFromFormat
             'time'      => '14:00',
+            'note'      => 'Please ask if registration is possible.',
             'interface' => 'web',
             // ViewingController uses $request->all() directly (no json_decode), so pass as array.
             // terms always required when localhost is in terms_required_domains config.
