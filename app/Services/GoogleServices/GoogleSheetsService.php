@@ -234,6 +234,51 @@ class GoogleSheetsService
         }
     }
 
+    /**
+     * Read raw values from a spreadsheet range.
+     *
+     * @return array<int, array<int, mixed>>
+     */
+    public function getValues(string $spreadsheetId, string $range): array
+    {
+        try {
+            $response = $this->service->spreadsheets_values->get($spreadsheetId, $range);
+
+            return $response->getValues() ?: [];
+        } catch (\Exception $e) {
+            Log::error('Failed to read values from Google Sheet: '.$e->getMessage(), [
+                'spreadsheet_id' => $spreadsheetId,
+                'range' => $range,
+            ]);
+
+            throw $e;
+        }
+    }
+
+    public function getSheetTitleById(string $spreadsheetId, int|string $sheetId): ?string
+    {
+        try {
+            $spreadsheet = $this->service->spreadsheets->get($spreadsheetId);
+
+            foreach ($spreadsheet->getSheets() as $sheet) {
+                $properties = $sheet->getProperties();
+
+                if ((string) $properties->getSheetId() === (string) $sheetId) {
+                    return $properties->getTitle();
+                }
+            }
+
+            return null;
+        } catch (\Exception $e) {
+            Log::error('Failed to find Google Sheet tab by gid: '.$e->getMessage(), [
+                'spreadsheet_id' => $spreadsheetId,
+                'sheet_id' => $sheetId,
+            ]);
+
+            throw $e;
+        }
+    }
+
     protected static function columnIndexToLetter(int $colNumber): string
     {
         $letter = '';
