@@ -1,0 +1,19 @@
+name: Run agents sync
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run-agents-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run agents sync on production server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            cd /root/domakin-api
+            docker compose exec -T domakin-api php artisan agents:sync-from-sheet
