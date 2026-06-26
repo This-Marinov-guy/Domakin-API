@@ -17,9 +17,16 @@ class SyncAgentsFromSheet extends Command
     public function handle(AgentSheetSyncService $syncService): int
     {
         $dryRun = (bool) $this->option('dry-run');
+        $this->info($dryRun ? 'Starting agents sheet sync dry run...' : 'Starting agents sheet sync...');
 
         try {
-            $summary = $syncService->sync($dryRun);
+            $summary = $syncService->sync($dryRun, function (string $message, array $context = []): void {
+                $suffix = empty($context)
+                    ? ''
+                    : ' '.json_encode($context, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
+                $this->line('[agents:sync] '.$message.$suffix);
+            });
         } catch (\Throwable $error) {
             $this->error('Agents sheet sync failed: '.$error->getMessage());
 
