@@ -16,7 +16,9 @@ return [
         'domakin.nl',
         'demo.domakin.nl',
         'www.domakin.nl',
-        // Add more domains as needed
+        'admin.domakin.nl',
+        'www.admin.domakin.nl',
+
     ],
 
     /*

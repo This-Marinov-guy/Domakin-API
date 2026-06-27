@@ -7,6 +7,11 @@ $devOrigins = array_values(array_filter([
     'http://127.0.0.1:3000',
     'https://localhost:3000',
     'https://127.0.0.1:3000',
+
+    'http://localhost:3001',
+    'http://127.0.0.1:3001',
+    'https://localhost:3001',
+    'https://127.0.0.1:3001',
 ]));
 
 return [
@@ -32,6 +37,7 @@ return [
         env('FRONTEND_URL', ''),
         'https://domakin.nl',
         'https://demo.domakin.nl',
+        'https://admin.domakin.nl',
     ],
 
     'allowed_origins_patterns' => [],
