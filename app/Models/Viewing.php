@@ -30,6 +30,7 @@ class Viewing extends Model
         'referral_code',
         'google_calendar_id',
         'payment_link',
+        'locale',
         'interface',
         'status',
         'internal_note',

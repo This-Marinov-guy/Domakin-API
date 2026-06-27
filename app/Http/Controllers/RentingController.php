@@ -31,6 +31,13 @@ class RentingController extends Controller
      *     path="/api/v1/renting/create",
      *     summary="Submit a renting application",
      *     tags={"Renting"},
+     *     @OA\Parameter(
+     *         name="Accept-Language",
+     *         in="header",
+     *         required=false,
+     *         description="Website locale used for request tracking",
+     *         @OA\Schema(type="string", example="bg")
+     *     ),
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\MediaType(
@@ -138,6 +145,7 @@ class RentingController extends Controller
             'letter' => $request->file('letter'),
             'note' => $request->get('note'),
             'referral_code' => $request->get('referralCode'),
+            'locale' => $this->requestLocale($request),
             'interface' => $request->get('interface'),
             'terms' => json_decode($request->get('terms'), true),
         ];

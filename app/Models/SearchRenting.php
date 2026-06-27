@@ -29,6 +29,7 @@ class SearchRenting extends Model
         'city',
         'note',
         'referral_code',
+        'locale',
         'interface',
     ];
 

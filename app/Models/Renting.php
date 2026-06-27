@@ -46,6 +46,7 @@ class Renting extends Model
         'letter',
         'note',
         'referral_code',
+        'locale',
         'interface',
         'status',
         'internal_note',

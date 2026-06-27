@@ -154,6 +154,13 @@ class ViewingController extends Controller
      *     path="/api/v1/viewing/create",
      *     summary="Create a viewing appointment",
      *     tags={"Viewing"},
+     *     @OA\Parameter(
+     *         name="Accept-Language",
+     *         in="header",
+     *         required=false,
+     *         description="Website locale used for request tracking and the client confirmation email",
+     *         @OA\Schema(type="string", example="bg")
+     *     ),
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
@@ -165,7 +172,6 @@ class ViewingController extends Controller
      *             @OA\Property(property="date", type="string", format="date", example="2025-12-10"),
      *             @OA\Property(property="time", type="string", example="14:00"),
      *             @OA\Property(property="note", type="string", example="Questions for the agent to ask during the viewing"),
-     *             @OA\Property(property="locale", type="string", example="en", description="Website locale used for the client confirmation email"),
      *             @OA\Property(property="interface", type="string", enum={"web", "mobile", "signal"}, example="web", description="Interface source")
      *         )
      *     ),
@@ -200,6 +206,7 @@ class ViewingController extends Controller
     public function create(Request $request, GoogleSheetsService $sheetsService, GoogleCalendarService $calendarService): JsonResponse
     {
         $data = Helpers::camelToSnakeObject($request->all());
+        $data['locale'] = $this->requestLocale($request);
 
         $validator = Validator::make($data, Viewing::rules($request), Viewing::messages());
 
@@ -315,7 +322,7 @@ class ViewingController extends Controller
         }
 
         try {
-            SendViewingMailerJob::dispatch($viewing->id, (string) ($data['locale'] ?? 'en'));
+            SendViewingMailerJob::dispatch($viewing->id, (string) ($viewing->locale ?: 'en'));
         } catch (Exception $error) {
             Log::error('Error dispatching registered viewing email: ' . $error->getMessage(), [
                 'viewing_id' => $viewing->id ?? null,

@@ -23,6 +23,13 @@ class CareerController extends Controller
      *     path="/api/v1/career/apply",
      *     summary="Submit a career application",
      *     tags={"Career"},
+     *     @OA\Parameter(
+     *         name="Accept-Language",
+     *         in="header",
+     *         required=false,
+     *         description="Website locale used for request tracking",
+     *         @OA\Schema(type="string", example="bg")
+     *     ),
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\MediaType(
@@ -79,6 +86,7 @@ class CareerController extends Controller
             'experience' => $request->get('experience'),
             'message' => $request->get('message'),
             'resume' => $request->file('resume'),
+            'locale' => $this->requestLocale($request),
         ];
 
         $validator = Validator::make($data, Career::rules());

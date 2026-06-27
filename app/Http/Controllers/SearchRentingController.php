@@ -25,6 +25,13 @@ class SearchRentingController extends Controller
      *     path="/api/v1/renting/searching/create",
      *     summary="Submit a property search request",
      *     tags={"Renting"},
+     *     @OA\Parameter(
+     *         name="Accept-Language",
+     *         in="header",
+     *         required=false,
+     *         description="Website locale used for request tracking",
+     *         @OA\Schema(type="string", example="bg")
+     *     ),
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\MediaType(
@@ -111,6 +118,7 @@ class SearchRentingController extends Controller
             'city' => $request->get('city'),
             'note' => $request->get('note'),
             'referral_code' => $request->get('referralCode'),
+            'locale' => $this->requestLocale($request),
             'interface' => $request->get('interface'),
             'letter' => $request->file('letter') ?? null,
             'terms' => json_decode($request->get('terms'), true),
@@ -217,6 +225,7 @@ class SearchRentingController extends Controller
                 'email'        => $searchRenting->email,
                 'note'         => $searchRenting->note,
                 'referral_code' => $searchRenting->referral_code,
+                'locale'       => $searchRenting->locale ?: 'en',
                 'interface'    => $searchRenting->interface ?? 'web',
                 'letter'       => $searchRenting->letter,
             ]);

@@ -20,6 +20,7 @@ class Career extends Model
         'experience',
         'message',
         'resume',
+        'locale',
     ];
 
     public static function rules(): array

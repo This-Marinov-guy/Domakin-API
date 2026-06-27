@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Constants\Translations;
+use Illuminate\Http\Request;
+
 /**
  * @OA\Info(
  *     title="Domakin API",
@@ -68,5 +71,24 @@ namespace App\Http\Controllers;
  */
 abstract class Controller
 {
-    //
+    protected function requestLocale(Request $request): string
+    {
+        $language = $request->header('Accept-Language')
+            ?: $request->header('X-Language')
+            ?: $request->header('X-Locale')
+            ?: 'en';
+
+        $language = strtolower(trim(explode(',', $language)[0]));
+        $language = str_replace('_', '-', $language);
+
+        if (str_starts_with($language, 'el')) {
+            $language = 'gr';
+        }
+
+        $locale = explode('-', $language)[0] ?: 'en';
+
+        return in_array($locale, Translations::WEB_SUPPORTED_LOCALES, true)
+            ? $locale
+            : 'en';
+    }
 }
