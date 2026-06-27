@@ -4,10 +4,13 @@ namespace Tests\Feature\Viewing;
 
 use App\Http\Controllers\ViewingController;
 use App\Jobs\SendInternalNotificationJob;
+use App\Jobs\SendViewingMailerJob;
 use App\Models\Viewing;
 use App\Services\GoogleServices\GoogleCalendarService;
 use App\Services\GoogleServices\GoogleSheetsService;
+use App\Services\MailerApiService;
 use App\Services\UserService;
+use App\Services\ViewingMailerService;
 use App\Services\ViewingService;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\Request;
@@ -215,6 +218,35 @@ class ViewingControllerDirectTest extends TestCase
                 && $job->subjectLine === 'New viewing request'
                 && ($job->data['email'] ?? null) === 'john@example.com';
         });
+        Queue::assertPushed(SendViewingMailerJob::class, function (SendViewingMailerJob $job) {
+            return $job->locale === 'en';
+        });
+    }
+
+    public function test_viewing_mailer_sends_registered_viewing_payload(): void
+    {
+        $viewing = $this->createViewing();
+
+        $this->mock(MailerApiService::class, function ($mock) use ($viewing) {
+            $mock->shouldReceive('post')
+                ->once()
+                ->with('/viewing/send-registered-viewing', \Mockery::on(function (array $payload) use ($viewing) {
+                    return $payload['email'] === 'john@example.com'
+                        && $payload['id'] === (string) $viewing->id
+                        && $payload['language'] === 'bg'
+                        && $payload['name'] === 'John Doe'
+                        && $payload['city'] === 'Amsterdam'
+                        && $payload['address'] === 'Herengracht 1'
+                        && $payload['date'] === '01-06-2027'
+                        && $payload['time'] === '14:00'
+                        && str_starts_with($payload['link'], 'mailto:info@domakin.nl?subject=')
+                        && str_contains(rawurldecode($payload['link']), '01-06-2027 14:00')
+                        && str_contains(rawurldecode($payload['link']), 'Herengracht 1 automation');
+                }))
+                ->andReturn(['ok' => true]);
+        });
+
+        app(ViewingMailerService::class)->sendRegisteredViewing($viewing, 'bg');
     }
 
     public function test_create_attaches_google_calendar_id_to_viewing(): void
