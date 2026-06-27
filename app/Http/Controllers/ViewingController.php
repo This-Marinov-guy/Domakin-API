@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Classes\ApiResponseClass;
 use App\Http\Controllers\Controller;
 use App\Jobs\SendInternalNotificationJob;
+use App\Jobs\SendViewingMailerJob;
 use App\Services\GoogleServices\GoogleSheetsService;
 use App\Services\GoogleServices\GoogleCalendarService;
 use App\Constants\Sheets;
@@ -164,6 +165,7 @@ class ViewingController extends Controller
      *             @OA\Property(property="date", type="string", format="date", example="2025-12-10"),
      *             @OA\Property(property="time", type="string", example="14:00"),
      *             @OA\Property(property="note", type="string", example="Questions for the agent to ask during the viewing"),
+     *             @OA\Property(property="locale", type="string", example="en", description="Website locale used for the client confirmation email"),
      *             @OA\Property(property="interface", type="string", enum={"web", "mobile", "signal"}, example="web", description="Interface source")
      *         )
      *     ),
@@ -310,6 +312,14 @@ class ViewingController extends Controller
             SendInternalNotificationJob::dispatch('New viewing request', 'viewing', $data);
         } catch (Exception $error) {
             Log::error($error->getMessage());
+        }
+
+        try {
+            SendViewingMailerJob::dispatch($viewing->id, (string) ($data['locale'] ?? 'en'));
+        } catch (Exception $error) {
+            Log::error('Error dispatching registered viewing email: ' . $error->getMessage(), [
+                'viewing_id' => $viewing->id ?? null,
+            ]);
         }
 
         return ApiResponseClass::sendSuccess();

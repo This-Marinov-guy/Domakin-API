@@ -106,6 +106,7 @@ class Viewing extends Model
             'date' => 'required|string',
             'time' => 'required|string',
             'note' => 'required|string',
+            'locale' => 'nullable|string|max:10',
             'interface' => 'required|string|in:web,mobile,signal',
         ];
 
