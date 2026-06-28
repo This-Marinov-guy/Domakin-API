@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Classes\ApiResponseClass;
 use App\Files\CloudinaryService;
 use App\Http\Controllers\Controller;
+use App\Jobs\ExportModelToSpreadsheetJob;
 use App\Jobs\SendInternalNotificationJob;
 use App\Models\Career;
 use Illuminate\Http\Request;
@@ -125,6 +126,8 @@ class CareerController extends Controller
         } catch (Exception $error) {
             Log::error('Career notification email failed: ' . $error->getMessage());
         }
+
+        ExportModelToSpreadsheetJob::dispatch(Career::class, 'Careers', ['resume']);
 
         return ApiResponseClass::sendSuccess();
     }
