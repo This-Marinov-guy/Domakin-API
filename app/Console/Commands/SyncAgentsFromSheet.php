@@ -14,12 +14,13 @@ class SyncAgentsFromSheet extends Command
 
     protected $description = 'Sync agents from the configured Google Sheet into the agents table.';
 
-    public function handle(AgentSheetSyncService $syncService): int
+    public function handle(): int
     {
         $dryRun = (bool) $this->option('dry-run');
         $this->info($dryRun ? 'Starting agents sheet sync dry run...' : 'Starting agents sheet sync...');
 
         try {
+            $syncService = app(AgentSheetSyncService::class);
             $summary = $syncService->sync($dryRun, function (string $message, array $context = []): void {
                 $suffix = empty($context)
                     ? ''
