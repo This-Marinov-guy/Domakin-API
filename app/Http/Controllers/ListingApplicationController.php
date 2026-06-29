@@ -430,16 +430,23 @@ class ListingApplicationController extends Controller
         }
 
         $property->load(['personalData', 'propertyData']);
-        try {
-            SendListingMailerJob::dispatch(SendListingMailerJob::ACTION_SUBMITTED_LISTING, [
-                'id' => $property->id,
-                'email' => $property->personalData->email ?? '',
-                'name' => trim(($property->personalData->name ?? '') . ' ' . ($property->personalData->surname ?? '')),
-                'address' => $property->propertyData->address ?? '',
-                'city' => $property->propertyData->city ?? '',
+        $submittedEmail = $property->personalData?->email ?? '';
+        if ($submittedEmail !== '') {
+            try {
+                SendListingMailerJob::dispatch(SendListingMailerJob::ACTION_SUBMITTED_LISTING, [
+                    'id' => $property->id,
+                    'email' => $submittedEmail,
+                    'name' => trim(($property->personalData?->name ?? '') . ' ' . ($property->personalData?->surname ?? '')),
+                    'address' => $property->propertyData?->address ?? '',
+                    'city' => $property->propertyData?->city ?? '',
+                ]);
+            } catch (Exception $error) {
+                Log::error($error->getMessage());
+            }
+        } else {
+            Log::warning('[ListingApplicationController] Skipping submitted listing email: empty email for property', [
+                'property_id' => $property->id,
             ]);
-        } catch (Exception $error) {
-            Log::error($error->getMessage());
         }
 
         try {

@@ -39,7 +39,7 @@ class ListingMailerService
 
     /**
      * Notify mailer to send "submitted listing" email.
-     * Logs errors and does not throw.
+     * Throws on failure so the queue job can retry.
      *
      * @param int $id Property ID
      * @param string $email
@@ -49,17 +49,13 @@ class ListingMailerService
      */
     public function sendSubmittedListing(int $id, string $email, string $name, string $address, string $city): void
     {
-        try {
-            $this->mailerApi->post('/listing/send-submitted-listing', [
-                'email'   => $email,
-                'id'      => $id,
-                'name'    => $name,
-                'address' => $address,
-                'city'    => $city,
-            ]);
-        } catch (Exception $e) {
-            Log::error('Mailer send-submitted-listing failed', ['error' => $e->getMessage()]);
-        }
+        $this->mailerApi->post('/listing/send-submitted-listing', [
+            'email'   => $email,
+            'id'      => $id,
+            'name'    => $name,
+            'address' => $address,
+            'city'    => $city,
+        ]);
     }
 
     /**
