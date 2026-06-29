@@ -249,6 +249,97 @@ class ViewingControllerDirectTest extends TestCase
         app(ViewingMailerService::class)->sendRegisteredViewing($viewing, 'bg');
     }
 
+    public function test_viewing_mailer_sends_approved_viewing_payload(): void
+    {
+        $viewing = $this->createViewing(['locale' => 'bg']);
+
+        $this->mock(MailerApiService::class, function ($mock) use ($viewing) {
+            $mock->shouldReceive('post')
+                ->once()
+                ->with('/viewing/send-approved-viewing', \Mockery::on(function (array $payload) use ($viewing) {
+                    return $payload['email'] === 'john@example.com'
+                        && $payload['id'] === (string) $viewing->id
+                        && $payload['language'] === 'bg'
+                        && $payload['name'] === 'John Doe'
+                        && $payload['city'] === 'Amsterdam'
+                        && $payload['address'] === 'Herengracht 1'
+                        && $payload['date'] === '01-06-2027'
+                        && $payload['time'] === '14:00';
+                }))
+                ->andReturn(['ok' => true]);
+        });
+
+        app(ViewingMailerService::class)->sendApprovedViewing($viewing);
+    }
+
+    public function test_viewing_mailer_sends_rejected_viewing_payload_with_reason(): void
+    {
+        $viewing = $this->createViewing();
+
+        $this->mock(MailerApiService::class, function ($mock) use ($viewing) {
+            $mock->shouldReceive('post')
+                ->once()
+                ->with('/viewing/send-rejected-viewing', \Mockery::on(function (array $payload) use ($viewing) {
+                    return $payload['email'] === 'john@example.com'
+                        && $payload['id'] === (string) $viewing->id
+                        && $payload['language'] === 'en'
+                        && $payload['reason'] === 'Room is no longer available.';
+                }))
+                ->andReturn(['ok' => true]);
+        });
+
+        app(ViewingMailerService::class)->sendRejectedViewing($viewing, 'Room is no longer available.');
+    }
+
+    public function test_viewing_approved_email_endpoint_supports_direct_email_payload(): void
+    {
+        $this->mock(MailerApiService::class, function ($mock) {
+            $mock->shouldReceive('post')
+                ->once()
+                ->with('/viewing/send-approved-viewing', \Mockery::on(fn (array $payload) =>
+                    $payload['email'] === 'info@domaki.nl'
+                    && $payload['id'] === ''
+                    && $payload['language'] === 'en'
+                ))
+                ->andReturn(['ok' => true]);
+        });
+
+        $request = Request::create('/api/v1/viewing/send-approved-email', 'POST', [
+            'email' => 'info@domaki.nl',
+            'language' => 'en',
+        ]);
+
+        $response = app(ViewingController::class)->sendApprovedEmail($request, app(ViewingMailerService::class));
+
+        $payload = $this->assertJsonStatus($response, 200);
+        $this->assertTrue($payload['status']);
+    }
+
+    public function test_viewing_rejected_email_endpoint_supports_direct_email_payload_with_reason(): void
+    {
+        $this->mock(MailerApiService::class, function ($mock) {
+            $mock->shouldReceive('post')
+                ->once()
+                ->with('/viewing/send-rejected-viewing', \Mockery::on(fn (array $payload) =>
+                    $payload['email'] === 'info@domaki.nl'
+                    && $payload['language'] === 'bg'
+                    && $payload['reason'] === 'Test reason'
+                ))
+                ->andReturn(['ok' => true]);
+        });
+
+        $request = Request::create('/api/v1/viewing/send-rejected-email', 'POST', [
+            'email' => 'info@domaki.nl',
+            'language' => 'bg',
+            'reason' => 'Test reason',
+        ]);
+
+        $response = app(ViewingController::class)->sendRejectedEmail($request, app(ViewingMailerService::class));
+
+        $payload = $this->assertJsonStatus($response, 200);
+        $this->assertTrue($payload['status']);
+    }
+
     public function test_create_attaches_google_calendar_id_to_viewing(): void
     {
         $this->mockGoogleSheetsService();

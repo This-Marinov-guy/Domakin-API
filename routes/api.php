@@ -56,10 +56,13 @@ Route::prefix('v1')->group(function () {
         Route::get('/details/{id}', [ViewingController::class, 'details'])->middleware('auth.role:admin');
         Route::post('/create', [ViewingController::class, 'create']);
         Route::patch('/edit', [ViewingController::class, 'edit'])->middleware('auth.role:admin');
+        Route::post('/send-approved-email', [ViewingController::class, 'sendApprovedEmail'])->middleware('auth.role:admin');
+        Route::post('/send-rejected-email', [ViewingController::class, 'sendRejectedEmail'])->middleware('auth.role:admin');
     });
 
     Route::prefix('renting')->group(function () {
         Route::post('/searching/create', [SearchRentingController::class, 'create']);
+        Route::post('/searching/send-applied-email', [SearchRentingController::class, 'sendAppliedEmail'])->middleware('auth.role:admin');
         Route::get('/searching/list-by-city', [SearchRentingController::class, 'listByCity'])->middleware('auth.role:admin');
         Route::post('/searching/promote', [SearchRentingController::class, 'promote'])->middleware('auth.role:admin');
         Route::post('/create', [RentingController::class, 'create'])->middleware('domain.whitelist');

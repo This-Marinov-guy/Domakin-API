@@ -8,9 +8,11 @@ use App\Files\CloudinaryService;
 use App\Http\Controllers\Controller;
 use App\Jobs\ExportModelToSpreadsheetJob;
 use App\Jobs\SendInternalNotificationJob;
+use App\Jobs\SendSearchRentingMailerJob;
 use App\Models\Property;
 use App\Models\Renting;
 use App\Models\SearchRenting;
+use App\Services\SearchRentingMailerService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Services\GoogleServices\GoogleSheetsService;
@@ -139,7 +141,7 @@ class SearchRentingController extends Controller
         }
 
         try {
-            SearchRenting::create($data);
+            $searchRenting = SearchRenting::create($data);
         } catch (Exception $error) {
             return ApiResponseClass::sendError($error->getMessage());
         }
@@ -170,7 +172,51 @@ class SearchRentingController extends Controller
             Log::error($error->getMessage());
         }
 
+        try {
+            SendSearchRentingMailerJob::dispatch($searchRenting->id);
+        } catch (Exception $error) {
+            Log::error('Error dispatching room searching applied email: ' . $error->getMessage(), [
+                'search_renting_id' => $searchRenting->id ?? null,
+            ]);
+        }
+
         return ApiResponseClass::sendSuccess();
+    }
+
+    public function sendAppliedEmail(Request $request, SearchRentingMailerService $searchRentingMailer): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'id' => 'nullable|integer|exists:search_rentings,id',
+            'email' => 'required_without:id|nullable|string|email',
+            'locale' => 'nullable|string|max:10',
+            'language' => 'nullable|string|max:10',
+        ]);
+
+        if ($validator->fails()) {
+            return ApiResponseClass::sendInvalidFields($validator->errors()->toArray());
+        }
+
+        try {
+            if ($request->filled('id')) {
+                $searchRenting = SearchRenting::findOrFail((int) $request->get('id'));
+                $searchRentingMailer->sendRoomSearchingApplied($searchRenting);
+            } else {
+                $searchRentingMailer->sendRoomSearchingAppliedEmail(
+                    (string) $request->get('email'),
+                    (string) ($request->get('language') ?: $request->get('locale') ?: 'en'),
+                );
+            }
+        } catch (Exception $error) {
+            Log::error('Room searching applied email endpoint failed', [
+                'id' => $request->get('id'),
+                'email' => $request->get('email'),
+                'error' => $error->getMessage(),
+            ]);
+
+            return ApiResponseClass::sendError('Could not send room searching applied email.');
+        }
+
+        return ApiResponseClass::sendSuccess([], 'Room searching applied email sent.');
     }
 
     public function listByCity(Request $request): JsonResponse

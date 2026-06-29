@@ -13,6 +13,7 @@ use App\Constants\Payments;
 use App\Models\Viewing;
 use App\Services\Helpers;
 use App\Services\UserService;
+use App\Services\ViewingMailerService;
 use App\Services\ViewingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -371,5 +372,87 @@ class ViewingController extends Controller
         }
 
         return ApiResponseClass::sendSuccess($viewing);
+    }
+
+    public function sendApprovedEmail(Request $request, ViewingMailerService $viewingMailer): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'id' => 'nullable|integer|exists:viewings,id',
+            'email' => 'required_without:id|nullable|string|email',
+            'locale' => 'nullable|string|max:10',
+            'language' => 'nullable|string|max:10',
+        ]);
+
+        if ($validator->fails()) {
+            return ApiResponseClass::sendInvalidFields($validator->errors()->toArray());
+        }
+
+        try {
+            if ($request->filled('id')) {
+                $viewing = Viewing::findOrFail((int) $request->get('id'));
+                $viewingMailer->sendApprovedViewing(
+                    $viewing,
+                    (string) ($request->get('language') ?: $request->get('locale') ?: $viewing->locale ?: 'en'),
+                );
+            } else {
+                $viewingMailer->sendApprovedViewingEmail(
+                    (string) $request->get('email'),
+                    (string) ($request->get('language') ?: $request->get('locale') ?: 'en'),
+                );
+            }
+        } catch (Exception $error) {
+            Log::error('Approved viewing email endpoint failed', [
+                'id' => $request->get('id'),
+                'email' => $request->get('email'),
+                'error' => $error->getMessage(),
+            ]);
+
+            return ApiResponseClass::sendError('Could not send approved viewing email.');
+        }
+
+        return ApiResponseClass::sendSuccess([], 'Approved viewing email sent.');
+    }
+
+    public function sendRejectedEmail(Request $request, ViewingMailerService $viewingMailer): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'id' => 'nullable|integer|exists:viewings,id',
+            'email' => 'required_without:id|nullable|string|email',
+            'locale' => 'nullable|string|max:10',
+            'language' => 'nullable|string|max:10',
+            'reason' => 'nullable|string',
+        ]);
+
+        if ($validator->fails()) {
+            return ApiResponseClass::sendInvalidFields($validator->errors()->toArray());
+        }
+
+        try {
+            if ($request->filled('id')) {
+                $viewing = Viewing::findOrFail((int) $request->get('id'));
+                $viewingMailer->sendRejectedViewing(
+                    $viewing,
+                    $request->filled('reason') ? (string) $request->get('reason') : null,
+                    (string) ($request->get('language') ?: $request->get('locale') ?: $viewing->locale ?: 'en'),
+                );
+            } else {
+                $viewingMailer->sendRejectedViewingEmail(
+                    (string) $request->get('email'),
+                    (string) ($request->get('language') ?: $request->get('locale') ?: 'en'),
+                    null,
+                    $request->filled('reason') ? (string) $request->get('reason') : null,
+                );
+            }
+        } catch (Exception $error) {
+            Log::error('Rejected viewing email endpoint failed', [
+                'id' => $request->get('id'),
+                'email' => $request->get('email'),
+                'error' => $error->getMessage(),
+            ]);
+
+            return ApiResponseClass::sendError('Could not send rejected viewing email.');
+        }
+
+        return ApiResponseClass::sendSuccess([], 'Rejected viewing email sent.');
     }
 }

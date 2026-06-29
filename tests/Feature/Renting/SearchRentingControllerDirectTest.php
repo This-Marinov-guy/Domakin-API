@@ -7,9 +7,12 @@ use App\Files\CloudinaryService;
 use App\Http\Controllers\SearchRentingController;
 use App\Jobs\ExportModelToSpreadsheetJob;
 use App\Jobs\SendInternalNotificationJob;
+use App\Jobs\SendSearchRentingMailerJob;
 use App\Models\Property;
 use App\Models\PropertyData;
 use App\Services\GoogleServices\GoogleSheetsService;
+use App\Services\MailerApiService;
+use App\Services\SearchRentingMailerService;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -39,7 +42,7 @@ class SearchRentingControllerDirectTest extends TestCase
             'pets_allowed' => false,
             'smoking_allowed' => false,
             'size' => 20,
-            'period' => '12 months',
+            'period' => '{"en":"12 months"}',
             'rent' => '1200',
             'furnished_type' => 1,
             'bathrooms' => 1,
@@ -50,7 +53,7 @@ class SearchRentingControllerDirectTest extends TestCase
             'flatmates' => '[]',
             'registration' => true,
             'description' => '{"en":"Nice room"}',
-            'title' => 'Room in Amsterdam',
+            'title' => '{"en":"Room in Amsterdam"}',
             'images' => 'room.jpg',
         ]);
 
@@ -293,6 +296,8 @@ class SearchRentingControllerDirectTest extends TestCase
             return $job->modelClass === \App\Models\SearchRenting::class
                 && $job->sheetName === 'Search Rentings';
         });
+
+        Queue::assertPushed(SendSearchRentingMailerJob::class);
     }
 
     public function test_create_sends_search_renting_notification_when_no_linked_property_is_provided(): void
@@ -322,5 +327,61 @@ class SearchRentingControllerDirectTest extends TestCase
                 && !array_key_exists('property', $job->data)
                 && !array_key_exists('address', $job->data);
         });
+    }
+
+    public function test_search_renting_mailer_sends_room_searching_applied_payload(): void
+    {
+        $searchRenting = \App\Models\SearchRenting::create([
+            'name' => 'Jane',
+            'surname' => 'Smith',
+            'phone' => '+31698765432',
+            'email' => 'jane@example.com',
+            'people' => 2,
+            'type' => 'room',
+            'move_in' => '2027-06-01',
+            'period' => '12 months',
+            'registration' => 'true',
+            'budget' => 1200,
+            'city' => 'Amsterdam',
+            'locale' => 'bg',
+            'interface' => 'web',
+        ]);
+
+        $this->mock(MailerApiService::class, function ($mock) use ($searchRenting) {
+            $mock->shouldReceive('post')
+                ->once()
+                ->with('/room/send-room-searching-applied', \Mockery::on(function (array $payload) use ($searchRenting) {
+                    return $payload['email'] === 'jane@example.com'
+                        && $payload['id'] === (string) $searchRenting->id
+                        && $payload['language'] === 'bg';
+                }))
+                ->andReturn(['ok' => true]);
+        });
+
+        app(SearchRentingMailerService::class)->sendRoomSearchingApplied($searchRenting);
+    }
+
+    public function test_search_renting_applied_email_endpoint_supports_direct_email_payload(): void
+    {
+        $this->mock(MailerApiService::class, function ($mock) {
+            $mock->shouldReceive('post')
+                ->once()
+                ->with('/room/send-room-searching-applied', \Mockery::on(fn (array $payload) =>
+                    $payload['email'] === 'info@domaki.nl'
+                    && $payload['id'] === ''
+                    && $payload['language'] === 'en'
+                ))
+                ->andReturn(['ok' => true]);
+        });
+
+        $request = Request::create('/api/v1/renting/searching/send-applied-email', 'POST', [
+            'email' => 'info@domaki.nl',
+            'language' => 'en',
+        ]);
+
+        $response = app(SearchRentingController::class)->sendAppliedEmail($request, app(SearchRentingMailerService::class));
+
+        $payload = $this->assertJsonStatus($response, 200);
+        $this->assertTrue($payload['status']);
     }
 }
